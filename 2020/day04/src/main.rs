@@ -77,7 +77,7 @@ fn load<'a>(passports: &'a str, validate: bool) -> Vec<Passport> {
 }
 
 fn parse_year(s: &str, min: u32, max: u32) -> Option<u32> {
-    let check_year = |v, min, max| (v >= min && v <= max).then(|| v);
+    let check_year = |v, min, max| (v >= min && v <= max).then_some(v);
     if s.len() == 4 {
         s.parse::<u32>().ok().and_then(|v| check_year(v, min, max))
     } else {
@@ -86,7 +86,7 @@ fn parse_year(s: &str, min: u32, max: u32) -> Option<u32> {
 }
 
 fn parse_height(s: &str) -> Option<&str> {
-    let check_height = |v, min, max| (v >= min && v <= max).then(|| v);
+    let check_height = |v, min, max| (v >= min && v <= max).then_some(v);
     if s.len() >= 4 {
         let amt  = &s[..s.len()-2];
         let unit = &s[s.len()-2..];
@@ -104,7 +104,7 @@ fn parse_height(s: &str) -> Option<&str> {
 }
 
 fn parse_hair_color(s: &str) -> Option<&str> {
-    if s.len() == 7 && s.as_bytes().get(0) == Some(&b'#') {
+    if s.len() == 7 && s.as_bytes().first() == Some(&b'#') {
         for c in s.bytes().skip(1) {
             match c {
                 b'a'..=b'f' => {},
@@ -133,7 +133,7 @@ fn parse_passport_id(s: &str) -> Option<&str> {
 }
 
 fn parse_eye_color<'a>(colors: &HashSet<&str>, s: &'a str) -> Option<&'a str> {
-    colors.contains(s).then(|| s) 
+    colors.contains(s).then_some(s) 
 }
 
 

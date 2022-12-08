@@ -36,7 +36,7 @@ fn part_two(program: &[Cmd]) -> i32 {
 
     let len = program.len();
     for (i, cmd) in program.iter().enumerate() {
-        let mut v: Vec<_> = program.iter().copied().collect();
+        let mut v: Vec<_> = program.to_vec();
         match cmd {
             Cmd::Acc(_) => {},
             Cmd::Nop(n) => { v[i] = Cmd::Jmp(*n) },

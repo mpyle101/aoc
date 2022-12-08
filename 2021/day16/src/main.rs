@@ -6,24 +6,24 @@ fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
     let packets = load(&input);
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let versions = part_one(&packets);
-    let t2 = Instant::now();
-    println!("Part 1: {} {:?}", versions, t2 - t1);
+    println!("Part 1: {} {:?}", versions, t.elapsed());
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let value = part_two(&packets);
-    let t2 = Instant::now();
-    println!("Part 2: {} {:?}", value, t2 - t1);
+    println!("Part 2: {} {:?}", value, t.elapsed());
 }
 
 fn load(input: &str) -> Vec<u8> {
     let offset = b'A' - 10;
 
-    input.as_bytes().iter().map(|&b| {
-        let v = if b < b'A' { b - b'0' } else { b - offset };
-        (0..4).rev().map(move |n| (v & (1 << n) != 0) as u8)
-    }).flatten().collect::<Vec<_>>()
+    input.as_bytes().iter()
+        .flat_map(|&b| {
+            let v = if b < b'A' { b - b'0' } else { b - offset };
+            (0..4).rev().map(move |n| (v & (1 << n) != 0) as u8)
+        })
+        .collect::<Vec<_>>()
 }
 
 #[derive(Debug)]

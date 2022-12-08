@@ -18,7 +18,7 @@ fn part_one(moves: &str) -> i32 {
     let dest = moves.lines()
         .fold((0i32, 0i32), |acc, line| {
             let cmd = line.as_bytes()[0];
-            let val = (&line[1..]).parse::<i32>().unwrap();
+            let val = (line[1..]).parse::<i32>().unwrap();
 
             match cmd {
                 b'N' => (acc.0, acc.1 - val),
@@ -39,7 +39,7 @@ fn part_two(moves: &str) -> i32 {
     let (ship, _) = moves.lines()
         .fold(((0, 0), (10, -1)), |(ship, wp), line| {
             let cmd = line.as_bytes()[0];
-            let val = (&line[1..]).parse::<i32>().unwrap();
+            let val = (line[1..]).parse::<i32>().unwrap();
 
             match cmd {
                 b'N' => (ship, (wp.0, wp.1 - val)),

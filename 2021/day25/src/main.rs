@@ -47,7 +47,7 @@ fn step_east(mat: &Matrix<char>) -> Option<Matrix<char>> {
             }
         });
 
-    moved.then(|| m)
+    moved.then_some(m)
 }
 
 fn step_south(mat: &Matrix<char>) -> Option<Matrix<char>> {
@@ -65,7 +65,7 @@ fn step_south(mat: &Matrix<char>) -> Option<Matrix<char>> {
             }
         });
 
-    moved.then(|| m)
+    moved.then_some(m)
 }
 
 #[allow(dead_code)]

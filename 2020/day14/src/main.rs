@@ -137,7 +137,7 @@ fn generate_combination(len: usize, v: Vec<u8>, c: &mut Vec<Vec<u8>>) {
     } else {
         let mut w = v.clone(); w.push(b'0');
         generate_combination(len - 1, w, c);
-        let mut w = v.clone(); w.push(b'1');
+        let mut w = v; w.push(b'1');
         generate_combination(len - 1, w, c);
     }
 }

@@ -69,7 +69,7 @@ fn doit(cards: &[i32], boards: &mut Vec<Vec<(i32, bool)>>) -> (i32, i32) {
 
 fn mark(n: &i32, boards: &mut [Vec<(i32, bool)>]) {
     boards.iter_mut().for_each(|b| {
-        b.iter_mut().for_each(|t| (*t).1 = t.1 | (t.0 == *n));
+        b.iter_mut().for_each(|t| (t).1 |= t.0 == *n);
     })
 }
 

@@ -16,7 +16,7 @@ fn load(input: &str) -> HashSet<Point> {
         .flat_map(|(y, l)| l.as_bytes().iter()
             .enumerate()
             .filter_map(move |(x, &b)|
-                (b == b'#').then(|| Point(x as i32, y as i32, 0, 0))
+                (b == b'#').then_some(Point(x as i32, y as i32, 0, 0))
             )
         ).collect()
 }

@@ -66,7 +66,7 @@ impl Cuboid {
             Cuboid::new(b.x1, b.x2, b.y1, b.y2, b.z2, a.z2),
         ]
         .iter()
-        .filter_map(|c| c.is_valid().then(|| *c))
+        .filter_map(|c| c.is_valid().then_some(*c))
         .collect()
     }
 }
@@ -136,10 +136,10 @@ fn part_two(steps: &[Step]) -> u64 {
     let a = Cuboid::new(s1.x.0, s1.x.1+1, s1.y.0, s1.y.1+1, s1.z.0, s1.z.1+1);
     steps.iter().skip(1).fold(vec![a], |v, s| {
         let a = Cuboid::new(s.x.0, s.x.1+1, s.y.0, s.y.1+1, s.z.0, s.z.1+1);
-        let mut n = v.iter().map(|b| {
+        let mut n = v.iter().flat_map(|b| {
             let c = a | *b;
             if c.is_valid() { b.punch(&c) } else { vec![*b] }
-        }).flatten().collect::<Vec<_>>();
+        }).collect::<Vec<_>>();
         if s.a { n.push(a) }
         n
     })

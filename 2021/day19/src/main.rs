@@ -89,12 +89,11 @@ fn load(input: &str) -> Vec<Report> {
 
         let mut deltas = beacons.iter()
             .enumerate()
-            .map(|(i, p1)| beacons[i+1..].iter()
+            .flat_map(|(i, p1)| beacons[i+1..].iter()
                 .enumerate()
                 .map(|(j, p2)| (delta(p1, p2), i, j+i+1))
                 .collect::<Vec<_>>()
             )
-            .flatten()
             .collect::<Vec<_>>();
         deltas.sort_unstable();
 
@@ -103,7 +102,7 @@ fn load(input: &str) -> Vec<Report> {
 }
 
 fn part_one(reports: &[Report]) -> (i32, Vec<Scanner>) {
-    // For part one seed a queue with all the reports except the first one
+    // For part one: seed a queue with all the reports except the first one
     // which is used to seed the list of known scanners. A scanner has a
     // known origin and a list of beacons relative to it's origin but rotated
     // to the perspective of Scanner 0.
@@ -220,7 +219,7 @@ fn find_matches<'a>(scanners: &'a [Scanner], report: &Report) -> Option<Correlat
     scanners.iter().find_map(|s| {
         let matches = get_matches(&s.deltas, &report.deltas);
         let v = correlate(&matches, 6);
-        (v.len() > 11).then(|| (s, v))
+        (v.len() > 11).then_some((s, v))
     })
 }
 
@@ -263,7 +262,7 @@ fn correlate(matches: &[(Delta, Delta)], threshold: i32) -> Vec<((usize, usize),
     });
 
     let mut counts = map.iter()
-        .filter_map(|e| (*e.1 > threshold).then(|| (*e.0, *e.1)))
+        .filter_map(|e| (*e.1 > threshold).then_some((*e.0, *e.1)))
         .collect::<Vec<_>>();
     counts.sort_by(|a, b| b.1.cmp(&a.1));
 

@@ -28,6 +28,8 @@ fn load(input: &str) -> Vec<Vec<usize>> {
 }
 
 fn part_one(decks: &[Vec<usize>]) -> usize {
+    use std::cmp::Ordering;
+    
     let mut deck1: Deck = decks[0].iter().cloned().collect();
     let mut deck2: Deck = decks[1].iter().cloned().collect();
 
@@ -35,14 +37,10 @@ fn part_one(decks: &[Vec<usize>]) -> usize {
         let card1 = deck1.pop_front().unwrap();
         let card2 = deck2.pop_front().unwrap();
 
-        if card1 > card2 {
-            deck1.push_back(card1);
-            deck1.push_back(card2);
-        } else if card2 > card1 {
-            deck2.push_back(card2);
-            deck2.push_back(card1);
-        } else {
-            panic!("Matching cards!")
+        match card1.cmp(&card2) {
+            Ordering::Greater => { deck1.push_back(card1); deck1.push_back(card2) },
+            Ordering::Less    => { deck2.push_back(card2); deck2.push_back(card1); }
+            Ordering::Equal   => panic!("Matching cards!")
         }
     }
 

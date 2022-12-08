@@ -61,7 +61,7 @@ fn part_one(events: &[Event]) -> u32 {
         .unwrap();
 
     let gid = *guards.iter()
-        .find_map(|(k, &v)| (v == row).then(||k))
+        .find_map(|(k, &v)| (v == row).then_some(k))
         .unwrap();
 
     col as u32 * gid
@@ -102,7 +102,7 @@ fn part_two(events: &[Event]) -> u32 {
     let ((row, col), _) = heatmap.indexed_iter()
         .fold(((0, 0), &0), |acc, g| if *g.1 > *acc.1 { g } else { acc });
     let gid = *guards.iter()
-        .find_map(|(k, &v)| (v == row).then(||k))
+        .find_map(|(k, &v)| (v == row).then_some(k))
         .unwrap();
 
     col as u32 * gid

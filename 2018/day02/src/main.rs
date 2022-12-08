@@ -3,15 +3,13 @@ fn main() {
 
     let input = include_str!("./input.txt");
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let checksum = part_one(input);
-    let t2 = Instant::now();
-    println!("Part 1: {checksum} ({:?})", t2 - t1);
+    println!("Part 1: {checksum} ({:?})", t.elapsed());
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let letters = part_two(input);
-    let t2 = Instant::now();
-    println!("Part 2: {letters} ({:?})", t2 - t1);
+    println!("Part 2: {letters} ({:?})", t.elapsed());
 }
 
 fn part_one(boxes: &str) -> u32 {
@@ -41,24 +39,24 @@ fn part_one(boxes: &str) -> u32 {
 fn part_two(boxes: &str) -> String {
     use itertools::Itertools;
 
-    let m: Vec<_> = boxes.lines()
+    let m = boxes.lines()
         .combinations(2)
         .map(|v| (v[0].as_bytes(), v[1].as_bytes()))
-        .collect();
+        .collect::<Vec<_>>();
 
     let v = (0..26).fold(vec![0;m.len()], |mut v, i| {
         v.iter_mut()
             .enumerate()
             .for_each(|(n, v)| {
                 let (v1, v2) = m[n];
-                *v += if v1[i] != v2[i] { 1 } else { 0 };
+                *v += i32::from(v1[i] != v2[i]);
             });
         v
     });
 
     let (v1, v2) = m[v.iter().position(|n| *n == 1).unwrap()];
     v1.iter().zip(v2.iter())
-        .filter_map(|(c1, c2)| (c1 == c2).then(|| *c1 as char))
+        .filter_map(|(c1, c2)| (c1 == c2).then_some(*c1 as char))
         .collect()
 }
 
@@ -71,10 +69,10 @@ mod tests {
   fn it_works() {
     let input = include_str!("./input.txt");
 
-    let checksum = part_one(&input);
+    let checksum = part_one(input);
     assert_eq!(checksum, 5368);
 
-    let letters = part_two(&input);
+    let letters = part_two(input);
     assert_eq!(letters, "cvgywxqubnuaefmsljdrpfzyi");
   }
 }

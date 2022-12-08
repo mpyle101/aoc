@@ -3,21 +3,20 @@ fn main() {
 
     let input = include_str!("./input.txt");
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let units = part_one(input);
-    let t2 = Instant::now();
-    println!("Part 1: {}  ({:?})", units.len(), t2 - t1);
+    println!("Part 1: {}  ({:?})", units.len(), t.elapsed());
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let units = part_two(&units);
-    let t2 = Instant::now();
-    println!("Part 2: {}  ({:?})", units, t2 - t1);
+    println!("Part 2: {}  ({:?})", units, t.elapsed());
 }
 
 fn part_one(input: &str) -> Vec<u8> {
     reduce(input.as_bytes().iter().cloned())
 }
 
+#[allow(clippy::almost_complete_letter_range)]
 fn part_two(input: &[u8]) -> usize {
     (b'a'..b'z').map(|b| {
         let polymer = input.iter().cloned().filter(|&v| v | 32 != b);

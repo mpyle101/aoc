@@ -13,15 +13,13 @@ fn main() {
 
     let (units, tiles) = load(include_str!("./input.txt"));
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let score = part_one(&units, &tiles);
-    let t2 = Instant::now();
-    println!("Part 1: {score}  ({:?})", t2 - t1);
+    println!("Part 1: {score}  ({:?})", t.elapsed());
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let score = part_two(&units, &tiles);
-    let t2 = Instant::now();
-    println!("Part 2: {score}  ({:?})", t2 - t1);
+    println!("Part 2: {score}  ({:?})", t.elapsed());
 }
 
 type Tile = (i32, i32);             // (row, col)
@@ -158,7 +156,7 @@ fn do_move(
 
 fn enemies(actor: &Unit, units: &Units) -> Vec<(Tile, i32)> {
     units.iter()
-        .filter_map(|(k, v)| (v.1 != actor.1).then(|| (*k, v.0)))
+        .filter_map(|(k, v)| (v.1 != actor.1).then_some((*k, v.0)))
         .collect()
 }
 
@@ -171,8 +169,7 @@ fn in_range(pos: &Tile, targets: &[(Tile, i32)]) -> Vec<(Tile, i32)> {
 
 fn find_adjacent(targets: &[(Tile, i32)], units: &Units, tiles: &Tiles) -> Vec<Tile> {
     let mut adjacent = targets.iter()
-        .map(|(tile, _)| open_tiles(tile, units, tiles))
-        .flatten()
+        .flat_map(|(tile, _)| open_tiles(tile, units, tiles))
         .collect::<Vec<_>>();
 
     // Sort so tiles are in "reading order".
@@ -185,20 +182,14 @@ fn find_reachable(pos: &Tile, adjacent: &[Tile], units: &Units, tiles: &Tiles) -
     use pathfinding::prelude::bfs;
 
     adjacent.iter()
-        .filter_map(|tile| 
-            bfs(pos, |p| open_tiles(p, units, tiles), |p| p == tile)
-        )
+        .filter_map(|tile| bfs(pos, |p| open_tiles(p, units, tiles), |p| p == tile))
         .collect()
 }
 
 fn open_tiles((r, c): &Tile, units: &Units, tiles: &Tiles) -> Vec<Tile> {
     DELTA.iter().filter_map(move |(dr, dc)| {
         let tile = (r + dr, c + dc);
-        if tiles.contains(&tile) && !units.contains_key(&tile) {
-            Some(tile)
-        } else {
-            None
-        }
+        (tiles.contains(&tile) && !units.contains_key(&tile)).then_some(tile)
     })
     .collect()
 }

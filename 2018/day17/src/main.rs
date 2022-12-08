@@ -4,17 +4,14 @@ fn main() {
     use std::time::Instant;
 
     let clay = load(include_str!("./input.txt"));
-
-    let t1 = Instant::now();
+    
+    let t = Instant::now();
     let water = part_one(&clay);
-    let t2 = Instant::now();
-    println!("Part 1: {}  ({:?})", water, t2 - t1);
+    println!("Part 1: {}  ({:?})", water, t.elapsed());
 
-    let clay = load(include_str!("./input.txt"));
-    let t1 = Instant::now();
+    let t = Instant::now();
     let water = part_two(&clay);
-    let t2 = Instant::now();
-    println!("Part 2: {}  ({:?})", water, t2 - t1);
+    println!("Part 2: {}  ({:?})", water, t.elapsed());
 }
 
 type Edges = HashSet<(char, (i32, i32))>;
@@ -23,7 +20,7 @@ type Water = HashMap<(i32, i32), char>;
 type Stack = Vec<(i32, i32)>;
 
 fn load(input: &str) -> Clay {
-    let clay = input.lines().map(|l| {
+    let clay = input.lines().flat_map(|l| {
         let v = l.split(", ")
             .map(|s| s.split('=').collect::<Vec<_>>())
             .collect::<Vec<_>>();
@@ -41,7 +38,6 @@ fn load(input: &str) -> Clay {
             (r1..=r2).map(|x| (x, av)).collect::<Vec<_>>()
         }
     })
-    .flatten()
     .collect();
 
     clay

@@ -18,17 +18,14 @@ macro_rules! priority {
     ($s1:expr, $($arr:expr),+) => {{
         let mut iter = $s1.chars();
         loop {
-            let c = match iter.next() {
+            match iter.next() {
                 Some(b) => 
                     if [$($arr),+].iter().all(|s| s.contains(b)) { 
-                        b as u8 
-                    } else { 
-                        continue
+                        let c = b as u8;
+                        break (if c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 }) as i32
                     }, 
                 None => panic!("Common type not found!")
-            };
-
-            break (if c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 }) as i32
+            }
         }
     }};
 }

@@ -33,28 +33,25 @@ fn part_two(input: &str) -> usize {
 fn calc_sizes(input: &str) -> HashMap<String, usize> {
     let mut pwd = vec!["/"];
 
-    input.split('$')
-        .map(|s| s.split_whitespace().collect::<Vec<_>>() )
-        .filter(|v| !v.is_empty())
-        .fold(HashMap::new(), |mut sizes, v| {
-            if v[0] == "cd" {
-                match v[1] {
+    input.lines()
+        .fold(HashMap::new(), |mut sizes, s| {
+            if s.starts_with("$ c") {
+                match &s[5..] {
                     "/"  => pwd = vec!["/"],
                     ".." => { pwd.pop(); },
-                    _    => pwd.push(v[1])
+                    dir  => pwd.push(dir)
                 }
             } else {
-                let mut iter = v.iter().skip(1);
-                while let Some(s) = iter.next() {
-                    if *s != "dir" {
-                        let size = s.parse::<usize>().unwrap();
-                        (0..pwd.len())
-                            .for_each(|i| {
+                let c = s.chars().next().unwrap();
+                if c != '$' && c != 'd' {
+                    if let Some((n, _)) = s.split_once(' ') {
+                        if let Ok(size) = n.parse::<usize>() {
+                            (0..pwd.len()).for_each(|i| {
                                 let path = pwd[..i+1].join("/");
                                 *sizes.entry(path).or_insert(0) += size;
-                            });
+                            })
+                        }
                     }
-                    iter.next();
                 }
             }
 

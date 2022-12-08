@@ -4,18 +4,7 @@ fn main() {
     use std::time::Instant;
 
     let aunts = load(include_str!("./input.txt"));
-    let clues = [
-        ("children:", 3),
-        ("cats:", 7),
-        ("samoyeds:", 2),
-        ("pomeranians:", 3),
-        ("akitas:", 0),
-        ("vizslas:", 0),
-        ("goldfish:", 5),
-        ("trees:", 3),
-        ("cars:", 2),
-        ("perfumes:", 1),
-    ];
+    let clues = sues_clues();
 
     let t = Instant::now();
     let sue = part_one(&aunts, &clues);
@@ -69,6 +58,21 @@ fn part_two(aunts: &[HashMap<&str, i32>], clues: &[(&str, i32); 10]) -> i32 {
     *sue.first().unwrap().get("no").unwrap()
 }
 
+fn sues_clues() -> [(&'static str, i32); 10] {
+    [
+        ("children:", 3),
+        ("cats:", 7),
+        ("samoyeds:", 2),
+        ("pomeranians:", 3),
+        ("akitas:", 0),
+        ("vizslas:", 0),
+        ("goldfish:", 5),
+        ("trees:", 3),
+        ("cars:", 2),
+        ("perfumes:", 1),
+    ]
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -77,18 +81,7 @@ mod tests {
   #[test]
   fn it_works() {
     let aunts = load(include_str!("./input.txt"));
-    let clues = [
-        ("children:", 3),
-        ("cats:", 7),
-        ("samoyeds:", 2),
-        ("pomeranians", 3),
-        ("akitas:", 0),
-        ("vizslas:", 0),
-        ("goldfish:", 5),
-        ("trees:", 3),
-        ("cars:", 2),
-        ("perfumes:", 1),
-    ];
+    let clues = sues_clues();
 
     let sue = part_one(&aunts, &clues);
     assert_eq!(sue, 103);

@@ -13,49 +13,26 @@ fn main() {
     println!("Part 2: {} ({:?})", offset, t.elapsed());
 }
 
-fn part_one(input: &str) -> i32 {
-    let mut buf: [char;4] = [' ';4];
-
-    input.chars()
-        .take(4)
-        .enumerate()
-        .for_each(|(i, c)| buf[i] = c);
-
-    let mut offset = 0;
-    let mut iter = input.chars().skip(4);
-    while !is_marker(&buf, 4) {
-        buf.rotate_left(1);
-        buf[3] = iter.next().unwrap();
-        offset += 1;
-    }
-
-    offset + 4
+fn part_one(input: &str) -> usize {
+    find_offset(input, 4)
 }
 
-fn part_two(input: &str) -> i32 {
-    let mut buf: [char;14] = [' ';14];
-
-    input.chars()
-        .take(14)
-        .enumerate()
-        .for_each(|(i, c)| buf[i] = c);
-
-    let mut offset = 0;
-    let mut iter = input.chars().skip(14);
-    while !is_marker(&buf, 14) {
-        buf.rotate_left(1);
-        buf[13] = iter.next().unwrap();
-        offset += 1;
-    }
-
-    offset + 14
+fn part_two(input: &str) -> usize {
+    find_offset(input, 14)
 }
 
-fn is_marker(buf: &[char], count: usize) -> bool {
+fn find_offset(input: &str, n: usize) -> usize {
+    input.as_bytes()
+        .windows(n)
+        .take_while(|w| !is_marker(w))
+        .count() + n
+}
+
+fn is_marker(buf: &[u8]) -> bool {
     use std::collections::HashSet;
 
-    let set: HashSet<&char> = HashSet::from_iter(buf.iter());
-    set.len() == count
+    let unique: HashSet<&u8> = HashSet::from_iter(buf);
+    unique.len() == buf.len()
 }
 
 #[cfg(test)]

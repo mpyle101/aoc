@@ -3,42 +3,41 @@ fn main() {
     use std::time::Instant;
 
     let input = fs::read_to_string("./input.txt").unwrap();
-    let phrases = load(&input);
 
-    let t1 = Instant::now();
-    let valid = part_one(&phrases);
-    let t2 = Instant::now();
-    println!("Part 1: {} {:?}", valid, t2 - t1);
+    let t = Instant::now();
+    let valid = part_one(&input);
+    println!("Part 1: {} {:?}", valid, t.elapsed());
 
-    let t1 = Instant::now();
-    let valid = part_two(&phrases);
-    let t2 = Instant::now();
-    println!("Part 2: {} {:?}", valid, t2 - t1);
+    let t = Instant::now();
+    let valid = part_two(&input);
+    println!("Part 2: {} {:?}", valid, t.elapsed());
 }
 
-fn load(input: &str) -> Vec<&str> {
-    input.lines().collect()
-}
-
-fn part_one(phrases: &[&str]) -> i32 {
+fn part_one(input: &str) -> i32 {
     use std::collections::HashSet;
 
-    phrases.iter().map(|s| {
-        let words: Vec<_> = s.split(' ').collect();
-        let unique = HashSet::<&&str>::from_iter(words.iter());
-        unique.len() == words.len()
-    }).filter(|valid| *valid).count() as i32
+    input.lines()
+        .map(|s| {
+            let words  = s.split(' ').collect::<Vec<_>>();
+            let unique = HashSet::<&&str>::from_iter(words.iter());
+            unique.len() == words.len()
+        })
+        .filter(|valid| *valid)
+        .count() as i32
 }
 
-fn part_two(phrases: &[&str]) -> i32 {
+fn part_two(input: &str) -> i32 {
     use itertools::Itertools;
 
-    phrases.iter().map(|s| {
-        s.split(' ').combinations(2).any(|v| {
-            v[0].len() == v[1].len() &&  // a little optimization
-            (*v[0]).chars().sorted().eq((*v[1]).chars().sorted())
-        })
-    }).filter(|invalid| !*invalid).count() as i32
+    input.lines()
+        .map(|s| s.split(' ')
+            .combinations(2)
+            .any(|v| v[0].len() == v[1].len() &&
+                (*v[0]).chars().sorted().eq((*v[1]).chars().sorted())
+            )
+        )
+        .filter(|invalid| !*invalid)
+        .count() as i32
 }
 
 
@@ -50,12 +49,11 @@ mod tests {
   #[test]
   fn it_works() {
     let input = fs::read_to_string("./input.txt").unwrap();
-    let phrases = load(&input);
 
-    let valid = part_one(&phrases);
+    let valid = part_one(&input);
     assert_eq!(valid, 325);
 
-    let valid = part_two(&phrases);
+    let valid = part_two(&input);
     assert_eq!(valid, 119);
   }
 }

@@ -15,34 +15,44 @@ fn main() {
 }
 
 fn part_one(input: &str) -> i32 {
-    use std::collections::HashSet;
-
     input.split("\n")
-        .map(|s| {
+        .fold(0, |acc, s| {
             let (c1, c2) = s.split_at(s.len() / 2);
-            let s1 = c1.bytes().collect::<HashSet<_>>();
-            let s2 = c2.bytes().collect::<HashSet<_>>();
-            let c = s1.intersection(&s2).take(1).next().unwrap();
-            (if *c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 } as i32)
+            let c = find_common2(c1, c2);
+            acc + (if c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 } as i32)
         })
-        .sum::<i32>()
 }
 
 fn part_two(input: &str) -> i32 {
-    use std::collections::HashSet;
-
     let mut priorities = 0;
     let mut rucks = input.split('\n');
-    while let Some(ruck) = rucks.next() {
-        let s1 = ruck.bytes().collect::<HashSet<_>>();
-        let s2 = rucks.next().unwrap().bytes().collect::<HashSet<_>>();
-        let s3 = rucks.next().unwrap().bytes().collect::<HashSet<_>>();
-        let s4 = s1.intersection(&s2).cloned().collect::<HashSet<_>>();
-        let c = s4.intersection(&s3).take(1).next().unwrap();
-        priorities += (if *c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 } as i32);
+    while let Some(s1) = rucks.next() {
+        let s2 = rucks.next().unwrap();
+        let s3 = rucks.next().unwrap();
+        let c  = find_common3(s1, s2, s3);
+        priorities += (if c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 } as i32);
     }
     
     priorities
+}
+
+fn find_common2(s1: &str, s2: &str) -> u8 {
+    let b2 = s2.as_bytes();
+    for b in s1.as_bytes() {
+        if b2.contains(b) { return *b }
+    }
+
+    panic!("Common type not found!")
+}
+
+fn find_common3(s1: &str, s2: &str, s3: &str) -> u8 {
+    let b2 = s2.as_bytes();
+    let b3 = s3.as_bytes();
+    for b in s1.as_bytes() {
+        if b2.contains(b) && b3.contains(b) { return *b }
+    }
+
+    panic!("Common type not found!")
 }
 
 

@@ -51,7 +51,7 @@ impl Default for Pipe {
     fn default() -> Self { Self::new() }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {
     Ready,
     Running,
@@ -198,14 +198,14 @@ impl Vm {
                 Op::Lt => {
                     let a = self.getv(m_a, self.ip + 1);
                     let b = self.getv(m_b, self.ip + 2);
-                    let v = if a < b { 1 } else { 0 };
+                    let v = i64::from(a < b);
                     self.setv(m_c, self.ip + 3, v)?;
                     self.ip + 4
                 },
                 Op::Eq => {
                     let a = self.getv(m_a, self.ip + 1);
                     let b = self.getv(m_b, self.ip + 2);
-                    let v = if a == b { 1 } else { 0 };
+                    let v = i64::from(a == b);
                     self.setv(m_c, self.ip + 3, v)?;
                     self.ip + 4
                 },

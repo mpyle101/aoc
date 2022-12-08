@@ -1,3 +1,4 @@
+use std::ops::Index;
 
 fn main() {
     use std::fs;
@@ -14,10 +15,59 @@ fn main() {
     println!("Part 2: {} ({:?})", score, t.elapsed());
 }
 
+#[derive(Clone, Copy)]
 enum Shape {
     Rock = 0,
     Paper,
     Scissors
+}
+
+impl Shape {
+    fn from(byte: u8) -> Self {
+        use Shape::*;
+
+        match byte {
+            b'A' | b'X' => Rock,
+            b'B' | b'Y' => Paper,
+            b'C' | b'Z' => Scissors,
+            _ => panic!("Unknown shape: {byte}")
+        }
+    }
+
+    fn with_result(&self, result: u8) -> Self {
+        use Shape::*;
+    
+        match (self, result) {
+            (Rock, b'X') => Scissors,
+            (Rock, b'Y') => Rock,
+            (Rock, b'Z') => Paper,
+    
+            (Paper, b'X') => Rock,
+            (Paper, b'Y') => Paper,
+            (Paper, b'Z') => Scissors,
+    
+            (Scissors, b'X') => Paper,
+            (Scissors, b'Y') => Scissors,
+            (Scissors, b'Z') => Rock,
+            _ => panic!("Unknown combination!")
+        }
+    }
+}
+
+impl Index<&Shape> for [[i32; 3]; 3] {
+    type Output = [i32; 3];
+
+    fn index(&self, shape: &Shape) -> &Self::Output {
+        &self[*shape as usize]
+    }
+}
+
+impl Index<&Shape> for [i32; 3] {
+    type Output = i32;
+
+    fn index(&self, shape: &Shape) -> &Self::Output {
+        &self[*shape as usize]
+    }
 }
 
 fn score_matrix() -> [[i32; 3]; 3] {
@@ -28,54 +78,25 @@ fn score_matrix() -> [[i32; 3]; 3] {
     ]
 }
 
-fn shape_index(b: u8) -> usize {
-    use Shape::*;
-
-    match b {
-        b'A' | b'X' => Rock as usize,
-        b'B' | b'Y' => Paper as usize,
-        b'C' | b'Z' => Scissors as usize,
-        _ => panic!("Unknown shape: {b}")
-    }
-}
-
-fn result_index(b1: u8, b2: u8) -> usize {
-    use Shape::*;
-
-    match (b1, b2) {
-        (b'A', b'X') => Scissors as usize,
-        (b'A', b'Y') => Rock as usize,
-        (b'A', b'Z') => Paper as usize,
-
-        (b'B', b'X') => Rock as usize,
-        (b'B', b'Y') => Paper as usize,
-        (b'B', b'Z') => Scissors as usize,
-
-        (b'C', b'X') => Paper as usize,
-        (b'C', b'Y') => Scissors as usize,
-        (b'C', b'Z') => Rock as usize,
-        _ => panic!("Unknown combination: ({b1}, {b2})")
-    }
-}
-
-fn load_strategy1(input: &str) -> Vec<(usize, usize)> {
+fn load_strategy1(input: &str) -> Vec<(Shape, Shape)> {
     input.split("\n").map(|s| {
         let bytes = s.as_bytes();
-        (shape_index(bytes[0]), shape_index(bytes[2]))
+        (Shape::from(bytes[0]), Shape::from(bytes[2]))
     }).collect::<Vec<_>>()
 }
 
-fn load_strategy2(input: &str) -> Vec<(usize, usize)> {
+fn load_strategy2(input: &str) -> Vec<(Shape, Shape)> {
     input.split("\n").map(|s| {
         let bytes = s.as_bytes();
-        (shape_index(bytes[0]), result_index(bytes[0], bytes[2]))
+        let shape = Shape::from(bytes[0]);
+        (shape, shape.with_result(bytes[2]))
     }).collect::<Vec<_>>()
 }
 
-fn calc_score(rounds: &[(usize, usize)]) -> i32 {
+fn calc_score(rounds: &[(Shape, Shape)]) -> i32 {
     let scoring = score_matrix();
     rounds.iter()
-        .map(|(s1, s2)| scoring[*s1][*s2])
+        .map(|(s1, s2)| scoring[s1][s2])
         .sum()
 }
 

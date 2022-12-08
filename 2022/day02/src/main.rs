@@ -79,14 +79,14 @@ fn score_matrix() -> [[i32; 3]; 3] {
 }
 
 fn load_strategy1(input: &str) -> Vec<(Shape, Shape)> {
-    input.split("\n").map(|s| {
+    input.split('\n').map(|s| {
         let bytes = s.as_bytes();
         (Shape::from(bytes[0]), Shape::from(bytes[2]))
     }).collect::<Vec<_>>()
 }
 
 fn load_strategy2(input: &str) -> Vec<(Shape, Shape)> {
-    input.split("\n").map(|s| {
+    input.split('\n').map(|s| {
         let bytes = s.as_bytes();
         let shape = Shape::from(bytes[0]);
         (shape, shape.with_result(bytes[2]))

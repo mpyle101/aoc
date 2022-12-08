@@ -28,7 +28,7 @@ macro_rules! priority {
 }
 
 fn part_one(input: &str) -> i32 {
-    input.split("\n")
+    input.split('\n')
         .fold(0, |acc, s| {
             let (s1, s2) = s.split_at(s.len() / 2);
             acc + priority(s1, |c| s2.contains(*c))
@@ -61,10 +61,10 @@ mod tests {
     fn it_works() {
         let input = include_str!("../input.txt");
 
-        let priorities = part_one(&input);
+        let priorities = part_one(input);
         assert_eq!(priorities, 7793);
 
-        let priorities = part_two(&input);
+        let priorities = part_two(input);
         assert_eq!(priorities, 2499);
     }
 }

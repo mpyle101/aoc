@@ -4,15 +4,13 @@ fn main() {
 
     let input = fs::read_to_string("./input.txt").unwrap();
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let code = part_one(&input);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", code, t2 - t1);
+    println!("Part 1: {} ({:?})", code, t.elapsed());
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let code = part_two(&input);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", code, t2 - t1);
+    println!("Part 2: {} ({:?})", code, t.elapsed());
 }
 
 fn part_one(input: &str) -> String {
@@ -35,28 +33,27 @@ fn part_one(input: &str) -> String {
 }
 
 fn part_two(input: &str) -> String {
-    use std::collections::HashMap;
+    let keypad = [
+        [' ', ' ', '1', ' ', ' '],
+        [' ', '2', '3', '4', ' '],
+        ['5', '6', '7', '8', '9'],
+        [' ', 'A', 'B', 'C', ' '],
+        [' ', ' ', 'D', ' ', ' '],
+    ];
 
-    let keypad = HashMap::from([
-        (('1', 'D'), '3'), (('2', 'D'), '6'), (('2', 'R'), '3'),
-        (('3', 'U'), '1'), (('3', 'D'), '7'), (('3', 'L'), '2'),
-        (('3', 'R'), '4'), (('4', 'D'), '8'), (('4', 'L'), '3'),
-        (('5', 'R'), '6'), (('6', 'U'), '2'), (('6', 'D'), 'A'),
-        (('6', 'L'), '5'), (('6', 'R'), '7'), (('7', 'U'), '3'),
-        (('7', 'D'), 'B'), (('7', 'L'), '6'), (('7', 'R'), '8'),
-        (('8', 'U'), '4'), (('8', 'D'), 'C'), (('8', 'L'), '7'),
-        (('8', 'R'), '9'), (('9', 'L'), '8'), (('A', 'U'), '6'),
-        (('A', 'R'), 'B'), (('B', 'U'), '7'), (('B', 'D'), 'D'),
-        (('B', 'L'), 'A'), (('B', 'R'), 'C'), (('C', 'U'), '8'),
-        (('C', 'L'), 'B'), (('D', 'U'), 'B'),
-    ]);
-
-    let mut key = '5';
     input.lines().map(|l| {
-        key = l.chars().fold(key, |k, c|
-            if let Some(k1) = keypad.get(&(k, c)) { *k1 } else { k }
-        );
-        key
+        let (r, c) = l.chars().fold((2i8, 0i8), |(kr, kc), c| {
+            let (r, c) = match c {
+                'U' => (0.max(kr - 1), kc),
+                'D' => (4.min(kr + 1), kc),
+                'L' => (kr, 0.max(kc - 1)),
+                'R' => (kr, 4.min(kc + 1)),
+                _ => unreachable!()
+            };
+            let ch = keypad[r as usize][c as usize];
+            if ch == ' ' { (kr, kc) } else { (r, c) }
+        });
+        keypad[r as usize][c as usize]
     })
     .collect()
 }

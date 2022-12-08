@@ -18,7 +18,7 @@ fn part_one(program: &str) -> i64 {
 
     for y in 0..50 {
         for x in 0..50 {
-            points += if check_beam(&mut vm, &mut pipes, &(x, y)) {1} else {0};
+            points += i64::from(check_beam(&mut vm, &mut pipes, &(x, y)));
         }
     }
 

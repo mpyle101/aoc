@@ -22,8 +22,6 @@ fn part_two(program: &str) -> i64 {
     let mut vm = Vm::new(program).unwrap();
     let (mut stdin, mut stdout) = vm.pipes();
 
-    let adjust = |offset| if offset < 0 { -1 } else if offset > 0 { 1 } else { 0 };
-
     vm.set_addr(0, 2);
     vm.exec().unwrap();
     let tiles = stdout.drain();
@@ -36,7 +34,7 @@ fn part_two(program: &str) -> i64 {
     let mut paddle = find_tile(&tiles, 3).unwrap();
     let offset = ball.0 - paddle.0;
 
-    let joystick = adjust(offset);
+    let joystick = offset.cmp(&0) as i32;
     stdin.write(joystick);
 
     let mut score = 0;
@@ -53,7 +51,7 @@ fn part_two(program: &str) -> i64 {
         };
 
         let offset = ball.0 - paddle.0;
-        let joystick = if offset < 0 { -1 } else if offset > 0 { 1 } else { 0 };
+        let joystick = offset.cmp(&0) as i32;
         stdin.write(joystick);
         vm.cont().unwrap();
     };

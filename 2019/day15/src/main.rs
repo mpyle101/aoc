@@ -65,7 +65,7 @@ fn part_two(board: &str) -> Result<i32, &str> {
         .collect();
 
     let oxygen = tiles.iter()
-        .find_map(|(k, &v)|(v == Tile::Oxygen).then(|| k))
+        .find_map(|(k, &v)|(v == Tile::Oxygen).then_some(k))
         .ok_or("no oxygen")?;
 
     let mut steps  = 0;

@@ -31,36 +31,31 @@ fn load(input: &str) -> Vec<Action>
 }
 
 fn part_one(actions: &[Action]) -> String {
-    let mut stacks = get_stacks();
-
     actions.iter()
-        .for_each(|(n, from, to)| 
+        .fold(stacks(), |mut st, (n, from, to)| {
             (0..*n).for_each(|_| {
-                let c = stacks[*from].pop().unwrap();
-                stacks[*to].push(c)
-            })
-        );
-
-    stacks.iter_mut()
-        .map(|st| st.pop().unwrap())
+                let c = st[*from].pop().unwrap();
+                st[*to].push(c)
+            });
+            st
+        })
+        .iter()
+        .filter_map(|st| st.chars().last())
         .collect()
 }
 
 fn part_two(actions: &[Action]) -> String {
-    let mut stacks = get_stacks();
-
     actions.iter()
-        .for_each(|(n, from, to)| {
-            let len = stacks[*from].len();
-            let s = stacks[*from].split_off(len - *n as usize);
-            stacks[*to] += &s
-        });
-
-    stacks.iter_mut()
-        .map(|st| st.pop().unwrap())
+        .fold(stacks(), |mut st, (n, from, to)| {
+            let len = st[*from].len();
+            let s = st[*from].split_off(len - *n as usize);
+            st[*to] += &s;
+            st
+        })
+        .iter()
+        .filter_map(|st| st.chars().last())
         .collect()
 }
-
 
 /*
 [N]             [R]             [C]
@@ -73,7 +68,7 @@ fn part_two(actions: &[Action]) -> String {
 [R] [H] [Z] [M] [T] [M] [T] [Q] [W]
  1   2   3   4   5   6   7   8   9 
 */
-fn get_stacks() -> Vec<String> {
+fn stacks() -> Vec<String> {
     vec![
         String::from("RGHQSBTN"),
         String::from("HSFDPZJ"),

@@ -1,28 +1,26 @@
 fn main() {
     use std::{fs, time::Instant};
 
-    let input = fs::read_to_string("./input.txt").unwrap();
-    let digits = load(&input);
+    let input = load(&fs::read_to_string("./input.txt").unwrap());
 
-    let t1 = Instant::now();
-    let captcha = part_one(&digits);
-    let t2 = Instant::now();
-    println!("Part 1: {} {:?}", captcha, t2 - t1);
+    let t = Instant::now();
+    let captcha = part_one(&input);
+    println!("Part 1: {} {:?}", captcha, t.elapsed());
 
-    let t1 = Instant::now();
-    let captcha = part_two(&digits);
-    let t2 = Instant::now();
-    println!("Part 2: {} {:?}", captcha, t2 - t1);
+    let t = Instant::now();
+    let captcha = part_two(&input);
+    println!("Part 2: {} {:?}", captcha, t.elapsed());
 }
 
 fn load(input: &str) -> Vec<u8> {
-    input.chars().map(|c| c as u8 - b'0').collect()
+    input.bytes().map(|b| b - b'0').collect()
 }
 
 fn part_one(digits: &[u8]) -> i32 {
-    let captcha = (1..digits.len()).fold(0, |acc, i|
-        if digits[i-1] == digits[i] { acc + digits[i] as i32 } else { acc }
-    );
+    let captcha = digits.iter().enumerate().skip(1)
+        .filter_map(|(i, &d)| (digits[i-1] == d).then_some(d as i32))
+        .sum();
+
     if digits.last() == digits.first() {
         captcha + *digits.last().unwrap() as i32
     } else {
@@ -32,10 +30,12 @@ fn part_one(digits: &[u8]) -> i32 {
 
 fn part_two(digits: &[u8]) -> i32 {
     let n = digits.len() / 2;
-    (0..digits.len()).fold(0, |acc, i| {
-        let ix = (i + n) % digits.len();
-        if digits[i] == digits[ix] { acc + digits[i] as i32 } else { acc }
-    })
+    digits.iter().enumerate()
+        .filter_map(|(i, &d)| {
+            let ix = (i + n) % digits.len();
+            (digits[ix] == d).then_some(d as i32)
+        })
+        .sum()
 }
 
 
@@ -46,13 +46,12 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let input = fs::read_to_string("./input.txt").unwrap();
-        let digits = load(&input);
+        let input = load(&fs::read_to_string("./input.txt").unwrap());
 
-        let captcha = part_one(&digits);
+        let captcha = part_one(&input);
         assert_eq!(captcha, 1119);
 
-        let captcha = part_two(&digits);
+        let captcha = part_two(&input);
         assert_eq!(captcha, 1420);
     }
 }

@@ -17,8 +17,8 @@ fn main() {
 fn load(input: &str) -> Vec<Vec<i32>> {
     input.split("\n\n").map(|food| 
         food.split('\n')
-        .map(|s| s.parse::<i32>().unwrap())
-        .collect::<Vec<_>>()
+            .map(|s| s.parse::<i32>().unwrap())
+            .collect::<Vec<_>>()
     ).collect::<Vec<_>>()
 }
 

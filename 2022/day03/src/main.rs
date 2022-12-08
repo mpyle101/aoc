@@ -52,7 +52,7 @@ fn part_two(input: &str) -> i32 {
 }
 
 fn priority(s: &str, f: impl Fn(&char) -> bool) -> i32 {
-    let c = s.chars().filter(f).next().unwrap() as u8;
+    let c = s.chars().find(f).unwrap() as u8;
     (if c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 }) as i32
 }
 

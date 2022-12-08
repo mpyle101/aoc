@@ -51,9 +51,8 @@ fn load_actions(input: &str) -> Vec<Action> {
 }
 
 fn part_one(actions: &[Action], stacks: &[String]) -> String {
-    let stacks = stacks.to_vec();
     actions.iter()
-        .fold(stacks, |mut st, (n, from, to)| {
+        .fold(stacks.to_vec(), |mut st, (n, from, to)| {
             (0..*n).for_each(|_| {
                 let c = st[*from].pop().unwrap();
                 st[*to].push(c)
@@ -66,9 +65,8 @@ fn part_one(actions: &[Action], stacks: &[String]) -> String {
 }
 
 fn part_two(actions: &[Action], stacks: &[String]) -> String {
-    let stacks = stacks.to_vec();
     actions.iter()
-        .fold(stacks, |mut st, (n, from, to)| {
+        .fold(stacks.to_vec(), |mut st, (n, from, to)| {
             let len = st[*from].len();
             let s = st[*from].split_off(len - *n as usize);
             st[*to] += &s;

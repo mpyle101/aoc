@@ -1,3 +1,5 @@
+use std::ops::Range;
+use itertools::Product;
 use pathfinding::matrix::Matrix;
 
 fn main() {
@@ -20,11 +22,9 @@ fn part_one(input: &str) -> usize {
         .unwrap();
 
     let edges = (trees.rows * 2) + (trees.columns - 2) * 2;
-    let visible: usize = (1..trees.rows - 1)
-        .map(|r| (1..trees.columns - 1)
-            .filter(|c| is_visible(&trees, (r, *c)))
-            .count())
-        .sum();
+    let visible = trees.inner_iter()
+        .filter(|&cell| is_visible(&trees, cell))
+        .count();
 
     edges + visible
 }
@@ -34,12 +34,21 @@ fn part_two(input: &str) -> usize {
         .map(|line| line.bytes().map(|b| b - b'0' )))
         .unwrap();
 
-    (1..trees.rows - 1)
-        .filter_map(|r| (1..trees.columns - 1)
-            .map(|c| score(&trees, (r, c)))
-            .max())
+    trees.inner_iter()
+        .map(|cell| scenic_score(&trees, cell))
         .max()
         .unwrap()
+}
+
+trait InnerIter {
+    fn inner_iter(&self) -> Product<Range<usize>, Range<usize>>;
+}
+impl InnerIter for Matrix<u8> {
+    fn inner_iter(&self) -> Product<Range<usize>, Range<usize>> {
+        use itertools::Itertools;
+
+        (1..self.rows-1).cartesian_product(1..self.columns-1)
+    }
 }
 
 fn is_visible(m: &Matrix<u8>, curr: (usize, usize)) -> bool {
@@ -52,7 +61,7 @@ fn is_visible(m: &Matrix<u8>, curr: (usize, usize)) -> bool {
     || m.in_direction(curr, (0, 1)).all(is_shorter)     // right
 }
 
-fn score(m: &Matrix<u8>, curr: (usize, usize)) -> usize {
+fn scenic_score(m: &Matrix<u8>, curr: (usize, usize)) -> usize {
     let mut score = viewing_distance(m, curr, (-1, 0));
     if score != 0 { score *= viewing_distance(m, curr, (1, 0)) }
     if score != 0 { score *= viewing_distance(m, curr, (0, -1)) }

@@ -8,7 +8,7 @@ lazy_static! {
 fn main() {
     use std::time::Instant;
 
-    // Don't feel like parsing the input (really? sentences?).
+    // Didn't feel like parsing the input (really? sentences?).
 
     // State values represent the floor a given object is on.
     // state[0] is the elevator; after that each pair of
@@ -71,7 +71,7 @@ fn next_states<const N: usize>(state: &[u8;N], isotopes: &[usize]) -> Vec<[u8;N]
 
     // Get the objects on the current floor (skip the elevator).
     let objects = state.iter().enumerate().skip(1)
-        .filter_map(|(i, &n)| (n == elevator).then(|| i))
+        .filter_map(|(i, &n)| (n == elevator).then_some(i))
         .collect::<Vec<_>>();
 
     // Get all possible states of moving one or two objects
@@ -86,7 +86,7 @@ fn next_states<const N: usize>(state: &[u8;N], isotopes: &[usize]) -> Vec<[u8;N]
 fn get_all<const N: usize>(state: &[u8;N], objects: &[usize], floors: &[u8]) -> Vec<[u8;N]> {
     use itertools::Itertools;
 
-    let states = floors.iter().map(|&floor| {
+    let states = floors.iter().flat_map(|&floor| {
         let mut states = objects.iter().map(|&i| {
             let mut st = *state;
             st[0] = floor;
@@ -105,7 +105,6 @@ fn get_all<const N: usize>(state: &[u8;N], objects: &[usize], floors: &[u8]) -> 
 
         states
     })
-    .flatten()
     .collect();
 
     states
@@ -118,7 +117,7 @@ fn invalid<const N: usize>(state: &[u8;N], isotopes: &[usize]) -> Option<[u8;N]>
         .filter(|&i| state[*i] != state[i + 1])
         .any(|&i| isotopes.iter().any(|n| state[i] == state[n + 1]));
 
-    (!found).then(|| *state)
+    (!found).then_some(*state)
 }
 
 #[allow(dead_code)]

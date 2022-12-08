@@ -27,18 +27,18 @@ enum State {
 }
 
 fn load(input: &str) -> Nodes {
-    input.lines().enumerate().map(|(y, s)| {
-        s.chars()
-            .enumerate()
-            .filter_map(move |(x, c)| 
-                if c == '#' { 
-                    Some((x as i32, y as i32))
-                } else { 
-                    None 
-                })
-    })
-    .flatten()
-    .collect()
+    input.lines().enumerate()
+        .flat_map(|(y, s)| {
+            s.chars()
+                .enumerate()
+                .filter_map(move |(x, c)| 
+                    if c == '#' { 
+                        Some((x as i32, y as i32))
+                    } else { 
+                        None 
+                    })
+        })
+        .collect()
 }
 
 fn part_one(nodes: &Nodes) -> usize {

@@ -21,26 +21,26 @@ fn main() {
 type Rules = HashMap<Matrix<char>, Matrix<char>>;
 
 fn load(input: &str) -> Rules {
-    input.lines().map(|l| {
-        let v = l.split(" => ").collect::<Vec<_>>();
-        let m = Matrix::from_rows(v[0].split('/').map(|s| s.chars())).unwrap();
-        let n = Matrix::from_rows(v[1].split('/').map(|s| s.chars())).unwrap();
+    input.lines()
+        .flat_map(|l| {
+            let v = l.split(" => ").collect::<Vec<_>>();
+            let m = Matrix::from_rows(v[0].split('/').map(|s| s.chars())).unwrap();
+            let n = Matrix::from_rows(v[1].split('/').map(|s| s.chars())).unwrap();
 
-        let r1 = m.rotated_cw(1);
-        let r2 = m.rotated_cw(2);
-        let r3 = m.rotated_cw(3);
-        let lr = m.flipped_lr();
-        let r4 = lr.rotated_cw(1);
-        let r5 = lr.rotated_cw(2);
-        let r6 = lr.rotated_cw(3);
+            let r1 = m.rotated_cw(1);
+            let r2 = m.rotated_cw(2);
+            let r3 = m.rotated_cw(3);
+            let lr = m.flipped_lr();
+            let r4 = lr.rotated_cw(1);
+            let r5 = lr.rotated_cw(2);
+            let r6 = lr.rotated_cw(3);
 
-        vec![
-            (m,  n.clone()), (r1, n.clone()), (r2, n.clone()), (r3, n.clone()),
-            (lr, n.clone()), (r4, n.clone()), (r5, n.clone()), (r6, n),
-        ]
-    })
-    .flatten()
-    .collect()
+            vec![
+                (m,  n.clone()), (r1, n.clone()), (r2, n.clone()), (r3, n.clone()),
+                (lr, n.clone()), (r4, n.clone()), (r5, n.clone()), (r6, n),
+            ]
+        })
+        .collect()
 }
 
 fn part_one(rules: &Rules) -> usize {

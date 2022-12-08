@@ -29,7 +29,7 @@ fn load(input: &str) -> Segments {
     use Segment::*;
 
     input.lines().enumerate()
-        .map(|(y, s)| {
+        .flat_map(|(y, s)| {
             s.chars().enumerate().filter_map(move |(x, c)| {
                 let pt = (x as i32, y as i32);
                 match c {
@@ -41,7 +41,6 @@ fn load(input: &str) -> Segments {
                 }
             })
         })
-        .flatten()
         .collect()
 }
 

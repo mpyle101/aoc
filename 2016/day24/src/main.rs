@@ -26,7 +26,7 @@ fn main() {
 fn load(input: &str) -> State0 {
     let mut wires = vec![];
     let open = input.lines().enumerate()
-        .map(|(y, l)| {
+        .flat_map(|(y, l)| {
             l.chars().enumerate().filter_map(|(x, c)| {
                 if c == '#' {
                     None
@@ -38,7 +38,6 @@ fn load(input: &str) -> State0 {
             })
             .collect::<Vec<_>>()
         })
-        .flatten()
         .collect::<HashSet<_>>();
 
     wires.sort_unstable();

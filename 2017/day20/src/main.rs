@@ -77,7 +77,7 @@ fn part_one(particles: &[Particle]) -> usize {
     let n = *acc.iter().min().unwrap();
     let v = acc.iter()
         .enumerate()
-        .filter_map(|(i, m)| (*m == n).then(||i))
+        .filter_map(|(i, m)| (*m == n).then_some(i))
         .collect::<Vec<_>>();
 
     // The closest one to begin with will always be the closest.
@@ -102,7 +102,7 @@ fn part_two(particles: &[Particle]) -> usize {
             // back to front.
             let ix = arr.iter()
                 .enumerate()
-                .filter_map(|(i, q)| (p == q).then(|| i))
+                .filter_map(|(i, q)| (p == q).then_some(i))
                 .collect::<Vec<_>>();
             ix.iter().rev().for_each(|i| { arr.remove(*i); });
         })

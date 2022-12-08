@@ -28,7 +28,7 @@ fn part_one(eris: &MapState) -> u64 {
         }
     };
 
-    let a = if tiles.contains(&(0, 0)) { 1 } else { 0 };
+    let a = u64::from(tiles.contains(&(0, 0)));
     tiles.0.iter().skip(1).fold(a, |n, t| n + (2 << ((t.0 * 5) + t.1 - 1)))
 }
 
@@ -70,6 +70,7 @@ impl MapState {
     }
 }
 
+#[allow(clippy::derive_hash_xor_eq)]
 impl Hash for MapState {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.0.iter().for_each(|t| t.hash(state))

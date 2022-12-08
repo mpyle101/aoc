@@ -1,3 +1,4 @@
+#![allow(clippy::redundant_closure_call)]
 
 fn main() {
     let exprs = include_str!("./expr.txt");

@@ -187,7 +187,7 @@ mod tests {
         let vec_x = find_x_steps(&path_a, &pts_a, &path_b, &pts_b);
         let min_x = vec_x.iter().min();
 
-        assert_eq!(*min_x.unwrap(), 610 as usize);
+        assert_eq!(*min_x.unwrap(), 610_usize);
     }
 
     #[test]
@@ -199,6 +199,6 @@ mod tests {
         let vec_x = find_x_steps(&path_a, &pts_a, &path_b, &pts_b);
         let min_x = vec_x.iter().min();
 
-        assert_eq!(*min_x.unwrap(), 410 as usize);
+        assert_eq!(*min_x.unwrap(), 410_usize);
     }
 }

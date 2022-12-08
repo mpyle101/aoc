@@ -136,8 +136,8 @@ struct Slope {
 
 impl Slope {
     pub fn new(rise: i8, run: i8) -> Self {
-        let p_run  = run.abs() as u8;
-        let p_rise = rise.abs() as u8;
+        let p_run  = run.unsigned_abs();
+        let p_rise = rise.unsigned_abs();
         let gcd = p_run.gcd(p_rise) as i8;
 
         if gcd == 0 {

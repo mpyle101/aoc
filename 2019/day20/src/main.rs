@@ -69,6 +69,7 @@ fn load(maze: &str) -> Maze {
 
 type Gates = Vec<((Loc, Loc, i32), [char;2])>;
 
+#[allow(clippy::too_many_arguments)]
 fn make_gate(
     x: i32,
     y: i32,

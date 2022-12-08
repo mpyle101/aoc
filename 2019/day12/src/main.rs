@@ -87,11 +87,10 @@ fn total_energy(moons: &[Moon]) -> i32 {
 }
 
 fn velocity_delta(a: &Triplet, b: &Triplet) -> Triplet {
-    let delta = |a, b| if a < b { 1 } else if a > b { -1 } else { 0 };
     Triplet {
-        x: delta(a.x, b.x),
-        y: delta(a.y, b.y),
-        z: delta(a.z, b.z),
+        x: b.x.cmp(&a.x) as i32,
+        y: b.y.cmp(&a.y) as i32,
+        z: b.z.cmp(&a.z) as i32,
     }
 }
 
@@ -241,10 +240,10 @@ mod tests {
         <x=2, y=-10, z=-7>\n\
         <x=4, y=-8, z=8>\n\
         <x=3, y=5, z=-1>";
-        let moons = load(data);
+        let mut moons = load(data);
         let vx = find_cycle(&mut moons.clone(), 0);
         let vy = find_cycle(&mut moons.clone(), 1);
-        let vz = find_cycle(&mut moons.clone(), 2);
+        let vz = find_cycle(&mut moons, 2);
         let iterations = vx.lcm(&vy).lcm(&vz);
 
         assert_eq!(iterations, 2772);
@@ -252,10 +251,10 @@ mod tests {
 
     #[test]
     fn it_works2() {
-        let moons = load(include_str!("./moons.txt"));
+        let mut moons = load(include_str!("./moons.txt"));
         let vx = find_cycle(&mut moons.clone(), 0);
         let vy = find_cycle(&mut moons.clone(), 1);
-        let vz = find_cycle(&mut moons.clone(), 2);
+        let vz = find_cycle(&mut moons, 2);
         let iterations = vx.lcm(&vy).lcm(&vz);
 
         assert_eq!(iterations, 506_359_021_038_056);

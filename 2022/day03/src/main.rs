@@ -34,7 +34,7 @@ fn part_one(input: &str) -> i32 {
     input.split("\n")
         .fold(0, |acc, s| {
             let (s1, s2) = s.split_at(s.len() / 2);
-            acc + priority(s1, |c| s2.contains(c))
+            acc + priority(s1, |c| s2.contains(*c))
         })
 }
 
@@ -51,15 +51,9 @@ fn part_two(input: &str) -> i32 {
     priorities
 }
 
-fn priority(s: &str, f: impl Fn(char) -> bool) -> i32 {
-    for c in s.chars() {
-        if f(c) {
-            let b = c as u8;
-            return (if b <= b'Z' { b - b'A' + 27 } else { b - b'a' + 1 }) as i32
-        }
-    }
-
-    panic!("Common type not found!")
+fn priority(s: &str, f: impl Fn(&char) -> bool) -> i32 {
+    let c = s.chars().filter(f).next().unwrap() as u8;
+    (if c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 }) as i32
 }
 
 

@@ -28,7 +28,7 @@ macro_rules! priority {
 fn part_one(input: &str) -> i32 {
     input.lines().fold(0, |acc, s| {
         let (s1, s2) = s.split_at(s.len() / 2);
-        acc + priority(s1, |c| s2.contains(*c))
+        acc + priority(s1, |c| s2.contains(c).then_some(c as u8))
     })
 }
 
@@ -38,20 +38,17 @@ fn part_two(input: &str) -> i32 {
     while let Some(s1) = rucks.next() {
         let (s2, s3) = (rucks.next().unwrap(), rucks.next().unwrap());
         priorities += priority!(s1, s2, s3);
-        // OR: priorities += priority(s1, |c| s2.contains(c) && s3.contains(c))
     }
 
     priorities
 }
 
-fn priority(s: &str, f: impl Fn(&char) -> bool) -> i32 {
-    let c = s.chars().find(f).unwrap() as u8;
-    (if c <= b'Z' {
-        c - b'A' + 27
-    } else {
-        c - b'a' + 1
-    }) as i32
+fn priority(s: &str, f: impl Fn(char) -> Option<u8>) -> i32 {
+    s.chars()
+        .find_map(f)
+        .map_or(0, |c| (if c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 }) as i32)
 }
+
 
 #[cfg(test)]
 mod tests {

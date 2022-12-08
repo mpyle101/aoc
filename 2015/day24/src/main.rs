@@ -29,7 +29,7 @@ fn part_one(weights: &[i64]) -> i64 {
     // set.
     weights.iter()
         .combinations(6)
-        .filter_map(|v| (v.iter().copied().sum::<i64>() == target).then(||v))
+        .filter_map(|v| (v.iter().copied().sum::<i64>() == target).then_some(v))
         .map(|v| v.iter().copied().product::<i64>())
         .min()
         .unwrap()
@@ -46,7 +46,7 @@ fn part_two(weights: &[i64]) -> i64 {
     // set.
     weights.iter()
         .combinations(4)
-        .filter_map(|v| (v.iter().copied().sum::<i64>() == target).then(||v))
+        .filter_map(|v| (v.iter().copied().sum::<i64>() == target).then_some(v))
         .map(|v| v.iter().copied().product::<i64>())
         .min()
         .unwrap()

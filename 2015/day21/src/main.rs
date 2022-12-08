@@ -103,7 +103,7 @@ fn part_one(boss: &Player) -> i32 {
                 cache.insert((armor, damage), result);
                 result
             };
-            won.then(|| cost)
+            won.then_some(cost)
         }
     })
     .min()
@@ -136,7 +136,7 @@ fn part_two(boss: &Player) -> i32 {
                 cache.insert((armor, damage), result);
                 result
             };
-            (!won).then(|| cost)
+            (!won).then_some(cost)
         }
     })
     .max()

@@ -29,7 +29,9 @@ fn find_offset(input: &str, n: usize) -> usize {
 }
 
 fn is_not_marker(buf: &[u8]) -> bool {
-    (1..buf.len()).any(|i| buf[i..].contains(&buf[i-1]))
+    buf.iter()
+        .enumerate()
+        .any(|(i, c)| buf[i+1..].contains(c))
 }
 
 

@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 fn main() {
     use std::time::Instant;
@@ -20,8 +22,11 @@ fn part_one(input: &str) -> usize {
 }
 
 fn part_two(input: &str) -> usize {
+    let mut hasher = DefaultHasher::new();
+    vec!["/"].hash(&mut hasher);
+
     let sizes  = calc_sizes(input);
-    let unused = 70000000 - *sizes.get("/").unwrap();
+    let unused = 70000000 - *sizes.get(&hasher.finish()).unwrap();
     let needed = 30000000 - unused;
 
     *sizes.values()
@@ -30,7 +35,7 @@ fn part_two(input: &str) -> usize {
         .unwrap()
 }
 
-fn calc_sizes(input: &str) -> HashMap<String, usize> {
+fn calc_sizes(input: &str) -> HashMap<u64, usize> {
     let mut pwd = vec!["/"];
 
     input.lines()
@@ -47,8 +52,9 @@ fn calc_sizes(input: &str) -> HashMap<String, usize> {
                     if let Some((n, _)) = s.split_once(' ') {
                         if let Ok(size) = n.parse::<usize>() {
                             (0..pwd.len()).for_each(|i| {
-                                let path = pwd[..i+1].join("/");
-                                *sizes.entry(path).or_insert(0) += size;
+                                let mut hasher = DefaultHasher::new();
+                                pwd[..i+1].hash(&mut hasher);
+                                *sizes.entry(hasher.finish()).or_insert(0) += size;
                             })
                         }
                     }

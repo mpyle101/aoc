@@ -45,6 +45,7 @@ fn part_two(input: &str) -> i32 {
         let s2 = rucks.next().unwrap();
         let s3 = rucks.next().unwrap();
         priorities += priority!(s1, s2, s3);
+        // OR: priorities += priority(s1, |c| s2.contains(c) && s3.contains(c))
     }
     
     priorities

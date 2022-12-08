@@ -15,35 +15,30 @@ fn main() {
 }
 
 fn part_one(input: &str) -> usize {
-    input.split('\n')
-        .filter(|s| {
-            let mut iter = s.split(',');
-            let (s1, s2) = (iter.next().unwrap(), iter.next().unwrap());
-            let (r1, r2) = (get_range(s1), get_range(s2));
+    let check = |r1: &(i32, i32), r2: &(i32, i32)| r1.0 <= r2.0 && r1.1 >= r2.1;
 
-            (r1.0 <= r2.0 && r1.1 >= r2.1) || (r2.0 <= r1.0 && r2.1 >= r1.1)
-        })
+    input.split('\n')
+        .filter_map(|s| s.split_once(','))
+        .map(|(s1, s2)| (range(s1), range(s2)))
+        .filter(|(r1, r2)| check(r1, r2) || check(r2, r1))
         .count()
 }
 
 fn part_two(input: &str) -> usize {
     input.split('\n')
-        .filter(|s| {
-            let mut iter = s.split(',');
-            let (s1, s2) = (iter.next().unwrap(), iter.next().unwrap());
-            let (r1, r2) = (get_range(s1), get_range(s2));
-
-            r2.0 <= r1.1 && r2.1 >= r1.0
-        })
+        .filter_map(|s| s.split_once(','))
+        .map(|(s1, s2)| (range(s1), range(s2)))
+        .filter(|(r1, r2)| r2.0 <= r1.1 && r2.1 >= r1.0)
         .count()
 }
 
-fn get_range(s: &str) -> (i32, i32) {
-    let mut iter = s.split('-');
-    (
-        iter.next().unwrap().parse::<i32>().unwrap(),
-        iter.next().unwrap().parse::<i32>().unwrap()
-    )
+fn range(s: &str) -> (i32, i32) {
+    s.split_once('-')
+        .map(|(r1, r2)| (
+            r1.parse::<i32>().unwrap(),
+            r2.parse::<i32>().unwrap()
+        ))
+        .unwrap()
 }
 
 #[cfg(test)]

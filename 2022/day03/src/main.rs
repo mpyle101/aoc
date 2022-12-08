@@ -1,4 +1,3 @@
-
 fn main() {
     use std::time::Instant;
 
@@ -18,7 +17,7 @@ macro_rules! priority {
         let mut iter = $s1.chars();
         loop {
             let b = iter.next().unwrap();
-            if [$($arr),+].iter().all(|s| s.contains(b)) { 
+            if [$($arr),+].iter().all(|s| s.contains(b)) {
                 let c = b as u8;
                 break (if c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 }) as i32
             }
@@ -27,11 +26,10 @@ macro_rules! priority {
 }
 
 fn part_one(input: &str) -> i32 {
-    input.lines()
-        .fold(0, |acc, s| {
-            let (s1, s2) = s.split_at(s.len() / 2);
-            acc + priority(s1, |c| s2.contains(*c))
-        })
+    input.lines().fold(0, |acc, s| {
+        let (s1, s2) = s.split_at(s.len() / 2);
+        acc + priority(s1, |c| s2.contains(*c))
+    })
 }
 
 fn part_two(input: &str) -> i32 {
@@ -42,15 +40,18 @@ fn part_two(input: &str) -> i32 {
         priorities += priority!(s1, s2, s3);
         // OR: priorities += priority(s1, |c| s2.contains(c) && s3.contains(c))
     }
-    
+
     priorities
 }
 
 fn priority(s: &str, f: impl Fn(&char) -> bool) -> i32 {
     let c = s.chars().find(f).unwrap() as u8;
-    (if c <= b'Z' { c - b'A' + 27 } else { c - b'a' + 1 }) as i32
+    (if c <= b'Z' {
+        c - b'A' + 27
+    } else {
+        c - b'a' + 1
+    }) as i32
 }
-
 
 #[cfg(test)]
 mod tests {

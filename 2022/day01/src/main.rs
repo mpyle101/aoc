@@ -24,15 +24,22 @@ fn part_one(input: &str) -> i32 {
 }
 
 fn part_two(input: &str) -> i32 {
-    use std::collections::BinaryHeap;
+    let mut res: [i32; 3] = [0; 3];
 
-    let mut calories = input.split("\n\n")
+    input.split("\n\n")
         .map(|group| group.split('\n')
             .map(|s| s.parse::<i32>().unwrap())
             .sum())
-        .collect::<BinaryHeap<i32>>();
+        .for_each(|n|
+            (0..3).for_each(|i|
+                if n > res[i] { 
+                    if i > 0 { res[i-1] = res[i] }
+                    res[i] = n;
+                }
+            )
+        );
 
-    return (0..3).map(|_| calories.pop().unwrap()).sum()
+    return res.iter().sum()
 }
 
 

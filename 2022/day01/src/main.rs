@@ -3,7 +3,7 @@ fn main() {
     use std::fs;
     use std::time::Instant;
 
-    let input = load(&fs::read_to_string("./input.txt").unwrap());
+    let input = fs::read_to_string("./input.txt").unwrap();
 
     let t = Instant::now();
     let calories = part_one(&input);
@@ -14,26 +14,22 @@ fn main() {
     println!("Part 2: {} ({:?})", calories, t.elapsed());
 }
 
-fn load(input: &str) -> Vec<Vec<i32>> {
-    input.split("\n\n").map(|food| 
-        food.split('\n')
+fn part_one(input: &str) -> i32 {
+    input.split("\n\n")
+        .map(|group| group.split('\n')
             .map(|s| s.parse::<i32>().unwrap())
-            .collect::<Vec<_>>()
-    ).collect::<Vec<_>>()
-}
-
-fn part_one(input: &[Vec<i32>]) -> i32 {
-    input.iter()
-        .map(|v| v.iter().sum())
+            .sum())
         .max()
         .unwrap()
 }
 
-fn part_two(input: &[Vec<i32>]) -> i32 {
+fn part_two(input: &str) -> i32 {
     use std::collections::BinaryHeap;
 
-    let mut calories = input.iter()
-        .map(|v| v.iter().sum())
+    let mut calories = input.split("\n\n")
+        .map(|group| group.split('\n')
+            .map(|s| s.parse::<i32>().unwrap())
+            .sum())
         .collect::<BinaryHeap<i32>>();
 
     return (0..3).map(|_| calories.pop().unwrap()).sum()
@@ -46,7 +42,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let input = load(include_str!("../input.txt"));
+        let input = include_str!("../input.txt");
 
         let calories = part_one(&input);
         assert_eq!(calories, 70720);

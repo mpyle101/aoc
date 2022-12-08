@@ -16,7 +16,7 @@ fn main() {
 
 fn part_one(input: &str) -> usize {
     let sizes = calc_sizes(input);
-    sizes.values().filter(|n| **n <= 100000).sum()
+    sizes.values().filter(|&&n| n <= 100000).sum()
 }
 
 fn part_two(input: &str) -> usize {
@@ -25,19 +25,18 @@ fn part_two(input: &str) -> usize {
     let needed = 30000000 - unused;
 
     *sizes.values()
-        .filter(|n| **n > needed)
+        .filter(|&&n| n > needed)
         .min()
         .unwrap()
 }
 
 fn calc_sizes(input: &str) -> HashMap<String, usize> {
     let mut pwd = vec!["/"];
-    let mut sizes = HashMap::new();
 
     input.split('$')
         .map(|s| s.split_whitespace().collect::<Vec<_>>() )
         .filter(|v| !v.is_empty())
-        .for_each(|v| {
+        .fold(HashMap::new(), |mut sizes, v| {
             if v[0] == "cd" {
                 match v[1] {
                     "/"  => pwd = vec!["/"],
@@ -58,9 +57,9 @@ fn calc_sizes(input: &str) -> HashMap<String, usize> {
                     iter.next();
                 }
             }
-        });
 
-    sizes
+            sizes
+        })
 }
 
 #[cfg(test)]

@@ -1,23 +1,22 @@
 
 fn main() {
-    use std::fs;
     use std::time::Instant;
 
-    let input = fs::read_to_string("./input.txt").unwrap();
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let overlapping = part_one(&input);
+    let overlapping = part_one(input);
     println!("Part 1: {} ({:?})", overlapping, t.elapsed());
 
     let t = Instant::now();
-    let overlapping = part_two(&input);
+    let overlapping = part_two(input);
     println!("Part 2: {} ({:?})", overlapping, t.elapsed());
 }
 
 fn part_one(input: &str) -> usize {
     let check = |r1: &(i32, i32), r2: &(i32, i32)| r1.0 <= r2.0 && r1.1 >= r2.1;
 
-    input.split('\n')
+    input.lines()
         .filter_map(|s| s.split_once(','))
         .map(|(s1, s2)| (range(s1), range(s2)))
         .filter(|(r1, r2)| check(r1, r2) || check(r2, r1))
@@ -25,7 +24,7 @@ fn part_one(input: &str) -> usize {
 }
 
 fn part_two(input: &str) -> usize {
-    input.split('\n')
+    input.lines()
         .filter_map(|s| s.split_once(','))
         .map(|(s1, s2)| (range(s1), range(s2)))
         .filter(|(r1, r2)| r2.0 <= r1.1 && r2.1 >= r1.0)

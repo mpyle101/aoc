@@ -1,15 +1,14 @@
 use std::ops::Index;
 
 fn main() {
-    use std::fs;
     use std::time::Instant;
 
-    let input = load_strategy1(&fs::read_to_string("./input.txt").unwrap());
+    let input = load_strategy1(include_str!("../input.txt"));
     let t = Instant::now();
     let score = calc_score(&input);
     println!("Part 1: {} ({:?})", score, t.elapsed());
 
-    let input = load_strategy2(&fs::read_to_string("./input.txt").unwrap());
+    let input = load_strategy2(include_str!("../input.txt"));
     let t = Instant::now();
     let score = calc_score(&input);
     println!("Part 2: {} ({:?})", score, t.elapsed());
@@ -79,18 +78,22 @@ fn score_matrix() -> [[i32; 3]; 3] {
 }
 
 fn load_strategy1(input: &str) -> Vec<(Shape, Shape)> {
-    input.split('\n').map(|s| {
-        let bytes = s.as_bytes();
-        (Shape::from(bytes[0]), Shape::from(bytes[2]))
-    }).collect::<Vec<_>>()
+    input.lines()
+        .map(|s| {
+            let bytes = s.as_bytes();
+            (Shape::from(bytes[0]), Shape::from(bytes[2]))
+        })
+        .collect()
 }
 
 fn load_strategy2(input: &str) -> Vec<(Shape, Shape)> {
-    input.split('\n').map(|s| {
-        let bytes = s.as_bytes();
-        let shape = Shape::from(bytes[0]);
-        (shape, shape.with_result(bytes[2]))
-    }).collect::<Vec<_>>()
+    input.lines()
+        .map(|s| {
+            let bytes = s.as_bytes();
+            let shape = Shape::from(bytes[0]);
+            (shape, shape.with_result(bytes[2]))
+        })
+        .collect()
 }
 
 fn calc_score(rounds: &[(Shape, Shape)]) -> i32 {

@@ -1,6 +1,6 @@
+type Action = (i32, usize, usize);
 
-fn main()
-{
+fn main() {
     use std::{fs, time::Instant};
 
     let input = load(&fs::read_to_string("./input.txt").unwrap());
@@ -14,10 +14,7 @@ fn main()
     println!("Part 2: {} ({:?})", crates, t.elapsed());
 }
 
-type Action = (i32, usize, usize);
-
-fn load(input: &str) -> Vec<Action>
-{
+fn load(input: &str) -> Vec<Action> {
     input.lines()
         .map(|line| {
             let v: Vec<_> = line.split_whitespace().collect();

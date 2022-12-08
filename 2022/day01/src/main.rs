@@ -1,22 +1,21 @@
 
 fn main() {
-    use std::fs;
     use std::time::Instant;
 
-    let input = fs::read_to_string("./input.txt").unwrap();
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let calories = part_one(&input);
+    let calories = part_one(input);
     println!("Part 1: {} ({:?})", calories, t.elapsed());
 
     let t = Instant::now();
-    let calories = part_two(&input);
+    let calories = part_two(input);
     println!("Part 2: {} ({:?})", calories, t.elapsed());
 }
 
 fn part_one(input: &str) -> i32 {
     input.split("\n\n")
-        .map(|group| group.split('\n')
+        .map(|group| group.lines()
             .map(|s| s.parse::<i32>().unwrap())
             .sum())
         .max()
@@ -27,7 +26,7 @@ fn part_two(input: &str) -> i32 {
     let mut res: [i32; 3] = [0; 3];
 
     input.split("\n\n")
-        .map(|group| group.split('\n')
+        .map(|group| group.lines()
             .map(|s| s.parse::<i32>().unwrap())
             .sum())
         .for_each(|n|

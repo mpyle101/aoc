@@ -65,6 +65,7 @@ fn calc_sizes(input: &str) -> HashMap<u64, usize> {
         })
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;

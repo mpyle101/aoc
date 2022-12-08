@@ -42,33 +42,33 @@ fn part_two(input: &str) -> usize {
         .unwrap()
 }
 
-
 fn is_visible(m: &Matrix<u8>, curr: (usize, usize)) -> bool {
     let height = m.get(curr).unwrap();
-    let mut visible = m.in_direction(curr, (-1, 0)).all(|cell| m.get(cell).unwrap() < height);
-    visible |= m.in_direction(curr, (1, 0)).all(|cell| m.get(cell).unwrap() < height);
-    visible |= m.in_direction(curr, (0, -1)).all(|cell| m.get(cell).unwrap() < height);
-    visible |= m.in_direction(curr, (0, 1)).all(|cell| m.get(cell).unwrap() < height);
+    let is_shorter = |cell| m.get(cell).unwrap() < height;
 
-    visible
+    m.in_direction(curr, (-1, 0)).all(is_shorter)       // up
+    || m.in_direction(curr, (1, 0)).all(is_shorter)     // down
+    || m.in_direction(curr, (0, -1)).all(is_shorter)    // left
+    || m.in_direction(curr, (0, 1)).all(is_shorter)     // right
 }
 
 fn score(m: &Matrix<u8>, curr: (usize, usize)) -> usize {
     let mut score = viewing_distance(m, curr, (-1, 0));
-    score *= viewing_distance(m ,curr, (1, 0));
-    score *= viewing_distance(m, curr, (0, -1));
-    score *= viewing_distance(m, curr, (0, 1));
+    if score != 0 { score *= viewing_distance(m, curr, (1, 0)) }
+    if score != 0 { score *= viewing_distance(m, curr, (0, -1)) }
+    if score != 0 { score *= viewing_distance(m, curr, (0, 1)) }
 
     score
 }
 
 fn viewing_distance(m: &Matrix<u8>, curr: (usize, usize), dir: (isize, isize)) -> usize {
     let height = m.get(curr).unwrap();
+
     let mut viewable = 0;
     for cell in m.in_direction(curr, dir) {
-        if let Some(h) = m.get(cell) {
-            viewable += 1;
-            if h >= height { break }
+        viewable += 1;
+        if m.get(cell).unwrap() >= height {
+            break
         }
     }
 

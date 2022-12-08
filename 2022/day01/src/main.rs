@@ -13,9 +13,10 @@ fn main() {
 }
 
 fn part_one(input: &str) -> i32 {
-    input
-        .split("\n\n")
-        .map(|group| group.lines().map(|s| s.parse::<i32>().unwrap()).sum())
+    input.split("\n\n")
+        .map(|group| group.lines()
+            .flat_map(|s| s.parse::<i32>())
+            .sum())
         .max()
         .unwrap()
 }
@@ -23,15 +24,14 @@ fn part_one(input: &str) -> i32 {
 fn part_two(input: &str) -> i32 {
     let mut res: [i32; 3] = [0; 3];
 
-    input
-        .split("\n\n")
-        .map(|group| group.lines().map(|s| s.parse::<i32>().unwrap()).sum())
+    input.split("\n\n")
+        .map(|group| group.lines()
+            .flat_map(|s| s.parse::<i32>())
+            .sum())
         .for_each(|n| {
             (0..3).for_each(|i| {
                 if n > res[i] {
-                    if i > 0 {
-                        res[i - 1] = res[i]
-                    }
+                    if i > 0 { res[i - 1] = res[i] }
                     res[i] = n;
                 }
             })

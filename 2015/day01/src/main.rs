@@ -17,7 +17,7 @@ fn part_two(input: &str) -> usize {
     input.chars()
         .enumerate()
         .map(|(i, c)| { floor += if c == '(' { 1 } else { -1 }; (i, floor) })
-        .find_map(|(i, f)| (f < 0).then(||i+1))
+        .find_map(|(i, f)| (f < 0).then_some(i+1))
         .unwrap()
 }
 

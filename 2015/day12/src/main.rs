@@ -52,10 +52,10 @@ mod tests {
   fn it_works() {
     let input = include_str!("./input.txt");
 
-    let sum = part_one(&input);
+    let sum = part_one(input);
     assert_eq!(sum, 191164);
 
-    let sum = part_two(&input);
+    let sum = part_two(input);
     assert_eq!(sum, 87842);
   }
 }

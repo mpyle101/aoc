@@ -17,15 +17,13 @@ fn main() {
         ("perfumes:", 1),
     ];
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let sue = part_one(&aunts, &clues);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", sue, t2 - t1);
+    println!("Part 1: {} ({:?})", sue, t.elapsed());
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let sue = part_two(&aunts, &clues);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", sue, t2 - t1);
+    println!("Part 2: {} ({:?})", sue, t.elapsed());
 }
 
 fn load(input: &str) -> Vec<HashMap<&str, i32>> {
@@ -42,12 +40,10 @@ fn load(input: &str) -> Vec<HashMap<&str, i32>> {
 
 fn part_one(aunts: &[HashMap<&str, i32>], clues: &[(&str, i32); 10]) -> i32 {
     let sue = clues.iter().fold(aunts.to_vec(), |vec, (clue, value)|
-        vec.iter().filter(|map| {
-            let v = map.get(clue);
-            v == None || v.unwrap() == value
-        })
-        .cloned()
-        .collect::<Vec<_>>()
+        vec.iter()
+            .filter(|m| m.get(clue).map_or(true, |v| v == value))
+            .cloned()
+            .collect::<Vec<_>>()
     );
 
     *sue.first().unwrap().get("no").unwrap()
@@ -55,18 +51,17 @@ fn part_one(aunts: &[HashMap<&str, i32>], clues: &[(&str, i32); 10]) -> i32 {
 
 fn part_two(aunts: &[HashMap<&str, i32>], clues: &[(&str, i32); 10]) -> i32 {
     let sue = clues.iter().fold(aunts.to_vec(), |vec, (clue, value)|
-        vec.iter().filter(|map| {
-            let v = map.get(clue);
-            if v == None {
-                true
-            } else if *clue == "cats:" || *clue == "trees:" {
-                v.unwrap() > value
-            } else if *clue == "pomeranians:" || *clue == "goldfish:" {
-                v.unwrap() < value
-            } else {
-                v.unwrap() == value
-            }
-        })
+        vec.iter().filter(|map|
+            map.get(clue).map_or(true, |v|
+                if *clue == "cats:" || *clue == "trees:" {
+                    v > value
+                } else if *clue == "pomeranians:" || *clue == "goldfish:" {
+                    v < value
+                } else {
+                    v == value
+                }
+            )
+        )
         .cloned()
         .collect::<Vec<_>>()
     );

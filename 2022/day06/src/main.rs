@@ -24,16 +24,14 @@ fn part_two(input: &str) -> usize {
 fn find_offset(input: &str, n: usize) -> usize {
     input.as_bytes()
         .windows(n)
-        .take_while(|w| !is_marker(w))
+        .take_while(|w| is_not_marker(w))
         .count() + n
 }
 
-fn is_marker(buf: &[u8]) -> bool {
-    use std::collections::HashSet;
-
-    let unique: HashSet<&u8> = HashSet::from_iter(buf);
-    unique.len() == buf.len()
+fn is_not_marker(buf: &[u8]) -> bool {
+    (1..buf.len()).any(|i| buf[i..].contains(&buf[i-1]))
 }
+
 
 #[cfg(test)]
 mod tests {

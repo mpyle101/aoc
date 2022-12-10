@@ -49,7 +49,7 @@ fn part_two(input: &str) -> String {
     (0..240)
         .for_each(|cycle| {
             let h_pos = cycle % 40;
-            let pixel = if h_pos >= x-1 && h_pos <= x+1 { '#' } else { '.' };
+            let pixel = if h_pos >= x-1 && h_pos <= x+1 { '#' } else { ' ' };
             print!("{pixel}");
 
             cycles -= 1;

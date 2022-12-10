@@ -1,3 +1,4 @@
+use core::str::Lines;
 
 fn main() {
     use std::time::Instant;
@@ -30,8 +31,7 @@ fn part_one(input: &str) -> i32 {
             }
             cycles -= 1;
             if cycles == 0 {
-                op.exec(&mut x);
-                op = Ops::new(lines.next().unwrap());
+                op = execute(&op, &mut x, &mut lines);
                 cycles = op.cycles();
             }
         });
@@ -50,21 +50,25 @@ fn part_two(input: &str) -> String {
         .for_each(|cycle| {
             let h_pos = cycle % 40;
             let pixel = if h_pos >= x-1 && h_pos <= x+1 { '#' } else { ' ' };
-            print!("{pixel}");
+            if h_pos == 39 { println!("{pixel}") } else { print!("{pixel}")}
 
             cycles -= 1;
             if cycles == 0 {
-                op.exec(&mut x);
-                if let Some(line) = lines.next() {
-                    op = Ops::new(line);
-                    cycles = op.cycles();
-                }
+                op = execute(&op, &mut x, &mut lines);
+                cycles = op.cycles();
             }
-
-            if h_pos == 39 { println!() }
         });
 
     "PBZGRAZA".into()
+}
+
+fn execute(op: &Ops, x: &mut i32, lines: &mut Lines) -> Ops {
+    op.exec(x);
+    if let Some(line) = lines.next() {
+        Ops::new(line)
+    } else {
+        Ops::noop
+    }
 }
 
 

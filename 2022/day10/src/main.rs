@@ -107,8 +107,11 @@ mod tests {
     fn it_works() {
         let input = include_str!("../input.txt");
 
-        let tail = part_one(input);
-        assert_eq!(tail, 13440);
+        let signals = part_one(input);
+        assert_eq!(signals, 13440);
+
+        let image = part_two(input);
+        assert_eq!(image, "PBZGRAZA");
     }
 
     #[test]

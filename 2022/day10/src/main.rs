@@ -1,4 +1,4 @@
-use core::str::Lines;
+use vm::Vm;
 
 fn main() {
     use std::time::Instant;
@@ -15,91 +15,37 @@ fn main() {
 }
 
 fn part_one(input: &str) -> i32 {
-    let mut x = 1;
+    let mut vm = Vm::new(input);
+
     let mut signal = 0;
     let mut signal_multiplier = 1;
-
-    let mut lines = input.lines();
-    let mut op = Ops::new(lines.next().unwrap());
-    let mut cycles = op.cycles();
 
     (1..=220)
         .for_each(|cycle| {
             if cycle % (20 * signal_multiplier) == 0 {
-                signal += x * cycle;
+                signal += cycle * vm.getx();
                 signal_multiplier += 2;
             }
-            cycles -= 1;
-            if cycles == 0 {
-                op = execute(&op, &mut x, &mut lines);
-                cycles = op.cycles();
-            }
+
+            vm.do_tick();
         });
 
     signal
 }
 
 fn part_two(input: &str) -> String {
-    let mut x = 1;
-
-    let mut lines = input.lines();
-    let mut op = Ops::new(lines.next().unwrap());
-    let mut cycles = op.cycles();
+    let mut vm = Vm::new(input);
 
     (0..240)
         .for_each(|cycle| {
-            let h_pos = cycle % 40;
+            let (x, h_pos) = (vm.getx(), cycle % 40);
             let pixel = if h_pos >= x-1 && h_pos <= x+1 { '#' } else { ' ' };
             if h_pos == 39 { println!("{pixel}") } else { print!("{pixel}")}
 
-            cycles -= 1;
-            if cycles == 0 {
-                op = execute(&op, &mut x, &mut lines);
-                cycles = op.cycles();
-            }
+            vm.do_tick();
         });
 
     "PBZGRAZA".into()
-}
-
-fn execute(op: &Ops, x: &mut i32, lines: &mut Lines) -> Ops {
-    op.exec(x);
-    if let Some(line) = lines.next() {
-        Ops::new(line)
-    } else {
-        Ops::noop
-    }
-}
-
-
-#[allow(non_camel_case_types)]
-enum Ops {
-    noop,
-    addx (i32),
-}
-
-impl Ops {
-    fn new(inst: &str) -> Self {
-        if inst == "noop" {
-            Ops::noop
-        } else {
-            let (_, v) = inst.split_once(' ').unwrap();
-            Ops::addx(v.parse::<i32>().unwrap())
-        }
-    }
-
-    fn cycles(&self) -> i32 {
-        match self {
-            Ops::noop => 1,
-            Ops::addx {..} => 2,
-        }
-    }
-
-    fn exec(&self, reg: &mut i32) {
-        if let Ops::addx(v) = self {
-            *reg += v
-        }
-    }
 }
 
 

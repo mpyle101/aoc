@@ -44,13 +44,12 @@ fn compare_packets(a: &str, b: &str) -> Ordering {
         &mut a.chars().skip(1).peekable(),
         &mut b.chars().skip(1).peekable()
     )
-    .unwrap()
 }
 
 fn compare_lists<I, K>(
     a: &mut std::iter::Peekable<I>,
     b: &mut std::iter::Peekable<K>
-) -> Option<Ordering>
+) -> Ordering
     where I: Iterator<Item=char>, K: Iterator<Item=char>
 {
     loop {
@@ -60,21 +59,24 @@ fn compare_lists<I, K>(
         if cb == ',' { cb = b.next().unwrap() }
 
         if ca == ']' && cb == ']' {
-            break Some(Ordering::Equal)
+            break Ordering::Equal
         } else if ca == ']' || cb == ']' {
-            break if ca == ']' { Some(Ordering::Less) } else { Some(Ordering::Greater) }
+            break if ca == ']' { Ordering::Less } else { Ordering::Greater }
         } else if ca == '[' && cb == '[' {
-            if let Some(v) = compare_lists(a, b) { break Some(v) }
+            let v = compare_lists(a, b);
+            if v != Ordering::Equal { break v }
         } else if ca == '[' {
             let s = format!("{}]", token(cb, b));
-            if let Some(v) = compare_lists(a, &mut s.chars().peekable()) { break Some(v) }
+            let v = compare_lists(a, &mut s.chars().peekable());
+            if v != Ordering::Equal { break v }
         } else if cb == '[' {
             let s = format!("{}]", token(ca, a));
-            if let Some(v) = compare_lists(&mut s.chars().peekable(), b) { break Some(v) }
+            let v = compare_lists(&mut s.chars().peekable(), b);
+            if v != Ordering::Equal { break v }
         } else {
             match (number(ca, a), number(cb, b)) {
-                (va, vb) if va > vb => break Some(Ordering::Greater),
-                (va, vb) if va < vb => break Some(Ordering::Less),
+                (va, vb) if va > vb => break Ordering::Greater,
+                (va, vb) if va < vb => break Ordering::Less,
                 _ => ()
             }
         }

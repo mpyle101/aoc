@@ -46,11 +46,11 @@ fn compare_packets(a: &str, b: &str) -> Ordering {
     )
 }
 
-fn compare_lists<I, K>(
-    a: &mut std::iter::Peekable<I>,
-    b: &mut std::iter::Peekable<K>
+fn compare_lists<I1, I2>(
+    a: &mut std::iter::Peekable<I1>,
+    b: &mut std::iter::Peekable<I2>
 ) -> Ordering
-    where I: Iterator<Item=char>, K: Iterator<Item=char>
+    where I1: Iterator<Item=char>, I2: Iterator<Item=char>
 {
     loop {
         let mut ca = a.next().unwrap();

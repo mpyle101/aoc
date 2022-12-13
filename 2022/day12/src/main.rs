@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use pathfinding::matrix::Matrix;
 
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
     let input = include_str!("../input.txt");
@@ -14,68 +15,56 @@ fn main() {
     println!("Part 2: {} ({:?})", steps, t.elapsed());
 }
 
-fn part_one(input: &str) -> usize {
+fn part_one(input: &str) -> usize
+{
     use pathfinding::prelude::bfs;
 
-    let hm = HeightMap::new(input);
-    let hike = bfs(&hm.start, |&p| hm.steps(p), |&p| p == hm.end);
-
-    hike.unwrap().len() - 1
+    let (start, end, m) = load(input);
+    bfs(&start, |&p| neighbors(p, &m), |&p| p == end).unwrap().len() - 1
 }
 
-fn part_two(input: &str) -> usize {
+fn part_two(input: &str) -> usize
+{
     use pathfinding::prelude::bfs;
 
-    let hm = HeightMap::new(input);
-    hm.map.iter()
-        .filter(|(_, h)| **h == 0)
-        .filter_map(|(p, _)| bfs(p, |pos| hm.steps(*pos), |pos| *pos == hm.end))
+    let (_, end, m) = load(input);
+    m.indices()
+        .filter_map(|p| m.get(p).and_then(|h| (*h == 0).then_some(p)))
+        .filter_map(|p| bfs(&p, |&p| neighbors(p, &m), |&p| p == end))
         .map(|v| v.len() - 1)
         .min()
         .unwrap()
 }
 
-#[derive(Debug)]
-struct HeightMap {
-    start: (i32, i32),
-    end: (i32, i32),
-    map: HashMap<(i32, i32), u8>,
+fn load(input: &str) -> ((usize, usize), (usize, usize), Matrix<u8>)
+{
+    let mut start = (0, 0);
+    let mut end = (0, 0);
+
+    let mut m = Matrix::from_rows(input.lines()
+        .map(|line| line.bytes().map(|byte|
+            match byte {
+                    b'S' => 100,
+                    b'E' => 200,
+                    b    => b - b'a'
+                })
+            ))
+        .unwrap();
+
+    m.indices().for_each(|p| {
+        let v = m.get(p).unwrap();
+        if *v == 100 { start = p } else if *v == 200 { end = p }
+    });
+    *m.get_mut(start).unwrap() = 0;
+    *m.get_mut(end).unwrap() = 25;
+
+    (start, end, m)
 }
 
-impl HeightMap {
-    fn new(input: &str) -> HeightMap {
-        let mut start = (0, 0);
-        let mut end = (0, 0);
-        let mut map = HashMap::new();
-
-        for (row, line) in input.lines().enumerate() {
-            for (col, byte) in line.bytes().enumerate() {
-                let r = row as i32;
-                let c = col as i32;
-
-                let height = match byte {
-                    b'S' => { start = (r, c); 0 },
-                    b'E' => { end = (r, c); 25 }
-                    b    => { b - b'a' }
-                };
-                map.insert((r, c), height);
-            }
-        }
-
-        HeightMap { start, end, map }
-    }
-
-    const STEPS: [(i32, i32);4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
-
-    fn steps(&self, p: (i32, i32)) -> Vec<(i32, i32)> {
-        let h = self.map.get(&p).unwrap();
-
-        HeightMap::STEPS.iter()
-            .map(|&st| (p.0 + st.0, p.1 + st.1))
-            .filter_map(|p1| self.map.get(&p1)
-                .and_then(|h1| ((*h + 1) >= *h1).then_some(p1)))
-            .collect::<Vec<_>>()
-    }
+fn neighbors(p: (usize, usize), m: &Matrix<u8>) -> impl Iterator<Item = (usize, usize)> + '_
+{
+    let h = m.get(p).unwrap();
+    m.neighbours(p, false).filter(|pos| (*h + 1) >= *m.get(*pos).unwrap())
 }
 
 

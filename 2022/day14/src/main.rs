@@ -72,6 +72,7 @@ fn load(input: &str) -> HashSet<(u32, u32)> {
 }
 
 fn sort(arr: &[(u32, u32)]) -> [(u32, u32);2] {
+    // This works because we know either the x's or the y's are the same.
     if arr[0] > arr[1] { [arr[1], arr[0]] } else { [arr[0], arr[1]]}
 }
 

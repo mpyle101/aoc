@@ -78,8 +78,7 @@ fn load(input: &str) -> HashSet<(u32, u32)> {
         })
 }
 
-fn fall(p: (u32, u32), used: &mut HashSet<(u32, u32)>) -> Option<(u32, u32)>
-{
+fn fall(p: (u32, u32), used: &mut HashSet<(u32, u32)>) -> Option<(u32, u32)> {
     if !used.contains(&(p.0, p.1+1)) {
         Some((p.0, p.1 + 1))
     } else if !used.contains(&(p.0-1, p.1+1)) {

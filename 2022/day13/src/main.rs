@@ -66,11 +66,11 @@ fn compare_lists<I1, I2>(
             let v = compare_lists(a, b);
             if v != Ordering::Equal { break v }
         } else if ca == '[' {
-            let s = format!("{}]", token(cb, b));
+            let s = format!("{}]", number(cb, b));
             let v = compare_lists(a, &mut s.chars().peekable());
             if v != Ordering::Equal { break v }
         } else if cb == '[' {
-            let s = format!("{}]", token(ca, a));
+            let s = format!("{}]", number(ca, a));
             let v = compare_lists(&mut s.chars().peekable(), b);
             if v != Ordering::Equal { break v }
         } else {
@@ -80,17 +80,6 @@ fn compare_lists<I1, I2>(
                 _ => ()
             }
         }
-    }
-}
-
-fn token<I>(c1: char, iter: &mut std::iter::Peekable<I>) -> String
-    where I: Iterator<Item=char>
-{
-    if c1.is_ascii_digit() {
-        let v = number(c1, iter);
-        format!("{v}")
-    } else {
-        c1.into()
     }
 }
 

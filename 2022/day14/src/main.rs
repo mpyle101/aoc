@@ -62,19 +62,17 @@ fn load(input: &str) -> HashSet<(u32, u32)> {
             .collect::<Vec<_>>())
         .fold(HashSet::new(), |mut acc, v| {
             v.windows(2).for_each(|w| {
-                let (a, b) = (w[0], w[1]);
-                if a.0 == b.0 {
-                    let y0 = b.1.min(a.1);
-                    let y1 = b.1.max(a.1);
-                    (y0..=y1).for_each(|y| { acc.insert((a.0, y)); })
-                } else {
-                    let x0 = b.0.min(a.0);
-                    let x1 = b.0.max(a.0);
-                    (x0..=x1).for_each(|x| { acc.insert((x, a.1)); })
-                }
+                let [a, b] = sort(w);
+                (a.0..=b.0).for_each(|x| (a.1..=b.1)
+                    .for_each(|y| { acc.insert((x, y)); })
+                );
             });
             acc
         })
+}
+
+fn sort(arr: &[(u32, u32)]) -> [(u32, u32);2] {
+    if arr[0] > arr[1] { [arr[1], arr[0]] } else { [arr[0], arr[1]]}
 }
 
 fn fall(p: (u32, u32), used: &mut HashSet<(u32, u32)>) -> Option<(u32, u32)> {

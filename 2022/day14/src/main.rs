@@ -61,17 +61,16 @@ fn load(input: &str) -> HashSet<(u32, u32)> {
             .map(|(s1, s2)| (s1.parse::<u32>().unwrap(), s2.parse::<u32>().unwrap()))
             .collect::<Vec<_>>())
         .fold(HashSet::new(), |mut acc, v| {
-            (1..v.len()).for_each(|i| {
-                if v[i-1].0 == v[i].0 {
-                    let x  = v[i].0;
-                    let y0 = v[i].1.min(v[i-1].1);
-                    let y1 = v[i].1.max(v[i-1].1);
-                    (y0..=y1).for_each(|y| { acc.insert((x, y)); })
+            v.windows(2).for_each(|w| {
+                let (a, b) = (w[0], w[1]);
+                if a.0 == b.0 {
+                    let y0 = b.1.min(a.1);
+                    let y1 = b.1.max(a.1);
+                    (y0..=y1).for_each(|y| { acc.insert((a.0, y)); })
                 } else {
-                    let y = v[i].1;
-                    let x0 = v[i].0.min(v[i-1].0);
-                    let x1 = v[i].0.max(v[i-1].0);
-                   (x0..=x1).for_each(|x| { acc.insert((x, y)); })
+                    let x0 = b.0.min(a.0);
+                    let x1 = b.0.max(a.0);
+                    (x0..=x1).for_each(|x| { acc.insert((x, a.1)); })
                 }
             });
             acc

@@ -28,8 +28,29 @@ fn part_one(input: &str, y: i32) -> i32 {
     x2 - x1
 }
 
-#[allow(clippy::needless_range_loop)]
 fn part_two(input: &str, m: i32) -> i64 {
+    // There's only one open point which means it must be at
+    // least md + 1 of all the sensors. That means we just need
+    // to test all points at md + 1 from each sensor. This is almost
+    // an order of magnitude faster than the range merge testing in
+    // part_two_orig.
+    let sensors = load(input);
+    let checks = sensors.clone();
+
+    for (s, md) in sensors {
+        let v = possible(s, md, m);
+        if let Some(pt) = v.iter()
+            .find(|p| checks.iter().all(|(s, md)| !contains(s, md, **p)))
+        {
+            return (pt.0 as i64 * 4000000) + pt.1 as i64
+        }
+    }
+
+    0
+}
+
+#[allow(dead_code, clippy::needless_range_loop)]
+fn part_two_orig(input: &str, m: i32) -> i64 {
     let sensors = load(input);
 
     for y in 0..=m {
@@ -65,6 +86,28 @@ fn load(input: &str) -> Vec<((i32, i32), i32)> {
             ((sensor_x, sensor_y), md as i32)
         })
         .collect()
+}
+
+fn possible(p: (i32, i32), md: i32, m: i32) -> Vec<(i32, i32)> {
+    let mut v = vec![];
+
+    let offset = md + 1;
+    for i in 0..=md {
+        if p.1 - i >= 0 {
+            if p.0 - offset + i >= 0 { v.push((p.0-offset+i, p.1-i)) };
+            if p.0 + offset - i <= m { v.push((p.0+offset-i, p.1-i)) };
+        }
+        if p.1 + i <= m {
+            if p.0 - offset + i >= 0 { v.push((p.0-offset+i, p.1+i)) };
+            if p.0 + offset - i <= m { v.push((p.0+offset-i, p.1+i)) };
+        }
+    }
+
+    v
+}
+
+fn contains(s: &(i32, i32), md: &i32, p: (i32, i32)) -> bool {
+    s.0.abs_diff(p.0) + s.1.abs_diff(p.1) <= (*md as u32)
 }
 
 fn covered(sensors: &[((i32, i32), i32)], y: i32) -> Vec<(i32, i32)> {

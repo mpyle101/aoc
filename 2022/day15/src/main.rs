@@ -29,8 +29,8 @@ fn part_one(input: &str, y: i32) -> i32 {
 }
 
 fn part_two(input: &str, m: i32) -> i64 {
-    // There's only one open point which means it must be at
-    // least md + 1 of all the sensors. That means we just need
+    // There's only one open point which means it must be at, at
+    // least, md + 1 of all the sensors. That means we just need
     // to test all points at md + 1 from each sensor. This is almost
     // an order of magnitude faster than the range merge testing in
     // part_two_orig.

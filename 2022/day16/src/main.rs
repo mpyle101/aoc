@@ -4,15 +4,16 @@ fn main() {
 
     let input = include_str!("../input.txt");
 
-    let t = Instant::now();
-    let pressure = part_one(input);
-    println!("Part 1: {} ({:?})", pressure, t.elapsed());
+    // let t = Instant::now();
+    // let pressure = part_one(input);
+    // println!("Part 1: {} ({:?})", pressure, t.elapsed());
 
     let t = Instant::now();
     let pressure = part_two(input);
     println!("Part 2: {} ({:?})", pressure, t.elapsed());
 }
 
+#[allow(dead_code)]
 fn part_one(input: &str) -> u32 {
     use std::collections::HashMap;
 
@@ -48,9 +49,10 @@ fn part_one(input: &str) -> u32 {
     *states.values().max().unwrap()
 }
 
+
 fn part_two(input: &str) -> u32 {
     use std::collections::HashMap;
-
+    
     let valves = load(input);
     let mut states = HashMap::new();
     states.insert((0usize, 0usize, vec![false;valves.len()]), 0);
@@ -58,45 +60,45 @@ fn part_two(input: &str) -> u32 {
     for m in 1..=26 {
         let mut next: HashMap<(usize, usize, Vec<bool>), u32> = HashMap::new();
         states.iter()
-            .for_each(|((l, e, v), p)| {
-                if !v[*l] && valves[*l].rate > 0 {
-                    let mut v1 = v.clone();
-                    v1[*l] = true;
-                    let st1 = (*l, *e, v1);
-                    let p1 = p + ((30 - m) * valves[*l].rate);
-                    match next.get_mut(&st1) {
-                        None => { next.insert(st1, p1); }
-                        Some(p2) => if p1 > *p2 { *p2 = p1 }
-                    }
+            .for_each(|((h, e, v), p)| {
+                if !v[*h] && valves[*h].rate > 0 {
+                    let mut v1 = v.clone(); v1[*h] = true;
+                    let p1 = p + ((26 - m) * valves[*h].rate);
+                    [*e].iter().chain(valves[*e].tunnels.iter())
+                        .for_each(|e1| {
+                            let st1 = (*h, *e1, v1.clone());
+                            match next.get_mut(&st1) {
+                                None => { next.insert(st1, p1); }
+                                Some(p2) => if p1 > *p2 { *p2 = p1 }
+                            }
+                        })
                 }
-                if !v[*e] && valves[*e].rate > 0 {
-                    let mut v1 = v.clone();
-                    v1[*e] = true;
-                    let st1 = (*l, *e, v1);
-                    let p1 = p + ((30 - m) * valves[*e].rate);
-                    match next.get_mut(&st1) {
-                        None => { next.insert(st1, p1); }
-                        Some(p2) => if p1 > *p2 { *p2 = p1 }
-                    }
+                if e != h && !v[*e] && valves[*e].rate > 0 {
+                    let mut v1 = v.clone(); v1[*e] = true;
+                    let p1 = p + ((26 - m) * valves[*e].rate);
+                    [*h].iter().chain(valves[*h].tunnels.iter())
+                        .for_each(|h1| {
+                            let st1 = (*h1, *e, v1.clone());
+                            match next.get_mut(&st1) {
+                                None => { next.insert(st1, p1); }
+                                Some(p2) => if p1 > *p2 { *p2 = p1 }
+                            }
+                        })
                 }
-                if e != l && !v[*l] && valves[*l].rate > 0 && !v[*e] && valves[*e].rate > 0 {
-                    let mut v1 = v.clone();
-                    v1[*l] = true;
-                    v1[*e] = true;
-                    let st1 = (*l, *e, v1);
-                    let mut p1 = *p;
-                    p1 += (30 - m) * valves[*l].rate;
-                    p1 += (30 - m) * valves[*e].rate;
+                if e != h && !v[*h] && valves[*h].rate > 0 && !v[*e] && valves[*e].rate > 0 {
+                    let mut v1 = v.clone(); v1[*h] = true; v1[*e] = true;
+                    let st1 = (*h, *e, v1);
+                    let p1 = p + ((26 - m) * valves[*h].rate) + ((26 - m) * valves[*e].rate);
                     match next.get_mut(&st1) {
                         None => { next.insert(st1, p1); }
                         Some(p2) => if p1 > *p2 { *p2 = p1 }
                     }
                 }
 
-                [*l].iter().chain(valves[*l].tunnels.iter())
-                    .for_each(|l1| [*e].iter().chain(valves[*e].tunnels.iter())
+                [*h].iter().chain(valves[*h].tunnels.iter())
+                    .for_each(|h1| [*e].iter().chain(valves[*e].tunnels.iter())
                         .for_each(|e1| {
-                            let st1 = (*l1, *e1, v.clone());
+                            let st1 = (*h1, *e1, v.clone());
                             match next.get_mut(&st1) {
                                 None => { next.insert(st1, *p); }
                                 Some(p1) => if p > p1 { *p1 = *p }
@@ -104,7 +106,13 @@ fn part_two(input: &str) -> u32 {
                         }))
             });
 
-        states = next;
+        states = if next.len() < 10000 {
+            next
+        } else {
+            let mut v = next.iter().collect::<Vec<_>>();
+            v.sort_by(|a, b| b.1.cmp(a.1));
+            v[0..10000].iter().cloned().map(|(a, b)| (a.clone(), *b)).collect()
+        };
     }
 
     *states.values().max().unwrap()
@@ -176,8 +184,11 @@ mod tests {
     fn it_works() {
         let input = include_str!("../input.txt");
 
-        let calories = part_one(input);
-        assert_eq!(calories, 1775);
+        let pressure = part_one(input);
+        assert_eq!(pressure, 1775);
+
+        let pressure = part_two(input);
+        assert_eq!(pressure, 2351);
     }
 
     #[test]

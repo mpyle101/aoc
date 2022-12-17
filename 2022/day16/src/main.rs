@@ -4,9 +4,9 @@ fn main() {
 
     let input = include_str!("../input.txt");
 
-    // let t = Instant::now();
-    // let pressure = part_one(input);
-    // println!("Part 1: {} ({:?})", pressure, t.elapsed());
+    let t = Instant::now();
+    let pressure = part_one(input);
+    println!("Part 1: {} ({:?})", pressure, t.elapsed());
 
     let t = Instant::now();
     let pressure = part_two(input);
@@ -43,7 +43,14 @@ fn part_one(input: &str) -> u32 {
                     })
             });
 
-        states = next
+        // Don't drag along states which are never going to catch up.
+        states = if next.len() < 100 {
+            next
+        } else {
+            let mut v = next.iter().collect::<Vec<_>>();
+            v.sort_by(|a, b| b.1.cmp(a.1));
+            v[0..100].iter().cloned().map(|(a, b)| (a.clone(), *b)).collect()
+        };
     }
 
     *states.values().max().unwrap()
@@ -61,6 +68,7 @@ fn part_two(input: &str) -> u32 {
         let mut next: HashMap<(usize, usize, Vec<bool>), u32> = HashMap::new();
         states.iter()
             .for_each(|((h, e, v), p)| {
+                // I open a valve, the elephant stays or moves
                 if !v[*h] && valves[*h].rate > 0 {
                     let mut v1 = v.clone(); v1[*h] = true;
                     let p1 = p + ((26 - m) * valves[*h].rate);
@@ -73,6 +81,8 @@ fn part_two(input: &str) -> u32 {
                             }
                         })
                 }
+
+                // Elephant opens a valve, I stay or move
                 if e != h && !v[*e] && valves[*e].rate > 0 {
                     let mut v1 = v.clone(); v1[*e] = true;
                     let p1 = p + ((26 - m) * valves[*e].rate);
@@ -85,6 +95,8 @@ fn part_two(input: &str) -> u32 {
                             }
                         })
                 }
+                
+                // We both open valves.
                 if e != h && !v[*h] && valves[*h].rate > 0 && !v[*e] && valves[*e].rate > 0 {
                     let mut v1 = v.clone(); v1[*h] = true; v1[*e] = true;
                     let st1 = (*h, *e, v1);
@@ -95,6 +107,7 @@ fn part_two(input: &str) -> u32 {
                     }
                 }
 
+                // We both move.
                 [*h].iter().chain(valves[*h].tunnels.iter())
                     .for_each(|h1| [*e].iter().chain(valves[*e].tunnels.iter())
                         .for_each(|e1| {
@@ -106,12 +119,13 @@ fn part_two(input: &str) -> u32 {
                         }))
             });
 
-        states = if next.len() < 10000 {
+        // Don't drag along states which are never going to catch up.
+        states = if next.len() < 500 {
             next
         } else {
             let mut v = next.iter().collect::<Vec<_>>();
             v.sort_by(|a, b| b.1.cmp(a.1));
-            v[0..10000].iter().cloned().map(|(a, b)| (a.clone(), *b)).collect()
+            v[0..500].iter().cloned().map(|(a, b)| (a.clone(), *b)).collect()
         };
     }
 

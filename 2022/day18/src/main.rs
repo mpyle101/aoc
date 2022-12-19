@@ -1,9 +1,9 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, ops::RangeInclusive};
 
 fn main() {
     use std::time::Instant;
 
-    let input = include_str!("../example.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     let surface_area = part_one(input);
@@ -42,12 +42,13 @@ fn part_two(input: &str) -> usize {
     let max_pt = cubes.iter()
         .map(|c| c.x.max(c.y).max(c.z))
         .max()
-        .unwrap();
+        .unwrap() + 1;
     let min_pt = cubes.iter()
         .map(|c| c.x.min(c.y).min(c.z))
         .min()
-        .unwrap();
-    let start = Cube::from(min_pt, min_pt, min_pt);
+        .unwrap() - 1;
+    let range = min_pt..=max_pt;
+    let start = Cube { x: min_pt, y: min_pt, z: min_pt };
 
     let mut q = VecDeque::from([start]);
     let mut seen = HashSet::new();
@@ -57,14 +58,14 @@ fn part_two(input: &str) -> usize {
     while let Some(cube) = q.pop_front() {
         if !lava.contains(&cube) && !seen.contains(&cube) {
             steam.insert(cube);
-            cube.neighbors(min_pt, max_pt).iter()
+            cube.neighbors(&range).iter()
                 .for_each(|c| q.push_back(*c));
         }
         seen.insert(cube);
     }
 
     cubes.iter()
-        .map(|cube| cube.neighbors(min_pt, max_pt).iter()
+        .map(|cube| cube.neighbors(&range).iter()
             .filter(|c| !lava.contains(c) && steam.contains(c))
             .count())
         .sum()
@@ -72,8 +73,7 @@ fn part_two(input: &str) -> usize {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Face {
-    pts: [(usize, usize, usize);4],
-    plane: char,
+    pts: [(usize, usize, usize); 4],
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -92,38 +92,33 @@ impl Cube {
         Cube { x, y, z }
     }
 
-    fn from(x: usize, y: usize, z: usize) -> Cube {
-        Cube { x, y, z }
-    }
-
-    fn inside(&self, min_pt: usize, max_pt: usize) -> bool {
-        let range = min_pt..=max_pt;
+    fn inside(&self, range: &RangeInclusive<usize>) -> bool {
         range.contains(&self.x) && range.contains(&self.y) && range.contains(&self.z)
     }
 
     fn faces(&self) -> Vec<Face> {
         let (x, y, z) = (self.x, self.y, self.z);
         vec![
-            Face { plane: 'X', pts: [(x, y-1, z-1), (x, y-1, z), (x, y, z-1), (x, y, z)] },
-            Face { plane: 'Y', pts: [(x-1, y, z-1), (x-1, y, z), (x, y, z-1), (x, y, z)] },
-            Face { plane: 'Z', pts: [(x-1, y-1, z), (x-1, y, z), (x, y-1, z), (x, y, z)] },
-            Face { plane: 'X', pts: [(x-1, y-1, z-1), (x-1, y-1, z), (x-1, y, z-1), (x-1, y, z)] },
-            Face { plane: 'Y', pts: [(x-1, y-1, z-1), (x-1, y-1, z), (x, y-1, z-1), (x, y-1, z)] },
-            Face { plane: 'Z', pts: [(x-1, y-1, z-1), (x-1, y, z-1), (x, y-1, z-1), (x, y, z-1)] },
+            Face { pts: [(x, y-1, z-1), (x, y-1, z), (x, y, z-1), (x, y, z)] },
+            Face { pts: [(x-1, y, z-1), (x-1, y, z), (x, y, z-1), (x, y, z)] },
+            Face { pts: [(x-1, y-1, z), (x-1, y, z), (x, y-1, z), (x, y, z)] },
+            Face { pts: [(x-1, y-1, z-1), (x-1, y-1, z), (x-1, y, z-1), (x-1, y, z)] },
+            Face { pts: [(x-1, y-1, z-1), (x-1, y-1, z), (x, y-1, z-1), (x, y-1, z)] },
+            Face { pts: [(x-1, y-1, z-1), (x-1, y, z-1), (x, y-1, z-1), (x, y, z-1)] },
         ]
     }
 
-    fn neighbors(&self, min_pt: usize, max_pt: usize) -> Vec<Cube> {
+    fn neighbors(&self, range: &RangeInclusive<usize>) -> Vec<Cube> {
         [
-            Cube::from(self.x+1, self.y, self.z),
-            Cube::from(self.x-1, self.y, self.z),
-            Cube::from(self.x, self.y+1, self.z),
-            Cube::from(self.x, self.y-1, self.z),
-            Cube::from(self.x, self.y, self.z+1),
-            Cube::from(self.x, self.y, self.z-1),
+            Cube { x: self.x+1, y: self.y,   z: self.z },
+            Cube { x: self.x-1, y: self.y,   z: self.z },
+            Cube { x: self.x,   y: self.y+1, z: self.z },
+            Cube { x: self.x,   y: self.y-1, z: self.z },
+            Cube { x: self.x,   y: self.y,   z: self.z+1 },
+            Cube { x: self.x,   y: self.y,   z: self.z-1 },
         ]
         .into_iter()
-        .filter(|cube| cube.inside(min_pt, max_pt))
+        .filter(|cube| cube.inside(range))
         .collect()
     }
 

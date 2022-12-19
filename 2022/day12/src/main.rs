@@ -51,7 +51,7 @@ fn load(input: &str) -> ((usize, usize), (usize, usize), Matrix<u8>)
             ))
         .unwrap();
 
-    m.indices().for_each(|p| {
+    m.keys().for_each(|p| {
         let v = m.get(p).unwrap();
         if *v == 100 { start = p } else if *v == 200 { end = p }
     });

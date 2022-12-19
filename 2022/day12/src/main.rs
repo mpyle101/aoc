@@ -28,7 +28,7 @@ fn part_two(input: &str) -> usize
     use pathfinding::prelude::bfs;
 
     let (_, end, m) = load(input);
-    m.indices()
+    m.keys()
         .filter_map(|p| m.get(p).and_then(|h| (*h == 0).then_some(p)))
         .filter_map(|p| bfs(&p, |&p| neighbors(p, &m), |&p| p == end))
         .map(|v| v.len() - 1)

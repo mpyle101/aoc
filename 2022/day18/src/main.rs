@@ -73,26 +73,26 @@ fn part_two(input: &str) -> usize {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Face {
-    pts: [(usize, usize, usize); 4],
+    pts: [(i32, i32, i32); 4],
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Cube {
-    x: usize,
-    y: usize,
-    z: usize,
+    x: i32,
+    y: i32,
+    z: i32,
 }
 
 impl Cube {
     fn new<'a>(mut it: impl Iterator<Item = &'a str>) -> Cube {
-        let x = it.next().unwrap().parse::<usize>().unwrap();
-        let y = it.next().unwrap().parse::<usize>().unwrap();
-        let z = it.next().unwrap().parse::<usize>().unwrap();
+        let x = it.next().unwrap().parse::<i32>().unwrap();
+        let y = it.next().unwrap().parse::<i32>().unwrap();
+        let z = it.next().unwrap().parse::<i32>().unwrap();
 
         Cube { x, y, z }
     }
 
-    fn inside(&self, range: &RangeInclusive<usize>) -> bool {
+    fn inside(&self, range: &RangeInclusive<i32>) -> bool {
         range.contains(&self.x) && range.contains(&self.y) && range.contains(&self.z)
     }
 
@@ -108,7 +108,7 @@ impl Cube {
         ]
     }
 
-    fn neighbors(&self, range: &RangeInclusive<usize>) -> Vec<Cube> {
+    fn neighbors(&self, range: &RangeInclusive<i32>) -> Vec<Cube> {
         [
             Cube { x: self.x+1, y: self.y,   z: self.z },
             Cube { x: self.x-1, y: self.y,   z: self.z },
@@ -134,6 +134,9 @@ mod tests {
 
         let surface_area = part_one(input);
         assert_eq!(surface_area, 4500);
+
+        let surface_area = part_two(input);
+        assert_eq!(surface_area, 2558);
     }
 
     #[test]

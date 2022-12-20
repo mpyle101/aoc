@@ -48,7 +48,7 @@ fn mix(numbers: &[i64], mixed: &mut VecDeque<usize>) {
             mixed.pop_front();
 
             if numbers[i] < 0 {
-                mixed.rotate_right(numbers[i].unsigned_abs() as usize % len);
+                mixed.rotate_right(-numbers[i] as usize % len);
             } else {
                 mixed.rotate_left(numbers[i] as usize % len);
             }
@@ -85,7 +85,7 @@ mod tests {
         let coords = part_one(input);
         assert_eq!(coords, 3);
 
-        let coords = part_one(input);
+        let coords = part_two(input);
         assert_eq!(coords, 1623178306);
     }
 }

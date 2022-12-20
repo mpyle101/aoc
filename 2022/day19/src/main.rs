@@ -67,11 +67,13 @@ fn mine(factory: &Factory, minutes: i32) -> Factory {
     let mut seen = HashSet::<Factory>::new();
 
     let mut states = vec![*factory];
+    let mut geodes = 0;
     for _ in 1..=minutes {
         let mut next = vec![];
         for state in &states[..] {
             for st in state.states() {
-                if seen.insert(st) {
+                if seen.insert(st) && st.geodes() >= geodes {
+                    geodes = st.geodes();
                     next.push(st);
                 }
             }
@@ -144,6 +146,10 @@ impl Factory {
         }
         
         st
+    }
+
+    fn geodes(&self) -> i32 {
+        self.minerals[3]
     }
 
     fn states(&self) -> Vec<Factory> {

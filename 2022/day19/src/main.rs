@@ -15,20 +15,23 @@ fn main() {
 
 #[allow(dead_code)]
 fn part_one(input: &str) -> i32 {
+    use rayon::prelude::*;
+
     let blue_prints = load(input);
 
-    blue_prints.iter()
+    blue_prints.par_iter()
         .map(Factory::new)
         .map(|f| mine(&f, 24))
         .map(|f| f.quality_level())
         .sum::<i32>()
 }
 
-#[allow(dead_code)]
 fn part_two(input: &str) -> i32 {
+    use rayon::prelude::*;
+
     let blue_prints = load(input);
 
-    blue_prints.iter()
+    blue_prints.par_iter()
         .take(3)
         .map(Factory::new)
         .map(|f| mine(&f, 32))

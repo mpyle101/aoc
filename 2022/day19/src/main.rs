@@ -24,6 +24,7 @@ fn part_one(input: &str) -> i32 {
         .sum::<i32>()
 }
 
+#[allow(dead_code)]
 fn part_two(input: &str) -> i32 {
     let blue_prints = load(input);
 
@@ -65,7 +66,7 @@ fn mine(factory: &Factory, minutes: i32) -> Factory {
     let mut states = vec![*factory];
     for _ in 1..=minutes {
         let mut next = vec![];
-        for state in states {
+        for state in &states[..] {
             for st in state.states() {
                 if seen.insert(st) {
                     next.push(st);
@@ -73,13 +74,10 @@ fn mine(factory: &Factory, minutes: i32) -> Factory {
             }
         };
 
-        next.sort_by_key(|st| Reverse(st.minerals[3]));
-        states = if next.len() > 10000000 {
-            next[0..10000000].to_vec()
-        } else {
-            next
-        };
+        states = next
     }
+
+    states.sort_by_key(|st| Reverse(st.minerals[3]));
     
     states[0]
 }
@@ -113,11 +111,13 @@ struct Factory {
     bp: BluePrint,
     robots: [i32;4],
     minerals: [i32;4],
+    ore_per_min: i32,
 }
 
 impl Factory {
     fn new(bp: &BluePrint) -> Factory {
-        Factory { bp: *bp, robots: [1,0,0,0], minerals: [0;4] }
+        let ore_per_min = bp.ore.max(bp.clay).max(bp.obsidian.0).max(bp.geode.0);
+        Factory { ore_per_min, bp: *bp, robots: [1,0,0,0], minerals: [0;4] }
     }
 
     fn with(&self, action: Option<usize>) -> Factory
@@ -144,12 +144,27 @@ impl Factory {
     }
 
     fn states(&self) -> Vec<Factory> {
-        let mut v = vec![self.with(None)];
+        let mut v = vec![];
 
-        ROBOTS.iter()
-            .enumerate()
-            .filter(|(_, r)| self.can_build(r))
-            .for_each(|(i, _)| v.push(self.with(Some(i))));
+        // Always build a geode robot if we can.
+        if self.can_build(&ROBOTS[3]) {
+            v.push(self.with(Some(3)))
+        } else if self.robots[0] >= self.ore_per_min {
+            if self.can_build(&ROBOTS[2]) {
+                v.push(self.with(Some(2)))
+            } else if self.can_build(&ROBOTS[1]) {
+                v.push(self.with(Some(1)))
+            } else {
+                v.push(self.with(None))
+            }
+        } else {
+            v.push(self.with(None));
+            ROBOTS.iter()
+                .take(3)
+                .enumerate()
+                .filter(|(_, r)| self.can_build(r))
+                .for_each(|(i, _)| v.push(self.with(Some(i))));
+        }
 
         v
     }

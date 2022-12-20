@@ -72,7 +72,7 @@ fn mine(factory: &Factory, minutes: i32) -> Factory {
         let mut next = vec![];
         for state in &states[..] {
             for st in state.states() {
-                if seen.insert(st) && st.geodes() >= geodes {
+                if st.geodes() >= geodes && seen.insert(st) {
                     geodes = st.geodes();
                     next.push(st);
                 }

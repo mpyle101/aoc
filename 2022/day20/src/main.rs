@@ -12,6 +12,10 @@ fn main() {
     let t = Instant::now();
     let coords = part_two(input);
     println!("Part 2: {} ({:?})", coords, t.elapsed());
+
+    let t = Instant::now();
+    let coords = part_three(input);
+    println!("Part 3: {} ({:?})", coords, t.elapsed());
 }
 
 fn part_one(input: &str) -> i64 {
@@ -32,6 +36,25 @@ fn part_two(input: &str) -> i64 {
     let mut mixed = VecDeque::from((0..numbers.len()).collect::<Vec<_>>());
 
     (0..10).for_each(|_| mix(&numbers, &mut mixed));
+    coords(&numbers, &mixed)
+}
+
+fn part_three(input: &str) -> i64 {
+    let numbers = input.lines()
+        .map(|s| s.parse::<i64>().unwrap())
+        .map(|n| n * 811589153)
+        .collect::<Vec<_>>();
+    let mut mixed = VecDeque::from((0..numbers.len()).collect::<Vec<_>>());
+
+    let len = numbers.len() - 1;
+    (0..10).for_each(|_| {
+        (0..numbers.len()).for_each(|i| {
+            let p = mixed.iter().position(|n| *n == i).unwrap();
+            mixed.remove(p);
+            let n = (p as i64 + numbers[i]).rem_euclid(len as i64);
+            mixed.insert(n as usize, i);    
+        })
+    });
     coords(&numbers, &mixed)
 }
 

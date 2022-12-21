@@ -152,7 +152,7 @@ impl<'a> Action<'a> {
             Action::Div(_,_) => if p == 'R' { v * n } else { v / n },
             _ => unreachable!()
         }
-}
+    }
 }
 
 #[cfg(test)]

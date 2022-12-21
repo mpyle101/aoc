@@ -21,6 +21,9 @@ fn part_one(input: &str) -> i64 {
 
 fn part_two(input: &str) -> i64 {
     let actions = load(input);
+    
+    // Build a map of used argument names to the monkey and action
+    // using them.
     let monkeys = actions.iter()
         .fold(HashMap::new(), |mut m, (monkey, action)| {
             let args = action.args();
@@ -32,6 +35,9 @@ fn part_two(input: &str) -> i64 {
             m
         });
 
+    // Build a path of actions from the human to root. Along the way
+    // capture which argument (R or L) we can calculate without the
+    // humn value and do so. Reversing put the root node at the start.
     let (monkey, action) = *monkeys.get("humn").unwrap();
     let args = action.args();
     let other = if args.0 == "humn" { (args.1, 'R') } else { (args.0, 'L') };
@@ -53,6 +59,10 @@ fn part_two(input: &str) -> i64 {
     }
     path.reverse();
 
+    // The final calculated value is the one we need to match so run back
+    // down the action chain from root to humn undoing the calculations
+    // along the way. The final "undo" is the value we need to match the
+    // one calculated for the non-human path for the root action (Eq).
     let start = path[0].2;
     path.iter()
         .skip(1)
@@ -132,6 +142,9 @@ impl<'a> Action<'a> {
     }
 
     fn undo(&self, p: char, n: i64, v: i64) -> i64 {
+        // v is the pre-calculated value
+        // p is the side we pre-calculated
+        // n is the value we need to match with the undo operation
         match self {
             Action::Add(_,_) => if p == 'R' && v > n { -(n + v) } else { n - v },
             Action::Sub(_,_) => if p == 'R' { v + n } else { v - n },

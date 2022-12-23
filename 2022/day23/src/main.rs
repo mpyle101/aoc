@@ -85,21 +85,22 @@ fn proposed_moves(dir: usize, elves: &HashSet<(i32, i32)>) -> HashMap<(i32, i32)
 }
 
 fn can_move(elf: &(i32, i32), elves: &HashSet<(i32, i32)>, dir: usize) -> Option<(i32, i32)> {
+    let mut taken = [false;8];
+
+    DIRS.iter()
+        .enumerate()
+        .map(|(i, (dr, dc))| (i, (elf.0 + dr, elf.1 + dc)))
+        .for_each(|(i, p)| taken[i] = elves.contains(&p));
+
     // If there are no adjacent elves, stay put.
-    if DIRS.iter()
-        .map(|(dr, dc)| (elf.0 + dr, elf.1 + dc))
-        .all(|p| !elves.contains(&p))
-    {
+    if taken == [false;8] {
         return None
     }
 
     // Check each direction.
     for i in 0..4 {
         let ix = (dir + i) % 4;
-        if LOOK[ix].iter()
-            .map(|i| DIRS[*i])
-            .map(|(dr, dc)| (elf.0 + dr, elf.1 + dc))
-            .all(|p| !elves.contains(&p))
+        if !LOOK[ix].iter().any(|i| taken[*i])
         {
             // Return the move in first valid direction.
             let (dr, dc) = DIRS[LOOK[ix][1]];

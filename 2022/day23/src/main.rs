@@ -142,7 +142,7 @@ mod tests {
         let input = include_str!("../example.txt");
 
         let empty = part_one(input);
-        assert_eq!(empty, 100);
+        assert_eq!(empty, 110);
 
         let round = part_two(input);
         assert_eq!(round, 20);

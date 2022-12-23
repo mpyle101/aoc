@@ -1,5 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
+type Elves = HashSet<(i32, i32)>;
+type Moves = HashMap<(i32, i32), Vec<(i32, i32)>>;
+
 fn main() {
     use std::time::Instant;
 
@@ -19,14 +22,8 @@ fn part_one(input: &str) -> u32 {
     let mut elves = load(input);
 
     for _ in 1..=10 {
-        let mut moved = HashSet::new();
-        proposed_moves(dir, &elves).iter()
-            .filter(|(_, v)| v.len() == 1 && moved.insert(v[0]))
-            .map(|(p, v)| (v[0], p))
-            .for_each(|(src, dst)| {
-                elves.remove(&src);
-                elves.insert(*dst);
-            });
+        let moves = proposed_moves(dir, &elves);
+        do_moves(&mut elves, &moves);
 
         dir = (dir + 1) % 4;
     }
@@ -47,16 +44,8 @@ fn part_two(input: &str) -> u32 {
 
     let mut round = 1;
     loop {
-        let mut moved = HashSet::new();
-        proposed_moves(dir, &elves).iter()
-            .filter(|(_, v)| v.len() == 1 && moved.insert(v[0]))
-            .map(|(p, v)| (v[0], p))
-            .for_each(|(src, dst)| {
-                elves.remove(&src);
-                elves.insert(*dst);
-            });
-
-        if moved.is_empty() {
+        let moves = proposed_moves(dir, &elves);
+        if do_moves(&mut elves, &moves) == 0 {
             return round
         }
 
@@ -65,18 +54,18 @@ fn part_two(input: &str) -> u32 {
     }
 }
 
-fn load(input: &str) -> HashSet<(i32, i32)> {
+fn load(input: &str) -> Elves {
     input.lines()
         .enumerate()
         .flat_map(|(row, s)| s.chars()
             .enumerate()
             .filter(|(_, c)| *c == '#')
             .map(move |(col, _)| (row as i32, col as i32)))
-        .collect::<HashSet<_>>()
+        .collect()
 }
 
-fn proposed_moves(dir: usize, elves: &HashSet<(i32, i32)>) -> HashMap<(i32, i32), Vec<(i32, i32)>> {
-    let mut proposed: HashMap<(i32, i32), Vec<(i32, i32)>> = HashMap::new();
+fn proposed_moves(dir: usize, elves: &Elves) -> Moves {
+    let mut proposed: Moves = HashMap::new();
     elves.iter()
         .filter_map(|e| can_move(e, elves, dir).map(|p| (e, p)))
         .for_each(|(e, p)| proposed.entry(p).or_default().push(*e));
@@ -84,7 +73,7 @@ fn proposed_moves(dir: usize, elves: &HashSet<(i32, i32)>) -> HashMap<(i32, i32)
     proposed
 }
 
-fn can_move(elf: &(i32, i32), elves: &HashSet<(i32, i32)>, dir: usize) -> Option<(i32, i32)> {
+fn can_move(elf: &(i32, i32), elves: &Elves, dir: usize) -> Option<(i32, i32)> {
     let mut taken = [false;8];
 
     DIRS.iter()
@@ -108,6 +97,19 @@ fn can_move(elf: &(i32, i32), elves: &HashSet<(i32, i32)>, dir: usize) -> Option
     }
 
     None
+}
+
+fn do_moves(elves: &mut Elves, moves: &Moves) -> usize {
+    let mut moved = HashSet::new();
+    moves.iter()
+        .filter(|(_, v)| v.len() == 1 && moved.insert(v[0]))
+        .map(|(p, v)| (v[0], p))
+        .for_each(|(src, dst)| {
+            elves.remove(&src);
+            elves.insert(*dst);
+        });
+
+    moved.len()
 }
 
 const DIRS: [(i32, i32);8] = [

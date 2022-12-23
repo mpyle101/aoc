@@ -100,8 +100,7 @@ fn can_move(elf: &(i32, i32), elves: &HashSet<(i32, i32)>, dir: usize) -> Option
     // Check each direction.
     for i in 0..4 {
         let ix = (dir + i) % 4;
-        if !LOOK[ix].iter().any(|i| taken[*i])
-        {
+        if !LOOK[ix].iter().any(|i| taken[*i]) {
             // Return the move in first valid direction.
             let (dr, dc) = DIRS[LOOK[ix][1]];
             return Some((elf.0 + dr, elf.1 + dc))

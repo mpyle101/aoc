@@ -15,13 +15,12 @@ fn main() {
 }
 
 fn part_one(input: &str) -> u32 {
-
     let mut dir = 0;
     let mut elves = load(input);
 
     for _ in 1..=10 {
         let mut moved = HashSet::new();
-        propose_moves(dir, &elves).iter()
+        proposed_moves(dir, &elves).iter()
             .filter(|(_, v)| v.len() == 1 && moved.insert(v[0]))
             .map(|(p, v)| (v[0], p))
             .for_each(|(src, dst)| {
@@ -49,7 +48,7 @@ fn part_two(input: &str) -> u32 {
     let mut round = 1;
     loop {
         let mut moved = HashSet::new();
-        propose_moves(dir, &elves).iter()
+        proposed_moves(dir, &elves).iter()
             .filter(|(_, v)| v.len() == 1 && moved.insert(v[0]))
             .map(|(p, v)| (v[0], p))
             .for_each(|(src, dst)| {
@@ -76,38 +75,7 @@ fn load(input: &str) -> HashSet<(i32, i32)> {
         .collect::<HashSet<_>>()
 }
 
-#[allow(dead_code)]
-fn print_map(elves: &HashSet<(i32, i32)>) {
-    let (min_r, min_c, max_r, max_c) = elves.iter()
-        .fold((i32::MAX, i32::MAX, i32::MIN, i32::MIN), |acc, pt| {
-            (pt.0.min(acc.0), pt.1.min(acc.1), pt.0.max(acc.2), pt.1.max(acc.3))
-        });
-   
-    for r in min_r..=max_r {
-        for c in min_c..=max_c {
-            if elves.contains(&(r, c)) {
-                print!("#")
-            } else {
-                print!(".")
-            }
-        }
-        println!();
-    }
-    println!();
-}
-
-const DIRS: [(i32, i32);8] = [
-    (-1, -1), (-1, 0), (-1, 1),
-    ( 0, -1),          ( 0, 1),
-    ( 1, -1), ( 1, 0), ( 1, 1),
-];
-
-// N, S, W, E
-const LOOK: [[usize;3];4] = [
-    [0, 1, 2], [5, 6, 7], [0, 3, 5], [2, 4, 7]
-];
-
-fn propose_moves(dir: usize, elves: &HashSet<(i32, i32)>) -> HashMap<(i32, i32), Vec<(i32, i32)>> {
+fn proposed_moves(dir: usize, elves: &HashSet<(i32, i32)>) -> HashMap<(i32, i32), Vec<(i32, i32)>> {
     let mut proposed: HashMap<(i32, i32), Vec<(i32, i32)>> = HashMap::new();
     elves.iter()
         .filter_map(|e| can_move(e, elves, dir).map(|p| (e, p)))
@@ -141,6 +109,17 @@ fn can_move(elf: &(i32, i32), elves: &HashSet<(i32, i32)>, dir: usize) -> Option
 
     None
 }
+
+const DIRS: [(i32, i32);8] = [
+    (-1, -1), (-1, 0), (-1, 1),
+    ( 0, -1),          ( 0, 1),
+    ( 1, -1), ( 1, 0), ( 1, 1),
+];
+
+// N, S, W, E
+const LOOK: [[usize;3];4] = [
+    [0, 1, 2], [5, 6, 7], [0, 3, 5], [2, 4, 7]
+];
 
 
 #[cfg(test)]

@@ -50,14 +50,14 @@ fn part_one(input: &str) -> i32
     let path = astar(
         &start,
         |st| neighbors(st, &wind, &map).into_iter().map(|p| (p, 1)),
-        |st: &State| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
-        |st: &State| st.pos == goal
+        |st| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
+        |st| st.pos == goal
     ).unwrap();
 
     path.0.last().unwrap().time
 }
 
-fn part_two(input: &str) -> usize
+fn part_two(input: &str) -> i32
 {
     use pathfinding::prelude::astar;
 
@@ -68,19 +68,20 @@ fn part_two(input: &str) -> usize
         (map.rows - 1, map.cols - 2)    // And back...again
     ];
 
-    let mut start = State { pos: (0, 1), time: 0, m: map.rows * map.cols};
-    (0..3).fold(0, |steps, i| {
-        let goal = goals[i];
-        let path = astar(
-            &start,
-            |st| neighbors(st, &wind, &map).into_iter().map(|p| (p, 1)),
-            |st: &State| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
-            |st: &State| st.pos == goal
-        ).unwrap();
-        start = *path.0.last().unwrap();
-        
-        steps + path.0.len() - 1
-    })
+    let start = State { pos: (0, 1), time: 0, m: map.rows * map.cols};
+    let state = goals.iter()
+        .fold(start, |start, goal| {
+            let path = astar(
+                &start,
+                |st| neighbors(st, &wind, &map).into_iter().map(|p| (p, 1)),
+                |st| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
+                |st| st.pos == *goal
+            ).unwrap();
+            
+            *path.0.last().unwrap()
+        });
+
+    state.time
 }
 
 fn load(input: &str) -> (Map, Vec<Wind>)

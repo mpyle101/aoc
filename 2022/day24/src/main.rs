@@ -1,10 +1,22 @@
 type Pos = (i32, i32);
 type Wind = (char, Pos);
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq)]
 struct State {
+    m: i32,
     pos: Pos,
     time: i32,
+}
+impl core::hash::Hash for State {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.pos.hash(state);
+        (self.time % self.m).hash(state);
+    }
+}
+impl std::cmp::PartialEq for State {
+    fn eq(&self, other: &Self) -> bool {
+        self.pos == other.pos && (self.time % self.m) == (other.time % other.m)
+    }
 }
 
 struct Map {
@@ -27,24 +39,24 @@ fn main()
     println!("Part 2: {} ({:?})", steps, t.elapsed());
 }
 
-fn part_one(input: &str) -> usize
+fn part_one(input: &str) -> i32
 {
     use pathfinding::prelude::astar;
 
     let (map, wind) = load(input);
     let goal  = ((map.rows - 1), (map.cols - 2));
-    let start = State { pos: (0, 1), time: 0 };
-    let path  = astar(
+    let start = State { pos: (0, 1), time: 0, m: map.rows * map.cols };
+
+    let path = astar(
         &start,
         |st| neighbors(st, &wind, &map).into_iter().map(|p| (p, 1)),
         |st: &State| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
         |st: &State| st.pos == goal
     ).unwrap();
 
-    path.0.len() - 1
+    path.0.last().unwrap().time
 }
 
-#[allow(dead_code)]
 fn part_two(input: &str) -> usize
 {
     use pathfinding::prelude::astar;
@@ -56,7 +68,7 @@ fn part_two(input: &str) -> usize
         (map.rows - 1, map.cols - 2)    // And back...again
     ];
 
-    let mut start = State { pos: (0, 1), time: 0 };
+    let mut start = State { pos: (0, 1), time: 0, m: map.rows * map.cols};
     (0..3).fold(0, |steps, i| {
         let goal = goals[i];
         let path = astar(
@@ -65,7 +77,7 @@ fn part_two(input: &str) -> usize
             |st: &State| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
             |st: &State| st.pos == goal
         ).unwrap();
-        start = path.0.last().unwrap().clone();
+        start = *path.0.last().unwrap();
         
         steps + path.0.len() - 1
     })
@@ -96,7 +108,7 @@ fn neighbors(st: &State, wind: &[Wind], map: &Map) -> Vec<State>
         .filter(|pos| wind.iter()
             .all(|(c, p)| blizzard(c, st.time + 1, p, map) != *pos)
         )
-        .map(|pos| State { pos, time: st.time + 1 })
+        .map(|pos| State { pos, time: st.time + 1, m: st.m })
         .collect::<Vec<_>>();
 
     states

@@ -24,7 +24,7 @@ fn part_one(input: &str) -> usize
     let start = State { pos: (0, 1), wind };
     let path = astar(
         &start,
-        |st| neighbors(st, &map).into_iter().map(|p| (p, 1)).collect::<Vec<_>>(),
+        |st| neighbors(st, &map).into_iter().map(|p| (p, 1)),
         |st: &State| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
         |st: &State| st.pos == goal
     ).unwrap();
@@ -48,7 +48,7 @@ fn part_two(input: &str) -> usize
         let goal = goals[i];
         let path = astar(
             &start,
-            |st| neighbors(st, &map).into_iter().map(|p| (p, 1)).collect::<Vec<_>>(),
+            |st| neighbors(st, &map).into_iter().map(|p| (p, 1)),
             |st: &State| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
             |st: &State| st.pos == goal
         ).unwrap();
@@ -71,8 +71,9 @@ fn load(input: &str) -> (Map, Vec<Wind>)
         .map(|(c, p)| (*c, (p.0 as i32, p.1 as i32)))
         .for_each(|(c, p)| if c == '#' { walls.insert(p); } else { wind.push((c, p)) });
 
-    // So you can't move up from the start position.
+    // So you can't move up from the start position or down from the goal.
     walls.insert((-1, 1));
+    walls.insert((m.rows as i32, m.columns as i32 - 2));
 
     (Map { walls, rows: m.rows as i32, cols: m.columns as i32 }, wind)
 }

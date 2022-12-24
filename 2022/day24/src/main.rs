@@ -4,7 +4,7 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../example.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     let steps = part_one(input);
@@ -17,44 +17,45 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
-    use pathfinding::prelude::bfs;
+    use pathfinding::prelude::astar;
 
     let (map, wind) = load(input);
     let goal  = ((map.rows - 1), (map.cols - 2));
     let start = State { pos: (0, 1), wind };
-    let path  = bfs(&start, |st| neighbors(st, &map), |st| st.pos == goal);
+    let path = astar(
+        &start,
+        |st| neighbors(st, &map).into_iter().map(|p| (p, 1)).collect::<Vec<_>>(),
+        |st: &State| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
+        |st: &State| st.pos == goal
+    ).unwrap();
 
-    path.unwrap().len() - 1
+    path.0.len() - 1
 }
 
 fn part_two(input: &str) -> usize
 {
-    use pathfinding::prelude::bfs;
+    use pathfinding::prelude::astar;
 
     let (map, wind) = load(input);
-    let goal  = ((map.rows - 1), (map.cols - 2));
-    let start = State { pos: (0, 1), wind };
+    let goals = [
+        (map.rows - 1, map.cols - 2),   // There...
+        (0, 1),                         // And back...
+        (map.rows - 1, map.cols - 2)    // And back...again
+    ];
 
-    // There...
-    let path = bfs(&start, |st| neighbors(st, &map), |st| st.pos == goal).unwrap();
-    let mut steps = path.len() - 1;
-    println!("There...");
-
-    // And back...
-    let goal  = (0, 1);
-    let start = path.last().unwrap();
-    let path  = bfs(start, |st| neighbors(st, &map), |st| st.pos == goal).unwrap();
-    steps += path.len() - 1;
-    println!("And back...");
-
-    // And back...again.
-    let goal  = ((map.rows - 1), (map.cols - 2));
-    let start = path.last().unwrap();
-    let path  = bfs(start, |st| neighbors(st, &map), |st| st.pos == goal).unwrap();
-    steps += path.len() - 1;
-    println!("And back...again");
-
-    steps
+    let mut start = State { pos: (0, 1), wind };
+    (0..3).fold(0, |steps, i| {
+        let goal = goals[i];
+        let path = astar(
+            &start,
+            |st| neighbors(st, &map).into_iter().map(|p| (p, 1)).collect::<Vec<_>>(),
+            |st: &State| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
+            |st: &State| st.pos == goal
+        ).unwrap();
+        start = path.0.last().unwrap().clone();
+        
+        steps + path.0.len() - 1
+    })
 }
 
 fn load(input: &str) -> (Map, Vec<Wind>)
@@ -89,7 +90,6 @@ fn neighbors(st: &State, map: &Map) -> Vec<State>
         .map(|pos| State { pos, wind: wind.clone() })
         .collect::<Vec<_>>();
 
-//    states.iter().for_each(|st| print_state(st, map));
     states
 }
 
@@ -134,6 +134,9 @@ mod tests
 
         let steps = part_one(input);
         assert_eq!(steps, 322);
+
+        let steps = part_two(input);
+        assert_eq!(steps, 974);
     }
 
     #[test]

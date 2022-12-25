@@ -1,3 +1,4 @@
+
 fn main()
 {
     use std::time::Instant;
@@ -77,7 +78,8 @@ mod tests {
     }
 
     #[test]
-    fn snafu_works() {
+    fn snafu_works()
+    {
         let s = snafu(1);
         assert_eq!(s, "1");
 
@@ -131,7 +133,8 @@ mod tests {
     }
 
     #[test]
-    fn fubar_works() {
+    fn fubar_works()
+    {
         let n = fubar("1=-0-2");
         assert_eq!(n, 1747);
 

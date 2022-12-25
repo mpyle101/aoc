@@ -19,8 +19,8 @@ fn part_one(input: &str) -> String
 fn snafu(mut n: i64) -> String
 {
     use std::char::from_digit;
-    let mut s = String::new();
 
+    let mut s = String::new();
     while let Some(c) = from_digit((n % 5) as u32, 5) {
         let (c, x) = match c {
             '4' => ('-', n + 5),

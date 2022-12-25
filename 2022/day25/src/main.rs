@@ -12,7 +12,6 @@ fn main()
 fn part_one(input: &str) -> String
 {
     let n = input.lines().map(fubar).sum();
-    println!("{n}");
     snafu(n)
 }
 

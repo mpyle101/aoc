@@ -59,6 +59,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn it_works()
+    {
+        let input = include_str!("../input.txt");
+
+        let snafu = part_one(input);
+        assert_eq!(snafu, "2-21=02=1-121-2-11-0");
+    }
+
+    #[test]
     fn example()
     {
         let input = include_str!("../example.txt");

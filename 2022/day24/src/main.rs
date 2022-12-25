@@ -1,21 +1,24 @@
+use std::collections::HashSet;
+
 type Pos = (i32, i32);
 type Wind = (char, Pos);
 
 #[derive(Clone, Copy, Debug, Eq)]
 struct State {
-    m: i32,
     pos: Pos,
     time: i32,
+    cycle: i32,
 }
 impl core::hash::Hash for State {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.pos.hash(state);
-        (self.time % self.m).hash(state);
+        (self.time % self.cycle).hash(state);
     }
 }
 impl std::cmp::PartialEq for State {
     fn eq(&self, other: &Self) -> bool {
-        self.pos == other.pos && (self.time % self.m) == (other.time % other.m)
+        self.pos == other.pos && 
+            (self.time % self.cycle) == (other.time % other.cycle)
     }
 }
 
@@ -41,15 +44,18 @@ fn main()
 
 fn part_one(input: &str) -> i32
 {
+    use num::integer::Integer;
     use pathfinding::prelude::astar;
 
     let (map, wind) = load(input);
-    let goal  = ((map.rows - 1), (map.cols - 2));
-    let start = State { pos: (0, 1), time: 0, m: map.rows * map.cols };
+    let cycle  = (map.rows - 2).lcm(&(map.cols - 2));
+    let goal   = ((map.rows - 1), (map.cols - 2));
+    let start  = State { pos: (0, 1), time: 0, cycle };
+    let ground = open_ground(&wind, &map, cycle);
 
     let path = astar(
         &start,
-        |st| neighbors(st, &wind, &map).into_iter().map(|p| (p, 1)),
+        |st| neighbors(st, &ground).into_iter().map(|p| (p, 1)),
         |st| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
         |st| st.pos == goal
     ).unwrap();
@@ -59,21 +65,24 @@ fn part_one(input: &str) -> i32
 
 fn part_two(input: &str) -> i32
 {
+    use num::integer::Integer;
     use pathfinding::prelude::astar;
 
     let (map, wind) = load(input);
+    let cycle = (map.rows - 2).lcm(&(map.cols - 2));
     let goals = [
         (map.rows - 1, map.cols - 2),   // There...
         (0, 1),                         // And back...
         (map.rows - 1, map.cols - 2)    // And back...again
     ];
+    let ground = open_ground(&wind, &map, cycle);
 
-    let start = State { pos: (0, 1), time: 0, m: map.rows * map.cols};
+    let start = State { pos: (0, 1), time: 0, cycle };
     let state = goals.iter()
         .fold(start, |start, goal| {
             let path = astar(
                 &start,
-                |st| neighbors(st, &wind, &map).into_iter().map(|p| (p, 1)),
+                |st| neighbors(st, &ground).into_iter().map(|p| (p, 1)),
                 |st| st.pos.0.abs_diff(goal.0) + st.pos.1.abs_diff(goal.1),
                 |st| st.pos == *goal
             ).unwrap();
@@ -88,53 +97,69 @@ fn load(input: &str) -> (Map, Vec<Wind>)
 {
     use pathfinding::matrix::Matrix;
 
-    let mat = Matrix::from_rows(input.lines().map(|s| s.chars())).unwrap();
-    let wind = mat.keys()
-        .filter_map(|p| mat.get(p).map(|c| (c, p)))
+    let m = Matrix::from_rows(input.lines().map(|s| s.chars())).unwrap();
+    let wind = m.keys()
+        .filter_map(|p| m.get(p).map(|c| (c, p)))
         .filter(|(&c, _)| c != '.' && c != '#')
         .map(|(c, p)| (*c, (p.0 as i32 - 1, p.1 as i32 - 1)))
         .collect::<Vec<_>>();
 
-    (Map { rows: mat.rows as i32, cols: mat.columns as i32 }, wind)
+    (Map { rows: m.rows as i32, cols: m.columns as i32 }, wind)
 }
 
 // up, down, left, right or wait
 const DIRS: [Pos;5] = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)];
 
-fn neighbors(st: &State, wind: &[Wind], map: &Map) -> Vec<State>
+fn neighbors(st: &State, ground: &[HashSet<Pos>]) -> Vec<State>
 {
-    let states = DIRS.iter()
+    let time = ((st.time + 1) % st.cycle) as usize;
+
+    DIRS.iter()
         .map(|(dr, dc)| (st.pos.0 + dr, st.pos.1 + dc))
-        .filter(|pos| is_open(pos, map))
-        .filter(|pos| wind.iter()
-            .all(|(c, p)| blizzard(c, st.time + 1, p, map) != *pos)
-        )
-        .map(|pos| State { pos, time: st.time + 1, m: st.m })
-        .collect::<Vec<_>>();
-
-    states
+        .filter(|pos| ground[time].contains(pos))
+        .map(|pos| State { pos, time: st.time + 1, cycle: st.cycle })
+        .collect()
 }
 
-fn is_open(p: &Pos, m: &Map) -> bool
+fn open_ground(wind: &[Wind], map: &Map, cycle: i32) -> Vec<HashSet<Pos>>
 {
-    ((1..m.rows-1).contains(&p.0) && (1..m.cols-1).contains(&p.1)) ||
-        *p == (0, 1) ||
-        *p == (m.rows - 1, m.cols - 2)
+    use itertools::Itertools;
+
+    // Calculate the open locations for a time cycle.
+    // (minus 2 for the walls).
+    let rows = map.rows - 2;
+    let cols = map.cols - 2;
+
+    let mut valley = (1..=rows)
+        .cartesian_product(1..=cols)
+        .collect::<HashSet<_>>();
+    valley.insert((0, 1));
+    valley.insert((map.rows - 1, map.cols - 2));
+
+    (0..cycle)
+        .fold(vec![], |mut v, t| {
+            let mut ground = valley.clone();
+            wind.iter()
+                .map(|(c, p)| blizzard(c, t, p, rows, cols))
+                .for_each(|p| { ground.remove(&p); });
+            
+            v.push(ground);
+            v
+        })
 }
 
-fn blizzard(dir: &char, t: i32, p: &Pos, m: &Map) -> (i32, i32)
+fn blizzard(dir: &char, t: i32, p: &Pos, rows: i32, cols: i32) -> (i32, i32)
 {
-    // Subtract 2 for the walls.
-    let pt = match dir {
-        '^' => ((p.0 - t).rem_euclid(m.rows - 2), p.1),
-        'v' => ((p.0 + t).rem_euclid(m.rows - 2), p.1),
-        '<' => (p.0, (p.1 - t).rem_euclid(m.cols - 2)),
-        '>' => (p.0, (p.1 + t).rem_euclid(m.cols - 2)),
+    let (r, c) = match dir {
+        '^' => ((p.0 - t).rem_euclid(rows), p.1),
+        'v' => ((p.0 + t).rem_euclid(rows), p.1),
+        '<' => (p.0, (p.1 - t).rem_euclid(cols)),
+        '>' => (p.0, (p.1 + t).rem_euclid(cols)),
         _ => unreachable!()
     };
 
-    // Offset to account for walls.
-    (pt.0 + 1, pt.1 + 1)
+    // Adjust to be in the valley.
+    (r + 1, c + 1)
 }
 
 

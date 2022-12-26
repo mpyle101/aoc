@@ -128,7 +128,7 @@ fn neighbors(p: &Point, open: &Points) -> Vec<Point> {
 fn print(wires: &Wires, open: &Points) {
     (0..39).for_each(|y| {
         (0..186).for_each(|x| {
-            let pt = (x as i32, y as i32);
+            let pt = (x, y);
             let c = if let Some(i) = wires.iter().position(|v| v.1 == pt) {
                 wires[i].0
             } else if open.get(&pt).is_some() {

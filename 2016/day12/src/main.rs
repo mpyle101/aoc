@@ -32,7 +32,7 @@ impl Cmd {
             inc(r) => { reg[*r] += 1; ip+1 },
             dec(r) => { reg[*r] -= 1; ip+1 },
             jnz(r, n, direct) => {
-                let x = if *direct { *r } else { reg[*r as usize] as i32 };
+                let x = if *direct { *r } else { reg[*r as usize] };
                 if x != 0 { (ip as i32 + n) as usize } else { ip+1 }
             },
             cpy(n, r, direct) => {

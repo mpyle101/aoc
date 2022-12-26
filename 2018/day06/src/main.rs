@@ -83,8 +83,8 @@ fn load(input: &str) -> Coords {
         );
 
     Coords {
-        cols: (right - left) as u32,
-        rows: (bottom - top) as u32,
+        cols: right - left,
+        rows: bottom - top,
         coords: coords.iter().map(|(x, y)| (x - left, y - top)).collect()
     }
 }

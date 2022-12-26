@@ -33,7 +33,7 @@ fn load(passwords: &str) -> Vec<Policy> {
 fn part_one(policies: &[Policy]) -> u32 {
     policies.iter().fold(0, |acc, p| {
         let count = p.password.iter()
-            .filter(|&c| *c == p.letter).count() as usize;
+            .filter(|&c| *c == p.letter).count();
         if count >= p.min && count <= p.max { acc + 1 } else { acc }
     })
 }

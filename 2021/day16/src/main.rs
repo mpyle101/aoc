@@ -108,7 +108,7 @@ fn parse_packet(bits: &[u8]) -> (Packet, usize) {
 
     let (value, n) = if type_id == 4 {
         let (value, n) = parse_literal(&bits[6..bits.len()]);
-        (Literal(value as u64), n)
+        (Literal(value), n)
     } else {
         let (packets, n) = parse_operator(&bits[6..bits.len()]);
         (match type_id {
@@ -151,7 +151,7 @@ fn parse_operator(bits: &[u8]) -> (Vec<Packet>, usize) {
     let n = parse_value(&bits[1..r1]) as usize;
 
     let packets = if length_type == 0 {
-        r1 += n as usize;
+        r1 += n;
         parse_packets(&bits[r1-n..r1])
     } else {
         (0..n).fold(Vec::new(), |mut v, _| {

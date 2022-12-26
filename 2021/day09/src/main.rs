@@ -40,7 +40,7 @@ fn part_two(heights: &[u32]) -> u32 {
 }
 
 fn is_lowest(heights: &[u32], pos: usize) -> bool {
-    let value = heights[pos as usize];
+    let value = heights[pos];
     neighbors(heights, pos).iter().all(|(_, n)| *n > value)
 }
 

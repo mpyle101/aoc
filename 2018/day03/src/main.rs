@@ -23,7 +23,7 @@ fn part_one(claims: &[Claim]) -> usize {
     let (rows, cols) = claims.iter().fold((0, 0), |br, claim|
         (max(br.0, claim.rect.2), max(br.1, claim.rect.3))
     );
-    let mut heatmap = Array2::<usize>::zeros((rows as usize, cols as usize));
+    let mut heatmap = Array2::<usize>::zeros((rows, cols));
     claims.iter().for_each(|c| {
         let (t, l, b, r) = c.rect;
         heatmap.slice_mut(s![t..b, l..r]).iter_mut().for_each(|v| *v += 1);
@@ -39,7 +39,7 @@ fn part_two(claims: &[Claim]) -> usize {
     let (rows, cols) = claims.iter().fold((0, 0), |br, claim|
         (max(br.0, claim.rect.2), max(br.1, claim.rect.3))
     );
-    let mut heatmap = Array2::<usize>::zeros((rows as usize, cols as usize));
+    let mut heatmap = Array2::<usize>::zeros((rows, cols));
     claims.iter().for_each(|c| {
         let (t, l, b, r) = c.rect;
         heatmap.slice_mut(s![t..b, l..r]).iter_mut().for_each(|v| *v += 1);

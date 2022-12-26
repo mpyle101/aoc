@@ -76,12 +76,12 @@ impl BitOr for Cuboid {
 
     fn bitor(self, rhs: Self) -> Self::Output {
         Cuboid {
-            x1: rhs.x1.max(self.x1).min(self.x2),
-            x2: rhs.x2.max(self.x1).min(self.x2),
-            y1: rhs.y1.max(self.y1).min(self.y2),
-            y2: rhs.y2.max(self.y1).min(self.y2),
-            z1: rhs.z1.max(self.z1).min(self.z2),
-            z2: rhs.z2.max(self.z1).min(self.z2),
+            x1: rhs.x1.clamp(self.x1, self.x2),
+            x2: rhs.x2.clamp(self.x1, self.x2),
+            y1: rhs.y1.clamp(self.y1, self.y2),
+            y2: rhs.y2.clamp(self.y1, self.y2),
+            z1: rhs.z1.clamp(self.z1, self.z2),
+            z2: rhs.z2.clamp(self.z1, self.z2),
         }
     }
 }
@@ -144,7 +144,7 @@ fn part_two(steps: &[Step]) -> u64 {
         n
     })
     .iter()
-    .map(|c| c.volume() as u64)
+    .map(|c| c.volume())
     .sum()
 }
 

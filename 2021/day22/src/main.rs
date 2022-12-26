@@ -7,15 +7,13 @@ fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
     let steps = load(&input);
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let cubes = part_one(&steps);
-    let t2 = Instant::now();
-    println!("Part 1: {} {:?}", cubes, t2 - t1);
+    println!("Part 1: {} {:?}", cubes, t.elapsed());
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let cubes = part_two(&steps);
-    let t2 = Instant::now();
-    println!("Part 2: {} {:?}", cubes, t2 - t1);
+    println!("Part 2: {} {:?}", cubes, t.elapsed());
 }
 
 #[derive(Debug)]
@@ -155,32 +153,30 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn it_works() {
+    fn part_one_works() {
         let input = fs::read_to_string("./input.txt").unwrap();
         let steps = load(&input);
+        assert_eq!(part_one(&steps), 596598);
+    }
 
-        let cubes = part_one(&steps);
-        assert_eq!(cubes, 596598);
-
-        let cubes = part_two(&steps);
-        assert_eq!(cubes, 1199121349148621);
+    #[test]
+    fn part_two_works() {
+        let input = fs::read_to_string("./input.txt").unwrap();
+        let steps = load(&input);
+        assert_eq!(part_two(&steps), 1199121349148621);
     }
 
     #[test]
     fn example1() {
-        let input = fs::read_to_string("./test1.txt").unwrap();
+        let input = fs::read_to_string("./example1.txt").unwrap();
         let steps = load(&input);
-
-        let cubes = part_one(&steps);
-        assert_eq!(cubes, 590784);
+        assert_eq!(part_one(&steps), 590784);
     }
 
     #[test]
     fn example2() {
-        let input = fs::read_to_string("./test2.txt").unwrap();
+        let input = fs::read_to_string("./example2.txt").unwrap();
         let steps = load(&input);
-
-        let cubes = part_two(&steps);
-        assert_eq!(cubes, 2758514936282235);
+        assert_eq!(part_two(&steps), 2758514936282235);
     }
 }

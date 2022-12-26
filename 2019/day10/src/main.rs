@@ -172,7 +172,7 @@ impl Line {
         let angle = angle(run as f64, rise as f64);
         let slope = Slope::new(rise, run);
         let length = (run as f64).powi(2) + (rise as f64).powi(2);
-        let length = (length as f64).sqrt();
+        let length = length.sqrt();
 
         Line { src: *src, dst: *dst, slope, angle, length }
     }

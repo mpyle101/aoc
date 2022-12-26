@@ -101,7 +101,7 @@ fn load(input: &str) -> Program {
 }
 
 fn read_n(it: &mut std::str::Split<char>) -> Reg {
-    it.next().map_or(0, |v| v.parse::<u32>().map_or(0, |n| n as u32)) as Reg
+    it.next().map_or(0, |v| v.parse::<u32>().unwrap_or(0)) as Reg
 }
 
 #[allow(non_camel_case_types)]

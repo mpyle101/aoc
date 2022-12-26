@@ -101,7 +101,7 @@ impl Cmd {
             },
             jnz(a, b) => {
                 if a.get(&st.reg) != 0 { 
-                    st.ip + b.get(&st.reg) as usize
+                    st.ip.wrapping_add(b.get(&st.reg) as usize)
                 } else {
                     st.ip + 1
                 }

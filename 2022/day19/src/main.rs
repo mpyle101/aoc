@@ -211,7 +211,7 @@ mod tests {
 
     #[test]
     fn example() {
-        let input = include_str!("../input.txt");
+        let input = include_str!("../example.txt");
 
         let quality_level = part_one(input);
         assert_eq!(quality_level, 33);

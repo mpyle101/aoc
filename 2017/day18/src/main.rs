@@ -114,7 +114,7 @@ impl Cmd {
             rem(a, b) => { a.rem(&mut st.reg, b.get(&reg)); Some(st.ip + 1) },
             jgz(a, b) => {
                 if a.get(&st.reg) > 0 { 
-                    Some(st.ip + b.get(&st.reg) as usize)
+                    Some(st.ip.wrapping_add(b.get(&st.reg) as usize))
                 } else {
                     Some(st.ip + 1)
                 }

@@ -65,7 +65,7 @@ mod tests {
         let severity = part_one(&scanners);
         assert_eq!(severity, 1840);
     
-        let delay = part_one(&scanners);
+        let delay = part_two(&scanners);
         assert_eq!(delay, 3850260);
     }
 

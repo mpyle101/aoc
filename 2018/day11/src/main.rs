@@ -44,9 +44,9 @@ fn sum_at(mat: &Array2<i32>, x: usize, y: usize, d: usize) -> i32 {
     let r = x + (d - 1);
     let s = y + (d - 1);
     let rs = *mat.get((r, s)).unwrap();
-    let rq = *mat.get((r, y - 1)).unwrap_or(&0);
-    let ps = *mat.get((x - 1, s)).unwrap_or(&0);
-    let pq = *mat.get((x - 1, y - 1)).unwrap_or(&0);
+    let rq = *mat.get((r, y.wrapping_sub(1))).unwrap_or(&0);
+    let ps = *mat.get((x.wrapping_sub(1), s)).unwrap_or(&0);
+    let pq = *mat.get((x.wrapping_sub(1), y.wrapping_sub(1))).unwrap_or(&0);
 
     rs - rq - ps + pq
 }

@@ -79,7 +79,7 @@ mod tests {
         let steps = part_one(input);
         assert_eq!(steps, 456);
 
-        let steps = part_one(input);
+        let steps = part_two(input);
         assert_eq!(steps, 454);
     }
 

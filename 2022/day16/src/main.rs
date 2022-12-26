@@ -22,7 +22,6 @@ fn part_one(input: &str) -> u32 {
         let mut next: HashMap<State, u32> = HashMap::new();
         states.iter()
             .for_each(|(st, p)| {
-//                println!("{:#012b} {:#012b} {}", st.ix, st.open, st.idx());
                 if !st.is_open() && valves[st.idx()].rate > 0 {
                     let s1 = st.open();
                     let p1 = p + ((30 - m) * valves[st.idx()].rate);

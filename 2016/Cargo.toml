@@ -4,3 +4,4 @@ members = ["day*"]
 [profile.release]
 lto = "thin"
 codegen-units = 1
+incremental = true

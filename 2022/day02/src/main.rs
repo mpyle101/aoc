@@ -3,15 +3,45 @@ use std::ops::Index;
 fn main() {
     use std::time::Instant;
 
-    let input = load_strategy1(include_str!("../input.txt"));
     let t = Instant::now();
-    let score = calc_score(&input);
-    println!("Part 1: {} ({:?})", score, t.elapsed());
+    let input = include_str!("../input.txt");
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
-    let input = load_strategy2(include_str!("../input.txt"));
     let t = Instant::now();
-    let score = calc_score(&input);
-    println!("Part 2: {} ({:?})", score, t.elapsed());
+    let input = include_str!("../input.txt");
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
+}
+
+fn part_one(input: &str) -> i32 {
+    let scoring = scoring();
+    input.lines()
+        .map(|s| {
+            let bytes = s.as_bytes();
+            let s1 = Shape::from(bytes[0]);
+            let s2 = Shape::from(bytes[2]);
+            scoring[s1][s2]
+        })
+        .sum()
+}
+
+fn part_two(input: &str) -> i32 {
+    let scoring = scoring();
+    input.lines()
+        .map(|s| {
+            let bytes = s.as_bytes();
+            let s1 = Shape::from(bytes[0]);
+            let s2 = s1.with_result(bytes[2]);
+            scoring[s1][s2]
+        })
+        .sum()
+}
+
+fn scoring() -> [[i32; 3]; 3] {
+    [
+        [4, 8, 3], // rock
+        [1, 5, 9], // paper
+        [7, 2, 6], // scissors
+    ]
 }
 
 #[derive(Clone, Copy)]
@@ -53,68 +83,36 @@ impl Shape {
     }
 }
 
-impl Index<&Shape> for [[i32; 3]; 3] {
+impl Index<Shape> for [[i32; 3]; 3] {
     type Output = [i32; 3];
 
-    fn index(&self, shape: &Shape) -> &Self::Output {
-        &self[*shape as usize]
+    fn index(&self, shape: Shape) -> &Self::Output {
+        &self[shape as usize]
     }
 }
 
-impl Index<&Shape> for [i32; 3] {
+impl Index<Shape> for [i32; 3] {
     type Output = i32;
 
-    fn index(&self, shape: &Shape) -> &Self::Output {
-        &self[*shape as usize]
+    fn index(&self, shape: Shape) -> &Self::Output {
+        &self[shape as usize]
     }
 }
 
-fn score_matrix() -> [[i32; 3]; 3] {
-    [
-        [4, 8, 3], // rock
-        [1, 5, 9], // paper
-        [7, 2, 6], // scissors
-    ]
-}
-
-fn load_strategy1(input: &str) -> Vec<(Shape, Shape)> {
-    input
-        .lines()
-        .map(|s| {
-            let bytes = s.as_bytes();
-            (Shape::from(bytes[0]), Shape::from(bytes[2]))
-        })
-        .collect()
-}
-
-fn load_strategy2(input: &str) -> Vec<(Shape, Shape)> {
-    input
-        .lines()
-        .map(|s| {
-            let bytes = s.as_bytes();
-            let shape = Shape::from(bytes[0]);
-            (shape, shape.with_result(bytes[2]))
-        })
-        .collect()
-}
-
-fn calc_score(rounds: &[(Shape, Shape)]) -> i32 {
-    let scoring = score_matrix();
-    rounds.iter().map(|(s1, s2)| scoring[s1][s2]).sum()
-}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let input = load_strategy1(include_str!("../input.txt"));
-        let score = calc_score(&input);
-        assert_eq!(score, 8933);
+    fn input_part_one() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 8933);
+    }
 
-        let input = load_strategy2(include_str!("../input.txt"));
-        let score = calc_score(&input);
-        assert_eq!(score, 11998);
+    #[test]
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 11998);
     }
 }

@@ -6,16 +6,13 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let coords = part_one(input);
-    println!("Part 1: {} ({:?})", coords, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let coords = part_two(input);
-    println!("Part 2: {} ({:?})", coords, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 
     let t = Instant::now();
-    let coords = part_three(input);
-    println!("Part 3: {} ({:?})", coords, t.elapsed());
+    println!("Part 3: {} ({:?})", part_three(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> i64 {
@@ -91,24 +88,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let coords = part_one(input);
-        assert_eq!(coords, 13883);
-
-        let coords = part_two(input);
-        assert_eq!(coords, 19185967576920);
+        assert_eq!(part_one(input), 13883);
     }
 
     #[test]
-    fn example() {
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 19185967576920);
+    }
+
+    #[test]
+    fn example_part_one() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 3);
+    }
 
-        let coords = part_one(input);
-        assert_eq!(coords, 3);
-
-        let coords = part_two(input);
-        assert_eq!(coords, 1623178306);
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 1623178306);
     }
 }

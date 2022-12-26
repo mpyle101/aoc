@@ -9,12 +9,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let height = part_one(input);
-    println!("Part 1: {} ({:?})", height, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
    let t = Instant::now();
-   let height = part_two(input, 1_000_000_000_000);
-   println!("Part 2: {} ({:?})", height, t.elapsed());
+   println!("Part 2: {} ({:?})", part_two(input, 1_000_000_000_000), t.elapsed());
 }
 
 fn part_one(input: &str) -> i64 {
@@ -230,48 +228,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let height = part_one(input);
-        assert_eq!(height, 3209);
-
-        let height = part_two(input, 10_000);
-        assert_eq!(height, 15_841);
-
-        let height = part_two(input, 100_000);
-        assert_eq!(height, 158_076);
-
-        let height = part_two(input, 1_000_000);
-        assert_eq!(height, 1_580_778);
-
-        let height = part_two(input, 10_000_000);
-        assert_eq!(height, 15_807_609);
-
-        let height = part_two(input, 1_000_000_000_000);
-        assert_eq!(height, 1_580_758_017_509);
+        assert_eq!(part_one(input), 3209);
     }
 
     #[test]
-    fn examples() {
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input, 10_000), 15_841);
+        assert_eq!(part_two(input, 100_000), 158_076);
+        assert_eq!(part_two(input, 1_000_000), 1_580_778);
+        assert_eq!(part_two(input, 10_000_000), 15_807_609);
+        assert_eq!(part_two(input, 1_000_000_000_000), 1_580_758_017_509);
+    }
+
+    #[test]
+    fn examples_part_one() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 3068);
+    }
 
-        let height = part_one(input);
-        assert_eq!(height, 3068);
-
-        let height = part_two(input, 10_000);
-        assert_eq!(height, 15_148);
-
-        let height = part_two(input, 100_000);
-        assert_eq!(height, 151_434);
-
-        let height = part_two(input, 1_000_000);
-        assert_eq!(height, 1_514_288);
-
-        let height = part_two(input, 10_000_000);
-        assert_eq!(height, 15_142_861);
-
-        let height = part_two(input, 1_000_000_000_000);
-        assert_eq!(height, 1_514_285_714_288);
+    #[test]
+    fn examples_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input, 10_000), 15_148);
+        assert_eq!(part_two(input, 100_000), 151_434);
+        assert_eq!(part_two(input, 1_000_000), 1_514_288);
+        assert_eq!(part_two(input, 10_000_000), 15_142_861);
+        assert_eq!(part_two(input, 1_000_000_000_000), 1_514_285_714_288);
     }
 }

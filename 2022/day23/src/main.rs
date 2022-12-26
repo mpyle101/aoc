@@ -9,12 +9,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let empty = part_one(input);
-    println!("Part 1: {} ({:?})", empty, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let round = part_two(input);
-    println!("Part 2: {} ({:?})", round, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> u32 {
@@ -129,24 +127,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let empty = part_one(input);
-        assert_eq!(empty, 4082);
-
-        let round = part_two(input);
-        assert_eq!(round, 1065);
+        assert_eq!(part_one(input), 4082);
     }
 
     #[test]
-    fn example() {
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1065);
+    }
+
+    #[test]
+    fn example_part_one() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 110);
+    }
 
-        let empty = part_one(input);
-        assert_eq!(empty, 110);
-
-        let round = part_two(input);
-        assert_eq!(round, 20);
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 20);
     }
 }

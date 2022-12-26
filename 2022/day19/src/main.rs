@@ -2,7 +2,7 @@
 fn main() {
     use std::time::Instant;
 
-    let input = include_str!("../input.txt");
+    let input = include_str!("../example.txt");
 
     let t = Instant::now();
     let quality_level = part_one(input);
@@ -199,21 +199,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let quality_level = part_one(input);
-        assert_eq!(quality_level, 1192);
-
-        let geodes = part_two(input);
-        assert_eq!(geodes, 14725);
+        assert_eq!(part_one(input), 1192);
     }
 
     #[test]
-    fn example() {
-        let input = include_str!("../example.txt");
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 14725);
+    }
 
-        let quality_level = part_one(input);
-        assert_eq!(quality_level, 33);
+    #[test]
+    fn example_part_one() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 33);
+    }
+
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 3472);
     }
 }

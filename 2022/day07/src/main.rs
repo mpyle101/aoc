@@ -5,15 +5,13 @@ use std::hash::{Hash, Hasher};
 fn main() {
     use std::time::Instant;
 
-    let input = include_str!("../input.txt");
+    let input = include_str!("../example.txt");
 
     let t = Instant::now();
-    let total_size = part_one(input);
-    println!("Part 1: {} ({:?})", total_size, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let total_size = part_two(input);
-    println!("Part 2: {} ({:?})", total_size, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> usize {
@@ -71,21 +69,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let total_size = part_one(input);
-        assert_eq!(total_size, 1453349);
-
-        let total_size = part_two(input);
-        assert_eq!(total_size, 2948823);
+        assert_eq!(part_one(input), 1453349);
     }
 
     #[test]
-    fn example() {
-        let input = include_str!("../example.txt");
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2948823);
+    }
 
-        let total_size = part_one(input);
-        assert_eq!(total_size, 95437);
+    #[test]
+    fn example_part_one() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 95437);
+    }
+
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 24933642);
     }
 }

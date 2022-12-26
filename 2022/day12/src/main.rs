@@ -7,12 +7,10 @@ fn main()
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let steps = part_one(input);
-    println!("Part 1: {} ({:?})", steps, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let steps = part_two(input);
-    println!("Part 2: {} ({:?})", steps, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> usize
@@ -75,22 +73,24 @@ mod tests {
     #[test]
     fn it_works() {
         let input = include_str!("../input.txt");
-
-        let steps = part_one(input);
-        assert_eq!(steps, 456);
-
-        let steps = part_two(input);
-        assert_eq!(steps, 454);
+        assert_eq!(part_one(input), 456);
     }
 
     #[test]
-    fn example() {
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 454);
+    }
+
+    #[test]
+    fn example_part_one() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 31);
+    }
 
-        let steps = part_one(input);
-        assert_eq!(steps, 31);
-
-        let steps = part_two(input);
-        assert_eq!(steps, 29);
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 29);
     }
 }

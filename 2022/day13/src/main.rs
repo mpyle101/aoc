@@ -6,12 +6,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let indices = part_one(input);
-    println!("Part 1: {} ({:?})", indices, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let decoder_key = part_two(input);
-    println!("Part 2: {} ({:?})", decoder_key, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> usize {
@@ -103,24 +101,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let indices = part_one(input);
-        assert_eq!(indices, 5555);
-
-        let decoder_key = part_two(input);
-        assert_eq!(decoder_key, 22852);
+        assert_eq!(part_one(input), 5555);
     }
 
     #[test]
-    fn example() {
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 22852);
+    }
+
+    #[test]
+    fn example_part_one() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 13);
+    }
 
-        let indices = part_one(input);
-        assert_eq!(indices, 13);
-
-        let decoder_key = part_two(input);
-        assert_eq!(decoder_key, 140);
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 140);
     }
 }

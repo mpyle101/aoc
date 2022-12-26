@@ -5,12 +5,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let offset = part_one(input);
-    println!("Part 1: {} ({:?})", offset, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let offset = part_two(input);
-    println!("Part 2: {} ({:?})", offset, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> usize {
@@ -40,43 +38,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let offset = part_one(input);
-        assert_eq!(offset, 1542);
-
-        let offset = part_two(input);
-        assert_eq!(offset, 3153);
+        assert_eq!(part_one(input), 1542);
     }
 
     #[test]
-    fn examples() {
-        let offset = part_one("bvwbjplbgvbhsrlpgdmjqwftvncz");
-        assert_eq!(offset, 5);
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 3153);
+    }
 
-        let offset = part_one("nppdvjthqldpwncqszvftbrmjlhg");
-        assert_eq!(offset, 6);
+    #[test]
+    fn examples_part_one() {
+        assert_eq!(part_one("bvwbjplbgvbhsrlpgdmjqwftvncz"), 5);
+        assert_eq!(part_one("nppdvjthqldpwncqszvftbrmjlhg"), 6);
+        assert_eq!(part_one("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg"), 10);
+        assert_eq!(part_one("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw"), 11);
+        assert_eq!(part_two("mjqjpqmgbljsphdztnvjfqwrcgsmlb"), 19);
+    }
 
-        let offset = part_one("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg");
-        assert_eq!(offset, 10);
-
-        let offset = part_one("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw");
-        assert_eq!(offset, 11);
-
-        let offset = part_two("mjqjpqmgbljsphdztnvjfqwrcgsmlb");
-        assert_eq!(offset, 19);
-
-        let offset = part_two("bvwbjplbgvbhsrlpgdmjqwftvncz");
-        assert_eq!(offset, 23);
-
-        let offset = part_two("nppdvjthqldpwncqszvftbrmjlhg");
-        assert_eq!(offset, 23);
-
-        let offset = part_two("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg");
-        assert_eq!(offset, 29);
-
-        let offset = part_two("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw");
-        assert_eq!(offset, 26);
+    #[test]
+    fn examples_part_two() {
+        assert_eq!(part_two("mjqjpqmgbljsphdztnvjfqwrcgsmlb"), 19);
+        assert_eq!(part_two("bvwbjplbgvbhsrlpgdmjqwftvncz"), 23);
+        assert_eq!(part_two("nppdvjthqldpwncqszvftbrmjlhg"), 23);
+        assert_eq!(part_two("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg"), 29);
+        assert_eq!(part_two("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw"), 26);
     }
 }

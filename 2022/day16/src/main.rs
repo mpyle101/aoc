@@ -5,15 +5,12 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let pressure = part_one(input);
-    println!("Part 1: {} ({:?})", pressure, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let pressure = part_two(input);
-    println!("Part 2: {} ({:?})", pressure, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
-#[allow(dead_code)]
 fn part_one(input: &str) -> u32 {
     use std::collections::HashMap;
 
@@ -55,7 +52,6 @@ fn part_one(input: &str) -> u32 {
 
     *states.values().max().unwrap()
 }
-
 
 fn part_two(input: &str) -> u32 {
     use std::collections::HashMap;
@@ -120,7 +116,7 @@ fn part_two(input: &str) -> u32 {
             });
 
         // Don't drag along states which are never going to catch up.
-        states = if next.len() < 500 {
+        states = if next.len() < 100000 {
             next
         } else {
             let mut v = next.iter().collect::<Vec<_>>();
@@ -195,24 +191,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let pressure = part_one(input);
-        assert_eq!(pressure, 1775);
-
-        let pressure = part_two(input);
-        assert_eq!(pressure, 2351);
+        assert_eq!(part_one(input), 1775);
     }
 
     #[test]
-    fn example() {
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2351);
+    }
+
+    #[test]
+    fn example_part_one() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 1651);
+    }
 
-        let pressure = part_one(input);
-        assert_eq!(pressure, 1651);
-
-        let pressure = part_two(input);
-        assert_eq!(pressure, 1707);
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 1707);
     }
 }

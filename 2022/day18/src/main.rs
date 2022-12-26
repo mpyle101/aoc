@@ -6,12 +6,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let surface_area = part_one(input);
-    println!("Part 1: {} ({:?})", surface_area, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let surface_area = part_two(input);
-    println!("Part 2: {} ({:?})", surface_area, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> usize {
@@ -129,24 +127,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let surface_area = part_one(input);
-        assert_eq!(surface_area, 4500);
-
-        let surface_area = part_two(input);
-        assert_eq!(surface_area, 2558);
+        assert_eq!(part_one(input), 4500);
     }
 
     #[test]
-    fn example() {
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2558);
+    }
+
+    #[test]
+    fn example_part_one() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 64);
+    }
 
-        let surface_area = part_one(input);
-        assert_eq!(surface_area, 64);
-
-        let surface_area = part_two(input);
-        assert_eq!(surface_area, 58);
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 58);
     }
 }

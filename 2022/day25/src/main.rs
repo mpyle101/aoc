@@ -6,8 +6,7 @@ fn main()
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let snafu = part_one(input);
-    println!("Part 1: {} ({:?})", snafu, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> String
@@ -58,14 +57,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works()
+    fn input_part_one()
     {
         let input = include_str!("../input.txt");
         assert_eq!(part_one(input), "2-21=02=1-121-2-11-0");
     }
 
     #[test]
-    fn example()
+    fn example_part_one()
     {
         let input = include_str!("../example.txt");
         assert_eq!(part_one(input), "2=-1=0");

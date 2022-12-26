@@ -9,15 +9,12 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let password = part_one(input);
-    println!("Part 1: {} ({:?})", password, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let password = part_two(input);
-    println!("Part 2: {} ({:?})", password, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
-#[allow(dead_code)]
 fn part_one(input: &str) -> usize {
     let (tiles, actions) = load(input);
 
@@ -164,7 +161,6 @@ lazy_static! {
         ]);
 }
 
-
 #[derive(Debug)]
 enum Action {
     Move(i32),
@@ -190,24 +186,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let password = part_one(input);
-        assert_eq!(password, 191010);
-
-        let password = part_two(input);
-        assert_eq!(password, 55364);
+        assert_eq!(part_one(input), 191010);
     }
 
     #[test]
-    fn example() {
-        let input = include_str!("../example.txt");
-
-        let password = part_one(input);
-        assert_eq!(password, 6032);
-
-        // let password = part_one(input);
-        // assert_eq!(password, 5031);
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 55364);
     }
+
+    #[test]
+    fn example_part_one() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 6032);
+    }
+
+    // Comment out because our transition map is specific
+    // to the input layout.
+    // #[test]
+    // fn example_part_two() {
+    //     let input = include_str!("../example.txt");
+    //     assert_eq!(part_two(input), 5031);
+    // }
 }

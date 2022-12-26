@@ -1,15 +1,14 @@
+
 fn main() {
     use std::time::Instant;
 
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let calories = part_one(input);
-    println!("Part 1: {} ({:?})", calories, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let calories = part_two(input);
-    println!("Part 2: {} ({:?})", calories, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 macro_rules! priority {
@@ -55,13 +54,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one()
+    {
         let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 7793);
+    }
 
-        let priorities = part_one(input);
-        assert_eq!(priorities, 7793);
-
-        let priorities = part_two(input);
-        assert_eq!(priorities, 2499);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2499);
     }
 }

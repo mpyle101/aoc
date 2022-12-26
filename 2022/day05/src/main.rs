@@ -5,17 +5,14 @@ fn main() {
 
     let input = include_str!("../input.txt");
     let (stacks, input) = input.split_once("\n\n").unwrap();
-
     let stacks = load_stacks(stacks);
     let actions = load_actions(input);
 
     let t = Instant::now();
-    let crates = part_one(&actions, &stacks);
-    println!("Part 1: {} ({:?})", crates, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(&actions, &stacks), t.elapsed());
 
     let t = Instant::now();
-    let crates = part_two(&actions, &stacks);
-    println!("Part 2: {} ({:?})", crates, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(&actions, &stacks), t.elapsed());
 }
 
 fn load_stacks(input: &str) -> Vec<String> {
@@ -52,8 +49,7 @@ fn load_actions(input: &str) -> Vec<Action> {
 }
 
 fn part_one(actions: &[Action], stacks: &[String]) -> String {
-    actions
-        .iter()
+    actions.iter()
         .fold(stacks.to_vec(), |mut st, (n, from, to)| {
             (0..*n).for_each(|_| {
                 let c = st[*from].pop().unwrap();
@@ -67,8 +63,7 @@ fn part_one(actions: &[Action], stacks: &[String]) -> String {
 }
 
 fn part_two(actions: &[Action], stacks: &[String]) -> String {
-    actions
-        .iter()
+    actions.iter()
         .fold(stacks.to_vec(), |mut st, (n, from, to)| {
             let len = st[*from].len();
             let s = st[*from].split_off(len - *n as usize);
@@ -80,22 +75,26 @@ fn part_two(actions: &[Action], stacks: &[String]) -> String {
         .collect()
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
         let (stacks, input) = input.split_once("\n\n").unwrap();
-
-        let stacks = load_stacks(stacks);
+        let stacks  = load_stacks(stacks);
         let actions = load_actions(input);
+        assert_eq!(part_one(&actions, &stacks), "PTWLTDSJV");
+    }
 
-        let crates = part_one(&actions, &stacks);
-        assert_eq!(crates, "PTWLTDSJV");
-
-        let crates = part_two(&actions, &stacks);
-        assert_eq!(crates, "WZMFVGGZP");
+    #[test]
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        let (stacks, input) = input.split_once("\n\n").unwrap();
+        let stacks  = load_stacks(stacks);
+        let actions = load_actions(input);
+        assert_eq!(part_two(&actions, &stacks), "WZMFVGGZP");
     }
 }

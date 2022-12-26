@@ -6,12 +6,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let signals = part_one(input);
-    println!("Part 1: {} ({:?})", signals, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let image = part_two(input);
-    println!("Part 2: {} ({:?})", image, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> i32 {
@@ -56,19 +54,19 @@ mod tests {
     #[test]
     fn it_works() {
         let input = include_str!("../input.txt");
-
-        let signals = part_one(input);
-        assert_eq!(signals, 13440);
-
-        let image = part_two(input);
-        assert_eq!(image, "PBZGRAZA");
+        assert_eq!(part_one(input), 13440);
     }
 
     #[test]
-    fn example() {
-        let input = include_str!("../example.txt");
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), "PBZGRAZA");
+    }
 
-        let signals = part_one(input);
-        assert_eq!(signals, 13140);
+
+    #[test]
+    fn example_part_one() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 13140);
     }
 }

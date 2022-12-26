@@ -6,12 +6,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let root = part_one(input);
-    println!("Part 1: {} ({:?})", root, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let humn = part_two(input);
-    println!("Part 2: {} ({:?})", humn, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> i64 {
@@ -160,24 +158,26 @@ mod tests {
     use super::*;
 
     #[test]
+    fn input_part_one() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 21120928600114);
+    }
+
+    #[test]
     fn it_works() {
         let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 3453748220116);
+    }
 
-        let root = part_one(input);
-        assert_eq!(root, 21120928600114);
-
-        let humn = part_two(input);
-        assert_eq!(humn, 3453748220116);
+    #[test]
+    fn example_part_one() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 152);
     }
 
     #[test]
     fn example() {
         let input = include_str!("../example.txt");
-
-        let root = part_one(input);
-        assert_eq!(root, 152);
-
-        let humn = part_two(input);
-        assert_eq!(humn, 301);
+        assert_eq!(part_two(input), 301);
     }
 }

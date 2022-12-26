@@ -5,12 +5,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let positions = part_one(input, 2000000);
-    println!("Part 1: {} ({:?})", positions, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input, 2000000), t.elapsed());
 
     let t = Instant::now();
-    let tuning_frequency = part_two(input, 4000000);
-    println!("Part 2: {} ({:?})", tuning_frequency, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input, 4000000), t.elapsed());
 }
 
 fn part_one(input: &str, y: i32) -> i32 {
@@ -130,24 +128,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let positions = part_one(input, 2000000);
-        assert_eq!(positions, 5461729);
-
-        let tuning_frequency = part_two(input, 4000000);
-        assert_eq!(tuning_frequency, 10621647166538);
+        assert_eq!(part_one(input, 2000000), 5461729);
     }
 
     #[test]
-    fn example() {
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input, 4000000), 10621647166538);
+    }
+
+    #[test]
+    fn example_part_one() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input, 10), 26);
+    }
 
-        let positions = part_one(input, 10);
-        assert_eq!(positions, 26);
-
-        let tuning_frequency = part_two(input, 20);
-        assert_eq!(tuning_frequency, 56000011);
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input, 20), 56000011);
     }
 }

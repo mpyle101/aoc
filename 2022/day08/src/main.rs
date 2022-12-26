@@ -8,12 +8,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let visible = part_one(input);
-    println!("Part 1: {} ({:?})", visible, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let score = part_two(input);
-    println!("Part 2: {} ({:?})", score, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(input: &str) -> usize {
@@ -90,24 +88,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1533);
+    }
 
-        let visible = part_one(input);
-        assert_eq!(visible, 1533);
-
-        let score = part_two(input);
-        assert_eq!(score, 345744);
+    #[test]
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 345744);
     }
 
     #[test]
     fn example() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 21);
+    }
 
-        let visible = part_one(input);
-        assert_eq!(visible, 21);
-
-        let score = part_two(input);
-        assert_eq!(score, 8);
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 8);
     }
 }

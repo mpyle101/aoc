@@ -45,13 +45,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 70720);
+    }
 
-        let calories = part_one(input);
-        assert_eq!(calories, 70720);
-
-        let calories = part_two(input);
-        assert_eq!(calories, 207148);
+    #[test]
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 207148);
     }
 }

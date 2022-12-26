@@ -27,23 +27,19 @@ struct Map {
     cols: i32,
 }
 
-fn main()
-{
+fn main() {
     use std::time::Instant;
 
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let steps = part_one(input);
-    println!("Part 1: {} ({:?})", steps, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let steps = part_two(input);
-    println!("Part 2: {} ({:?})", steps, t.elapsed());
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
-fn part_one(input: &str) -> i32
-{
+fn part_one(input: &str) -> i32 {
     use num::integer::Integer;
     use pathfinding::prelude::astar;
 
@@ -63,8 +59,7 @@ fn part_one(input: &str) -> i32
     path.0.last().unwrap().time
 }
 
-fn part_two(input: &str) -> i32
-{
+fn part_two(input: &str) -> i32 {
     use num::integer::Integer;
     use pathfinding::prelude::astar;
 
@@ -93,8 +88,7 @@ fn part_two(input: &str) -> i32
     state.time
 }
 
-fn load(input: &str) -> (Map, Vec<Wind>)
-{
+fn load(input: &str) -> (Map, Vec<Wind>) {
     use pathfinding::matrix::Matrix;
 
     let m = Matrix::from_rows(input.lines().map(|s| s.chars())).unwrap();
@@ -110,8 +104,7 @@ fn load(input: &str) -> (Map, Vec<Wind>)
 // up, down, left, right or wait
 const DIRS: [Pos;5] = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)];
 
-fn neighbors(st: &State, ground: &[HashSet<Pos>]) -> Vec<State>
-{
+fn neighbors(st: &State, ground: &[HashSet<Pos>]) -> Vec<State> {
     let time = ((st.time + 1) % st.cycle) as usize;
 
     DIRS.iter()
@@ -121,8 +114,7 @@ fn neighbors(st: &State, ground: &[HashSet<Pos>]) -> Vec<State>
         .collect()
 }
 
-fn open_ground(wind: &[Wind], map: &Map, cycle: i32) -> Vec<HashSet<Pos>>
-{
+fn open_ground(wind: &[Wind], map: &Map, cycle: i32) -> Vec<HashSet<Pos>> {
     use itertools::Itertools;
 
     // Calculate the open locations for a time cycle.
@@ -148,8 +140,7 @@ fn open_ground(wind: &[Wind], map: &Map, cycle: i32) -> Vec<HashSet<Pos>>
         })
 }
 
-fn blizzard(dir: &char, t: i32, p: &Pos, rows: i32, cols: i32) -> (i32, i32)
-{
+fn blizzard(dir: &char, t: i32, p: &Pos, rows: i32, cols: i32) -> (i32, i32) {
     let (r, c) = match dir {
         '^' => ((p.0 - t).rem_euclid(rows), p.1),
         'v' => ((p.0 + t).rem_euclid(rows), p.1),
@@ -164,31 +155,30 @@ fn blizzard(dir: &char, t: i32, p: &Pos, rows: i32, cols: i32) -> (i32, i32)
 
 
 #[cfg(test)]
-mod tests
-{
+mod tests {
     use super::*;
 
     #[test]
-    fn it_works()
-    {
+    fn input_part_one() {
         let input = include_str!("../input.txt");
-
-        let steps = part_one(input);
-        assert_eq!(steps, 322);
-
-        let steps = part_two(input);
-        assert_eq!(steps, 974);
+        assert_eq!(part_one(input), 322);
     }
 
     #[test]
-    fn example()
-    {
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 974);
+    }
+
+    #[test]
+    fn example_part_one() {
         let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 18);
+    }
 
-        let steps = part_one(input);
-        assert_eq!(steps, 18);
-
-        let steps = part_two(input);
-        assert_eq!(steps, 54);
+    #[test]
+    fn example_part_two() {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 54);
     }
 }

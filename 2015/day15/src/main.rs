@@ -1,17 +1,15 @@
 fn main() {
     use std::time::Instant;
 
-    let ingredients = load(include_str!("./input.txt"));
+    let ingredients = load(include_str!("../input.txt"));
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let score = part_one(&ingredients);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", score, t2 - t1);
+    println!("Part 1: {} ({:?})", score, t.elapsed());
 
-    let t1 = Instant::now();
+    let t = Instant::now();
     let score = part_two(&ingredients);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", score, t2 - t1);
+    println!("Part 2: {} ({:?})", score, t.elapsed());
 }
 
 #[derive(Debug)]
@@ -82,16 +80,29 @@ fn limit(n: i32) -> i32 {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let ingredients = load(include_str!("./input.txt"));
+    #[test]
+    fn input_part_one() {
+        let ingredients = load(include_str!("../input.txt"));
+        assert_eq!(part_one(&ingredients), 222870);
+    }
 
-    let score = part_one(&ingredients);
-    assert_eq!(score, 222870);
+    #[test]
+    fn input_part_two() {
+        let ingredients = load(include_str!("../input.txt"));
+        assert_eq!(part_two(&ingredients), 117936);
+    }
 
-    let score = part_two(&ingredients);
-    assert_eq!(score, 117936);
-  }
+    #[test]
+    fn example_part_one() {
+        let ingredients = load(include_str!("../example.txt"));
+        assert_eq!(part_one(&ingredients), 62842880);
+    }
+
+    #[test]
+    fn example_part_two() {
+        let ingredients = load(include_str!("../example.txt"));
+        assert_eq!(part_two(&ingredients), 57600000);
+    }
 }

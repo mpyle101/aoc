@@ -1,11 +1,14 @@
+
 fn main() {
-    let words = include_str!("./input.txt");
+    use std::time::Instant;
 
-    let count = part_one(words);
-    println!("Part 1: {}", count);
+    let input = include_str!("./input.txt");
 
-    let count = part_two(words);
-    println!("Part 2: {}", count);
+	let t = Instant::now();
+    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
+
+	let t = Instant::now();
+    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
 }
 
 fn part_one(words: &str) -> u32 {
@@ -17,22 +20,23 @@ fn part_two(words: &str) -> u32 {
 }
 
 fn nice(word: &str) -> bool {
-    let (vowels, double, bad, _) = word.chars()
-        .fold((0, 0, 0, '^'), 
-            |(v, d, b, l), c| {
-                let v = v + "aeiou".contains(c) as i32;
-                match (l, c) {
-                    (l, c) if l == c => (v, d+1, b, c),
-                    ('a', 'b') => (v, d, b+1, c),
-                    ('c', 'd') => (v, d, b+1, c),
-                    ('p', 'q') => (v, d, b+1, c),
-                    ('x', 'y') => (v, d, b+1, c),
-                    _ => (v, d, b, c)
-                }
-            }
-        );
+    let mut vowels = 0;
+    let mut double = 0;
 
-    vowels > 2 && double > 0 && bad == 0
+    let bad = [b"ab", b"cd", b"pq", b"xy"];
+
+    let bytes = word.as_bytes();
+    for s in bytes.windows(2) {
+        if bad.contains(&&[s[0], s[1]]) {
+            return false;
+        }
+
+        double += (s[0] == s[1]) as u32;
+        vowels += is_vowel(s[0]) as u32;
+    }
+    vowels += is_vowel(*bytes.last().unwrap()) as u32;
+
+    vowels > 2 && double > 0
 }
 
 fn nicer(word: &str) -> bool {
@@ -52,39 +56,69 @@ fn nicer(word: &str) -> bool {
     *pairs.values().max().unwrap() > 1 && repeats > 0
 }
 
+fn is_vowel(c: u8) -> bool {
+    c == b'a' || c == b'e' || c == b'i' || c == b'o' || c == b'u'
+}
+
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let words = include_str!("./input.txt");
+    #[test]
+    fn input_part_one() {
+        let input = include_str!("./input.txt");
+        assert_eq!(part_one(input), 258);
+    }
 
-    let count = part_one(words);
-    assert_eq!(count, 258);
+    #[test]
+    fn input_part_two() {
+        let input = include_str!("./input.txt");
+        assert_eq!(part_two(input), 53);
+    }
 
-    let count = part_two(words);
-    assert_eq!(count, 53);
-  }
+    #[test]
+    fn nice_1() {
+        assert!(nice("ugknbfddgicrmopn"));
+    }
 
-  #[test]
-  fn example_1() {
-    assert!(nicer("qjhvhtzxzqqjkmpb"));
-  }
+    #[test]
+    fn nice_2() {
+        assert!(nice("aaa"));
+    }
 
-  #[test]
-  fn example_2() {
-    assert!(nicer("xxyxx"));
-  }
+    #[test]
+    fn nice_3() {
+        assert!(!nice("jchzalrnumimnmhp"));
+    }
 
-  #[test]
-  fn example_3() {
-    assert!(!nicer("uurcxstgmygtbstg"));
-  }
+    #[test]
+    fn nice_4() {
+        assert!(!nice("haegwjzuvuyypxyu"));
+    }
 
-  #[test]
-  fn example_4() {
-    assert!(!nicer("ieodomkazucvgmuy"));
-  }
+    #[test]
+    fn nice_5() {
+        assert!(!nice("dvszwmarrgswjxmb"));
+    }
+
+    #[test]
+    fn nicer_1() {
+        assert!(nicer("qjhvhtzxzqqjkmpb"));
+    }
+
+    #[test]
+    fn nicer_2() {
+        assert!(nicer("xxyxx"));
+    }
+
+    #[test]
+    fn nicer_3() {
+        assert!(!nicer("uurcxstgmygtbstg"));
+    }
+
+    #[test]
+    fn nicer_4() {
+        assert!(!nicer("ieodomkazucvgmuy"));
+    }
 }

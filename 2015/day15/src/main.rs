@@ -4,22 +4,10 @@ fn main() {
     let ingredients = load(include_str!("../input.txt"));
 
     let t = Instant::now();
-    let score = part_one(&ingredients);
-    println!("Part 1: {} ({:?})", score, t.elapsed());
+    println!("Part 1: {} ({:?})", part_one(&ingredients), t.elapsed());
 
     let t = Instant::now();
-    let score = part_two(&ingredients);
-    println!("Part 2: {} ({:?})", score, t.elapsed());
-}
-
-#[derive(Debug)]
-#[allow(dead_code)]
-struct Ingredient {
-    capacity: i32,
-    calories: i32,
-    durability: i32,
-    flavor: i32,
-    texture: i32,
+    println!("Part 2: {} ({:?})", part_two(&ingredients), t.elapsed());
 }
 
 fn load(input: &str) -> Vec<Ingredient> {
@@ -35,46 +23,68 @@ fn load(input: &str) -> Vec<Ingredient> {
 }
 
 fn part_one(ingredients: &[Ingredient]) -> i32 {
-    use itertools::Itertools;
-
-    (0..=100).permutations(ingredients.len())
-        .filter(|v| v.iter().sum::<i32>() == 100)
-        .map(|v| v.iter().enumerate().fold(
-            (0, 0, 0, 0), |t, (i, n)| (
-                t.0 + ingredients[i].capacity * n,
-                t.1 + ingredients[i].durability * n,
-                t.2 + ingredients[i].flavor * n,
-                t.3 + ingredients[i].texture * n
-            )
-        ))
+    permutations(ingredients.len()).iter()
+        .map(|v| ingredients.iter()
+            .enumerate()
+            .fold((0, 0, 0, 0), |acc, (i, ingredient)|
+                (
+                    acc.0 + ingredient.capacity * v[i],
+                    acc.1 + ingredient.durability * v[i],
+                    acc.2 + ingredient.flavor * v[i],
+                    acc.3 + ingredient.texture * v[i]
+                )
+            ))
         .map(|t| limit(t.0) * limit(t.1) * limit(t.2) * limit(t.3))
         .max()
         .unwrap()
 }
 
 fn part_two(ingredients: &[Ingredient]) -> i32 {
-    use itertools::Itertools;
-
-    (0..=100).permutations(ingredients.len())
-        .filter(|v| v.iter().sum::<i32>() == 100)
-        .map(|v| v.iter().enumerate().fold(
-            (0, 0, 0, 0, 0), |t, (i, n)| (
-                t.0 + ingredients[i].capacity * n,
-                t.1 + ingredients[i].durability * n,
-                t.2 + ingredients[i].flavor * n,
-                t.3 + ingredients[i].texture * n,
-                t.4 + ingredients[i].calories * n,
-            )
-        ))
+    permutations(ingredients.len()).iter()
+        .map(|v| ingredients.iter()
+            .enumerate()
+            .fold((0, 0, 0, 0, 0), |acc, (i, ingredient)|
+                (
+                    acc.0 + ingredient.capacity * v[i],
+                    acc.1 + ingredient.durability * v[i],
+                    acc.2 + ingredient.flavor * v[i],
+                    acc.3 + ingredient.texture * v[i],
+                    acc.4 + ingredient.calories * v[i],
+                )
+            ))
         .filter(|t| t.4 == 500)
         .map(|t| limit(t.0) * limit(t.1) * limit(t.2) * limit(t.3))
         .max()
         .unwrap()
 }
 
-
 fn limit(n: i32) -> i32 {
     if n > 0 { n } else { 0 }
+}
+
+fn permutations(count: usize) -> Vec<[i32;4]> {
+    if count == 2 {
+        (0..=100)
+            .map(|a| [a, 100 - a, 0, 0])
+            .collect()
+    } else {
+        (0..=100)
+            .flat_map(|a| (0..=100)
+                .flat_map(move |b| (0..=100)
+                    .flat_map(move |c| (0..=100)
+                        .filter(move |d| a + b + c + d == 100)
+                        .map(move |d| [a, b, c, d]))))
+            .collect()  
+    }
+}
+
+#[derive(Debug)]
+struct Ingredient {
+    calories: i32,
+    capacity: i32,
+    durability: i32,
+    flavor: i32,
+    texture: i32,
 }
 
 

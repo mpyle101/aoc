@@ -4,15 +4,62 @@ fn main() {
 
     let program = load(include_str!("./input.txt"));
 
-    let t1 = Instant::now();
-    let rb = part_one(&program);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", rb, t2 - t1);
+    let t = Instant::now();
+    println!("Part 1: {} ({:?})", part_one(&program), t.elapsed());
 
-    let t1 = Instant::now();
-    let rb = part_two(&program);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", rb, t2 - t1);
+    let t = Instant::now();
+    println!("Part 2: {} ({:?})", part_two(&program), t.elapsed());
+}
+
+fn part_one(program: &[Cmd]) -> u32 {
+    let mut ip  = 0;
+    let mut reg: [u32;2] = [0, 0];
+    while ip < program.len() {
+        ip = program[ip].exec(ip, &mut reg);
+    }
+
+    reg[1]
+}
+
+fn part_two(program: &[Cmd]) -> u32 {
+    let mut ip = 0;
+    let mut reg: [u32;2] = [1, 0];
+    while ip < program.len() {
+        ip = program[ip].exec(ip, &mut reg);
+    }
+
+    reg[1]
+}
+
+fn load(input: &str) -> Vec<Cmd> {
+    use Cmd::*;
+
+    input.lines()
+        .map(|l| {
+            let mut it = l.split(' ');
+            let cmd = it.next().unwrap();
+            let reg = it.next().unwrap();
+            if cmd == "jmp" {
+                let offset = reg.parse::<i32>().unwrap();
+                jmp(offset)
+            } else {
+                let reg = reg.starts_with('b') as usize;
+                match cmd {
+                    "hlf" => hlf(reg),
+                    "tpl" => tpl(reg),
+                    "jie" => {
+                        let offset = it.next().unwrap().parse::<i32>().unwrap();
+                        jie(reg, offset)
+                    },
+                    "jio" => {
+                        let offset = it.next().unwrap().parse::<i32>().unwrap();
+                        jio(reg, offset)
+                    },
+                    _ => inc(reg)
+                }
+            }
+        })
+        .collect()
 }
 
 #[allow(non_camel_case_types)]
@@ -41,66 +88,20 @@ impl Cmd {
     }
 }
 
-fn load(input: &str) -> Vec<Cmd> {
-    use Cmd::*;
-
-    input.lines().map(|l| {
-        let mut it = l.split(' ');
-        let cmd = it.next().unwrap();
-        let reg = it.next().unwrap();
-        if cmd == "jmp" {
-            let offset = reg.parse::<i32>().unwrap();
-            jmp(offset)
-        } else {
-            let reg = reg.starts_with('a') as usize;
-            if cmd == "jie" || cmd == "jio" {
-                let offset = it.next().unwrap().parse::<i32>().unwrap();
-                if cmd == "jie" { jie(reg, offset) } else { jio(reg, offset) }
-            } else if cmd == "hlf" {
-                hlf(reg)
-            } else if cmd == "tpl" {
-                tpl(reg)
-            } else {
-                inc(reg)
-            }
-        }
-    })
-    .collect()
-}
-
-fn part_one(program: &[Cmd]) -> u32 {
-    let mut ip  = 0;
-    let mut reg = [0u32;2];
-    while ip < program.len() {
-        ip = program[ip].exec(ip, &mut reg);
-    }
-
-    reg[1]
-}
-
-fn part_two(program: &[Cmd]) -> u32 {
-    let mut ip  = 0;
-    let mut reg: [u32;2] = [1, 0];
-    while ip < program.len() {
-        ip = program[ip].exec(ip, &mut reg);
-    }
-
-    reg[1]
-}
-
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let program = load(include_str!("./input.txt"));
+    #[test]
+    fn input_part_one() {
+        let program = load(include_str!("./input.txt"));
+        assert_eq!(part_one(&program), 255);
+    }
 
-    let regb = part_one(&program);
-    assert_eq!(regb, 255);
-
-    let regb = part_two(&program);
-    assert_eq!(regb, 334);
-  }
+    #[test]
+    fn input_part_two() {
+        let program = load(include_str!("./input.txt"));
+        assert_eq!(part_two(&program), 334);
+    }
 }

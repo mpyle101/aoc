@@ -2,29 +2,25 @@
 fn main() {
     use std::{fs, time::Instant};
     
-    let input = fs::read_to_string("./input.txt").unwrap();
-    let ports = load(&input);
+    let input = load(&fs::read_to_string("./input.txt").unwrap());
 
-    let t1 = Instant::now();
-    let score = part_one(&ports);
-    let t2 = Instant::now();
-    println!("Part 1: {} {:?}", score, t2 - t1);
+    let t = Instant::now();
+    println!("Part 1: {} {:?}", part_one(&input), t.elapsed());
 
-    let t1 = Instant::now();
-    let score = part_two(&ports);
-    let t2 = Instant::now();
-    println!("Part 2: {} {:?}", score, t2 - t1);
+    let t = Instant::now();
+    println!("Part 2: {} {:?}", part_two(&input), t.elapsed());
 }
 
 fn load(input: &str) -> Vec<[i32;2]> {
-    input.lines().map(|s| {
-        let mut it = s.split('/');
-        let a = it.next().unwrap().parse::<i32>().unwrap();
-        let b = it.next().unwrap().parse::<i32>().unwrap();
+    input.lines()
+        .map(|s| {
+            let mut it = s.split('/');
+            let a = it.next().unwrap().parse::<i32>().unwrap();
+            let b = it.next().unwrap().parse::<i32>().unwrap();
 
-        [a, b]
-    })
-    .collect()
+            [a, b]
+        })
+        .collect()
 }
 
 #[derive(Clone)]
@@ -47,25 +43,17 @@ fn part_one(ports: &[[i32;2]]) -> i32 {
             strongest = st.clone();
         }
 
-        let v = st.components.iter()
+        st.components.iter()
             .enumerate()
-            .filter_map(|(i, p)|
-                if p[0] == st.port || p[1] == st.port {
-                    Some(i)
-                } else {
-                    None
-                }
-            )
-            .collect::<Vec<_>>();
-
-        v.iter().for_each(|i| {
-            let mut components = st.components.clone();
-            let ports = components.remove(*i);
-            let port  = if st.port == ports[0] { ports[1] } else { ports[0] };
-            let score = st.score + ports[0] + ports[1];
-            let state = State { port, score, components, length: st.length + 1 };
-            q.push_back(state)
-        })
+            .filter_map(|(i, p)| (p[0] == st.port || p[1] == st.port).then_some(i))
+            .for_each(|i| {
+                let mut components = st.components.clone();
+                let ports = components.remove(i);
+                let port  = if st.port == ports[0] { ports[1] } else { ports[0] };
+                let score = st.score + ports[0] + ports[1];
+                let state = State { port, score, components, length: st.length + 1 };
+                q.push_back(state)
+            })
     }
     
     strongest.score
@@ -81,25 +69,21 @@ fn part_two(ports: &[[i32;2]]) -> i32 {
     while let Some(st) = q.pop_front() {
         let v = st.components.iter()
             .enumerate()
-            .filter_map(|(i, p)|
-                if p[0] == st.port || p[1] == st.port {
-                    Some(i)
-                } else {
-                    None
-                }
-            )
+            .filter_map(|(i, p)| (p[0] == st.port || p[1] == st.port).then_some(i))
             .collect::<Vec<_>>();
+
         if v.is_empty() {
             bridges.push(st)
         } else {
-            v.iter().for_each(|i| {
-                let mut components = st.components.clone();
-                let ports = components.remove(*i);
-                let port  = if st.port == ports[0] { ports[1] } else { ports[0] };
-                let score = st.score + ports[0] + ports[1];
-                let state = State { port, score, components, length: st.length + 1 };
-                q.push_back(state)
-            })
+            v.iter()
+                .for_each(|i| {
+                    let mut components = st.components.clone();
+                    let ports = components.remove(*i);
+                    let port  = if st.port == ports[0] { ports[1] } else { ports[0] };
+                    let score = st.score + ports[0] + ports[1];
+                    let state = State { port, score, components, length: st.length + 1 };
+                    q.push_back(state)
+                })
         }
     }
     
@@ -114,14 +98,14 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn it_works() {
-        let input = fs::read_to_string("./input.txt").unwrap();
-        let ports = load(&input);
-    
-        let score = part_one(&ports);
-        assert_eq!(score, 1656);
-    
-        let score = part_two(&ports);
-        assert_eq!(score, 1642);
+    fn input_part_one() {
+        let input = load(&fs::read_to_string("./input.txt").unwrap());
+        assert_eq!(part_one(&input), 1656);
+    }
+
+    #[test]
+    fn input_part_two() {
+        let input = load(&fs::read_to_string("./input.txt").unwrap());
+        assert_eq!(part_two(&input), 1642);
     }
 }

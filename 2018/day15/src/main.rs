@@ -1,31 +1,42 @@
 use std::collections::{BTreeMap, HashSet};
-use lazy_static::lazy_static;
-
-lazy_static! {
-    // (row, col) => above, right, left, below
-    static ref DELTA: [(i32, i32);4] = [
-        (-1, 0), (0, 1), (0, -1), (1, 0)
-    ];
-}
-
-fn main() {
-    use std::time::Instant;
-
-    let (units, tiles) = load(include_str!("./input.txt"));
-
-    let t = Instant::now();
-    let score = part_one(&units, &tiles);
-    println!("Part 1: {score}  ({:?})", t.elapsed());
-
-    let t = Instant::now();
-    let score = part_two(&units, &tiles);
-    println!("Part 2: {score}  ({:?})", t.elapsed());
-}
 
 type Tile = (i32, i32);             // (row, col)
 type Unit = (i32, bool);            // (hp, is_elf)
 type Tiles = HashSet<Tile>;         // all open tiles
 type Units = BTreeMap<Tile, Unit>;  // tiles to units in "reading order"
+
+fn main() {
+    use std::time::Instant;
+
+    let input = include_str!("./input.txt");
+
+    let t = Instant::now();
+    println!("Part 1: {}  ({:?})", part_one(input), t.elapsed());
+
+    let t = Instant::now();
+    println!("Part 2: {}  ({:?})", part_two(input), t.elapsed());
+}
+
+fn part_one(input: &str) -> i32 {
+    let (units, tiles) = load(input);
+    let (_, _, round, hp) = do_game(3, &units, &tiles);
+
+    round * hp
+}
+
+fn part_two(input: &str) -> i32 {
+    let (units, tiles) = load(input);
+    let elves = units.values().filter(|unit| unit.1).count();
+    let mut attack_power = 4;
+
+    loop {
+        let (race, count, round, hp) = do_game(attack_power, &units, &tiles);
+        if race && count == elves {
+            return round * hp
+        }
+        attack_power += 1
+    }
+}
 
 fn load(input: &str) -> (Units, Tiles) {
     let mut units = Units::new();
@@ -44,25 +55,6 @@ fn load(input: &str) -> (Units, Tiles) {
     }
     
     (units, tiles)
-}
-
-fn part_one(units: &Units, tiles: &Tiles) -> i32 {
-    let (_, _, round, hp) = do_game(3, units, tiles);
-
-    round * hp
-}
-
-fn part_two(units: &Units, tiles: &Tiles) -> i32 {
-    let elves = units.values().filter(|unit| unit.1).count();
-    let mut attack_power = 4;
-
-    loop {
-        let (race, count, round, hp) = do_game(attack_power, units, tiles);
-        if race && count == elves {
-            return round * hp
-        }
-        attack_power += 1
-    }
 }
 
 fn do_game(ap: i32, units: &Units, tiles: &Tiles) -> (bool, usize, i32, i32) {
@@ -194,6 +186,11 @@ fn open_tiles((r, c): &Tile, units: &Units, tiles: &Tiles) -> Vec<Tile> {
     .collect()
 }
 
+// (row, col) => above, left, right, below
+const DELTA: [(i32, i32);4] = [
+    (-1, 0), (0, -1), (0, 1), (1, 0)
+];
+
 #[allow(dead_code)]
 fn print(units: &Units, tiles: &Tiles, n: i32) {
     for row in 0..n {
@@ -215,16 +212,17 @@ fn print(units: &Units, tiles: &Tiles, n: i32) {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let (units, tiles) = load(include_str!("./input.txt"));
+    #[test]
+    fn input_part_one() {
+        let input = include_str!("./input.txt");
+        assert_eq!(part_one(input), 181952);
+    }
 
-    let score = part_one(&units, &tiles);
-    assert_eq!(score, 181952);
-
-    let score = part_two(&units, &tiles);
-    assert_eq!(score, 47296);
-  }
+    #[test]
+    fn input_part_two() {
+        let input = include_str!("./input.txt");
+        assert_eq!(part_two(input), 47296);
+    }
 }

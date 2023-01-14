@@ -202,7 +202,8 @@ name = "day15"
 version = "0.1.0"
 dependencies = [
  "bitvec",
- "pathfinding 4.2.0",
+ "indexmap",
+ "rustc-hash",
 ]
 
 [[package]]
@@ -217,7 +218,7 @@ version = "0.1.0"
 name = "day18"
 version = "0.1.0"
 dependencies = [
- "pathfinding 3.0.13",
+ "pathfinding",
 ]
 
 [[package]]
@@ -235,7 +236,7 @@ dependencies = [
 name = "day20"
 version = "0.1.0"
 dependencies = [
- "pathfinding 3.0.13",
+ "pathfinding",
 ]
 
 [[package]]
@@ -246,7 +247,7 @@ version = "0.1.0"
 name = "day22"
 version = "0.1.0"
 dependencies = [
- "pathfinding 3.0.13",
+ "pathfinding",
 ]
 
 [[package]]
@@ -381,9 +382,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "1.9.1"
+version = "1.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10a35a97730320ffe8e2d410b5d3b69279b98d2c14bdb8b70ea89ecf7888d41e"
+checksum = "1885e79c1fc4b10f0e172c475f458b7f7b93061064d98c3293e98c5ba0c8b399"
 dependencies = [
  "autocfg",
  "hashbrown",
@@ -536,21 +537,6 @@ name = "pathfinding"
 version = "3.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84da3eab6c7638931f4876ebb03455be74db8eab1e344cd5a90daba8b3ad2f22"
-dependencies = [
- "fixedbitset",
- "indexmap",
- "integer-sqrt",
- "itertools",
- "num-traits",
- "rustc-hash",
- "thiserror",
-]
-
-[[package]]
-name = "pathfinding"
-version = "4.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c66505cf9c582f34ae89f6433c16ccc05f88803a36adff59c812188021edee78"
 dependencies = [
  "fixedbitset",
  "indexmap",

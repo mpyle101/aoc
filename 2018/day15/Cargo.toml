@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 bitvec = "1.0.1"
-pathfinding = "4.2.0"
+indexmap = "1.9.2"
+rustc-hash = "1.1.0"

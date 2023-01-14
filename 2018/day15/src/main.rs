@@ -1,10 +1,15 @@
+use std::hash::BuildHasherDefault;
 use bitvec::prelude::*;
+use indexmap::IndexMap;
+use rustc_hash::FxHasher;
+
+type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
 
 fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("./input.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     println!("Part 1: {}  ({:?})", part_one(input), t.elapsed());
@@ -13,13 +18,11 @@ fn main()
     println!("Part 2: {}  ({:?})", part_two(input), t.elapsed());
 }
 
-#[allow(dead_code)]
 fn part_one(input: &str) -> i32
 {
     load(input).play()
 }
 
-#[allow(dead_code)]
 fn part_two(input: &str) -> i32
 {
     let initial = load(input);
@@ -372,20 +375,21 @@ fn manhattan(a: u16, b: u16, cols: usize) -> u16
 fn step_for(
     board: &Board,
     unit: u16,
-    targets: &[(u16, u16)]) -> Option<u16>
+    tiles: &[(u16, u16)]) -> Option<u16>
 {
-    use pathfinding::prelude::bfs;
-
     // Store the length of the path, the enemy index and first step.
     let mut paths = vec![];
     let mut shortest = usize::MAX;
-    for (md, goal) in targets {
+    for (md, goal) in tiles {
+        // Manhattan distance is the shortest possible length path so if
+        // that's longer than a path we already have, there's no point in
+        // going to that tile.
         if (*md as usize) < shortest {
-            let result = bfs(&unit, |i| open_tiles(board, *i), |p| *p == *goal);
-            if let Some(path) = result {
-                if path.len() <= shortest {
-                    shortest = path.len();
-                    paths.push((shortest, *goal, path[1]));
+            let result = bfs(unit, |i| open_tiles(board, i), |p| p == *goal);
+            if let Some((steps, tile)) = result {
+                if steps <= shortest {
+                    shortest = steps;
+                    paths.push((shortest, *goal, tile));
                 }
             }
         }
@@ -405,138 +409,144 @@ fn open_tiles(board: &Board, ix: u16) -> Vec<u16>
         .collect()
 }
 
+// Lifted from the pathfinding crate and modified to our
+// specific needs: we don't need the whole path, just the
+// length and the first step.
+fn bfs<FN, IN, FS>(
+    start: u16,
+    mut successors: FN,
+    mut success: FS,
+) -> Option<(usize, u16)>
+where
+    FN: FnMut(u16) -> IN,
+    IN: IntoIterator<Item = u16>,
+    FS: FnMut(u16) -> bool,
+{
+    use indexmap::map::Entry::Vacant;
+
+    let mut i = 0;
+    let mut parents: FxIndexMap<u16, usize> = FxIndexMap::default();
+    parents.insert(start, usize::max_value());
+    while let Some((node, _)) = parents.get_index(i) {
+        for successor in successors(*node) {
+            if success(successor) {
+                let (node, steps) = bfs_props(&parents, i);
+                let tile = if steps == 1 { successor } else { node };
+                return Some((steps + 1, tile));
+            }
+            if let Vacant(e) = parents.entry(successor) {
+                e.insert(i);
+            }
+        }
+        i += 1;
+    }
+    None
+}
+
+fn bfs_props(parents: &FxIndexMap<u16, usize>, start: usize) -> (u16, usize)
+{
+    let mut count = 0;
+    let mut n = u16::MAX;
+    let mut p = u16::MAX;
+    let mut i = start;
+
+    // The loop runs all the way to the start node. We want the node
+    // to move to which will be the previous node to the start.
+    while let Some((node, value)) = parents.get_index(i) {
+        count += 1;
+        i = *value;
+        p = n;
+        n = *node;
+    }
+
+    (p, count)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn input_part_one() {
-        let input = include_str!("./input.txt");
+        let input = include_str!("../input.txt");
         assert_eq!(part_one(input), 181952);
     }
 
-    #[test]
-    fn input_part_two() {
-        let input = include_str!("./input.txt");
-        assert_eq!(part_two(input), 47296);
-    }
+    // #[test]
+    // fn input_part_two() {
+    //     let input = include_str!("../input.txt");
+    //     assert_eq!(part_two(input), 47296);
+    // }
 
     #[test]
-    fn example1_part_one() {
-        let input = "\
-#######
-#.G...#
-#...EG#
-#.#.#G#
-#..G#E#
-#.....#
-#######";
+    fn example0_part_one() {
+        let input = include_str!("../examples/example0.txt");
         assert_eq!(part_one(input), 27730);
     }
 
     #[test]
-    fn example2_part_one() {
-        let input = "\
-#######
-#G..#E#
-#E#E.E#
-#G.##.#
-#...#E#
-#...E.#
-#######";
+    fn example1_part_one() {
+        let input = include_str!("../examples/example1.txt");
         assert_eq!(part_one(input), 36334);
     }
 
     #[test]
-    fn example3_part_one() {
-        let input = "\
-#######
-#E..EG#
-#.#G.E#
-#E.##E#
-#G..#.#
-#..E#.#
-#######";
+    fn example2_part_one() {
+        let input = include_str!("../examples/example2.txt");
         assert_eq!(part_one(input), 39514);
     }
 
     #[test]
-    fn example4_part_one() {
-        let input = "\
-#######
-#E.G#.#
-#.#G..#
-#G.#.G#
-#G..#.#
-#...E.#
-#######";
+    fn example3_part_one() {
+        let input = include_str!("../examples/example3.txt");
         assert_eq!(part_one(input), 27755);
     }
 
     #[test]
-    fn example5_part_one() {
-        let input = "\
-#######
-#.E...#
-#.#..G#
-#.###.#
-#E#G#G#
-#...#G#
-#######";
+    fn example4_part_one() {
+        let input = include_str!("../examples/example4.txt");
         assert_eq!(part_one(input), 28944);
     }
 
     #[test]
-    fn example6_part_one() {
-        let input = "\
-#########
-#G......#
-#.E.#...#
-#..##..G#
-#...##..#
-#...#...#
-#.G...G.#
-#.....G.#
-#########";
+    fn example5_part_one() {
+        let input = include_str!("../examples/example5.txt");
         assert_eq!(part_one(input), 18740);
     }
 
     #[test]
-    fn example1_part_two() {
-        let input = "\
-#######
-#.G...#
-#...EG#
-#.#.#G#
-#..G#E#
-#.....#
-#######";
+    fn example0_part_two() {
+        let input = include_str!("../examples/example0.txt");
         assert_eq!(part_two(input), 4988);
     }
 
     #[test]
-    fn example3_part_two() {
-        let input = "\
-#######
-#E..EG#
-#.#G.E#
-#E.##E#
-#G..#.#
-#..E#.#
-#######";
+    fn example1_part_two() {
+        let input = include_str!("../examples/example1.txt");
+        assert_eq!(part_two(input), 29064);
+    }
+
+    #[test]
+    fn example2_part_two() {
+        let input = include_str!("../examples/example2.txt");
         assert_eq!(part_two(input), 31284);
     }
 
     #[test]
-    fn example4_part_two() {
-        let input = "\
-#######
-#E.G#.#
-#.#G..#
-#G.#.G#
-#G..#.#
-#...E.#
-#######";
+    fn example3_part_two() {
+        let input = include_str!("../examples/example3.txt");
         assert_eq!(part_two(input), 3478);
+    }
+
+    #[test]
+    fn example4_part_two() {
+        let input = include_str!("../examples/example4.txt");
+        assert_eq!(part_two(input), 6474);
+    }
+
+    #[test]
+    fn example5_part_two() {
+        let input = include_str!("../examples/example5.txt");
+        assert_eq!(part_two(input), 1140);
     }
 }

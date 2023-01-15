@@ -316,15 +316,15 @@ fn enemy_for(
     // a valid unit (Some) with the lowest hp.
     let mut hp = u8::MAX;
     let mut ix = usize::MAX;
-    (0..4).for_each(|n| {
-        if let Some(i) = in_range[n] {
-            let enemy_hp = units[enemies[i]].hit_points();
+    (0..4)
+        .filter_map(|n| in_range[n])
+        .map(|i| (i, units[enemies[i]].hit_points()))
+        .for_each(|(i, enemy_hp)| {
             if enemy_hp < hp {
                 ix = i;
                 hp = enemy_hp;
             }
-        }
-    });
+        });
 
     (ix != usize::MAX).then_some(ix)
 }

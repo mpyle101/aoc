@@ -314,16 +314,11 @@ fn enemy_for(
  
     // The indexes are in read order so we need to find
     // a valid unit (Some) with the lowest hp.
-    let mut hp = u8::MAX;
-    let mut ix = usize::MAX;
-    (0..4)
+    let (ix, _) = (0..4)
         .filter_map(|n| in_range[n])
         .map(|i| (i, units[enemies[i]].hit_points()))
-        .for_each(|(i, enemy_hp)| {
-            if enemy_hp < hp {
-                ix = i;
-                hp = enemy_hp;
-            }
+        .fold((usize::MAX, u8::MAX), |(ix, curr), (i, hp)| {
+            if hp < curr { (i, hp) } else { (ix, curr) }
         });
 
     (ix != usize::MAX).then_some(ix)

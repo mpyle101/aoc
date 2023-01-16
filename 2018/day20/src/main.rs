@@ -1,148 +1,114 @@
 use std::collections::HashMap;
+use petgraph::prelude::{UnGraph, NodeIndex};
 
-fn main() {
+type Room = (i32, i32);
+
+fn main()
+{
     use std::time::Instant;
 
-    let regex = load(include_str!("./input.txt"));
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let doors = part_one(&regex);
-    let t2 = Instant::now();
-    println!("Part 1: {}  ({:?})", doors, t2 - t1);
+    let t = Instant::now();
+    println!("Part 1: {}  ({:?})", part_one(input), t.elapsed());
 
-    let t1 = Instant::now();
-    let rooms = part_two(&regex);
-    let t2 = Instant::now();
-    println!("Part 2: {}  ({:?})", rooms, t2 - t1);
+    let t = Instant::now();
+    println!("Part 2: {}  ({:?})", part_two(input), t.elapsed());
 }
 
-type Tile  = (i32, i32);
-type Tiles = HashMap<Tile, char>;
+fn part_one(input: &str) -> usize
+{
+    use petgraph::algo::dijkstra;
 
-fn load(input: &str) -> Vec<char> {
+    let mut regex = load(input);
+    let mut facility = Facility::default();
+    walk(&mut regex, (0, 0), &mut facility);
+
+    // Find shortest path from start to all rooms, filter by
+    // deadends and keep the longest.
+    let paths = dijkstra(&facility.graph, facility.start(), None, |_| 1);
+    *facility.deadends()
+        .filter_map(|ix| paths.get(&ix))
+        .max()
+        .unwrap()
+}
+
+fn part_two(input: &str) -> usize
+{
+    use petgraph::algo::dijkstra;
+
+    let mut regex = load(input);
+    let mut facility = Facility::default();
+    walk(&mut regex, (0, 0), &mut facility);
+
+    dijkstra(&facility.graph, facility.start(), None, |_| 1)
+        .values()
+        .filter(|n| **n > 999)
+        .count()
+}
+
+fn load(input: &str) -> impl Iterator<Item = char> + '_
+{
     // We don't need the begining and end characters (^, $).
-    input.chars().skip(1).take(input.len() - 2).collect()
+    input.chars().skip(1).take(input.len() - 2)
 }
 
-fn part_one(regex: &[char]) -> usize {
-    use std::cmp::Reverse;
-    use pathfinding::prelude::bfs;
+struct Facility {
+    graph: UnGraph<Room, Room>,
+    rooms: HashMap<Room, NodeIndex>,
+}
+impl Facility {
+    fn default() -> Facility
+    {
+        let mut graph = UnGraph::<Room, Room>::default();
+        let rooms = HashMap::from([((0, 0), graph.add_node((0, 0)))]);
+        
+        Facility { graph, rooms }
+    }
 
-    // Build the map.
-    let mut i = 0;
-    let mut tiles = traverse(&mut i, (0, 0), regex);
-    tiles.insert((0, 0), 'X');
+    fn start(&self) -> NodeIndex
+    {
+        *self.rooms.get(&(0, 0)).unwrap()
+    }
 
-    // Find the dead ends
-    let dead_ends = tiles.iter()
-        .filter(|(&k, &v)| v == '.' && neighbors(k, &tiles).len() == 1);
+    fn deadends(&self) -> impl Iterator<Item = NodeIndex> + '_
+    {
+        self.graph.node_indices()
+            .filter(|&ix| self.graph.neighbors(ix).count() == 1)
+    }
 
-    // Find the paths to the dead ends
-    let mut paths = dead_ends
-        .filter_map(|(goal, _)| {
-            bfs(&(0, 0), 
-                |p| neighbors(*p, &tiles).iter().map(|(pt, _)| *pt).collect::<Vec<_>>(),
-                |p| p == goal)
-        })
-        .collect::<Vec<_>>();
-
-    // Sort to get the longest.
-    paths.sort_by_key(|v| Reverse(v.len()));
-    paths[0].len() / 2
+    fn add_door(&mut self, a: Room, b: Room)
+    {
+        let a_ix = *self.rooms.get(&a).unwrap();
+        let b_ix = *self.rooms.entry(b).or_insert_with(|| self.graph.add_node(b));
+        self.graph.update_edge(a_ix, b_ix, (0, 0));
+    }
 }
 
-fn part_two(regex: &[char]) -> usize {
-    use pathfinding::prelude::bfs_reach;
+fn walk<I>(iter: &mut I, start: Room, facility: &mut Facility)
+    where I: Iterator<Item = char>
+{
+    let mut room = start;
 
-    // Build the map.
-    let mut i = 0;
-    let mut tiles = traverse(&mut i, (0, 0), regex);
-    tiles.insert((0, 0), 'X');
-
-    // BFS to find all reachable paths of at least 999 doors.
-    let rooms = bfs_reach(
-            ((0, 0), 0),
-            |(p, n)| {
-                if *n == 1998 {
-                    vec![]
-                } else {
-                    neighbors(*p, &tiles).iter().map(|(pt, _)| (*pt, n + 1)).collect::<Vec<_>>()
-                }
-            })
-        .collect::<Vec<_>>();
-
-    // Remove all those from the tile list.
-    rooms.iter().for_each(|(p, _)| { tiles.remove(p); });
-
-    // Count the rooms left as they must take passing through
-    // at least 1000 doors to get to.
-    tiles.values().filter(|&v| *v == '.').count()
-}
-
-fn traverse(i: &mut usize, pos: Tile, regex: &[char]) -> Tiles {
-    let mut pt = pos;
-    let mut tiles = Tiles::new();
-
-    while *i < regex.len() {
-        let c = regex[*i];
-        *i += 1;
+    while let Some(c) = iter.next() {
         if c == '(' {
-            let map = traverse(i, pt, regex);
-            map.iter().for_each(|(k, v)| { tiles.insert(*k, *v); })
+            walk(iter, room, facility);
         } else if c == ')' {
-            return tiles
+            return
         } else if c == '|' {
-            pt = pos
+            room = start
         } else {
-            let (dx, dy, door) = delta(c);
-            pt = (pt.0 + dx, pt.1 + dy);
-            tiles.insert(pt, door);
-            pt = (pt.0 + dx, pt.1 + dy);
-            tiles.insert(pt, '.');
+            let (dx, dy) = match c {
+                'N' => ( 0, -1),
+                'S' => ( 0,  1),
+                'E' => ( 1,  0),
+                'W' => (-1,  0),
+                _ => unreachable!()
+            };
+            let next = (room.0 + dx, room.1 + dy);
+            facility.add_door(room, next);
+            room = next
         }
-    }
-
-    tiles
-}
-
-fn delta(c: char) -> (i32, i32, char) {
-    match c {
-        'N' => ( 0, -1, '-'),
-        'S' => ( 0,  1, '-'),
-        'E' => ( 1,  0, '|'),
-        'W' => (-1,  0, '|'),
-        _ => panic!("Unknown direction: {}", c)
-    }
-}
-
-const DELTAS: [Tile;4] = [(0, -1), (0, 1), (1, 0), (-1, 0)];
-
-fn neighbors((x, y): Tile, tiles: &Tiles) -> Vec<(Tile, char)> {
-    DELTAS.iter().filter_map(|(dx, dy)| {
-        let p = (x + dx, y + dy);
-        tiles.get(&p).map(|c| (p, *c))
-    })
-    .collect()
-}
-
-#[allow(dead_code)]
-fn print(tiles: &Tiles) {
-    let mut arr = tiles.keys().collect::<Vec<_>>();
-
-    arr.sort();
-    let min_x = arr[0].0 - 1;
-    let max_x = arr[arr.len()-1].0 + 1;
-
-    arr.sort_by_key(|(_, y)| y);
-    let min_y = arr[0].1 - 1;
-    let max_y = arr[arr.len()-1].1 + 1;
-
-    for y in min_y..=max_y {
-        for x in min_x..=max_x {
-            let c = tiles.get(&(x, y)).map_or('#', |c| *c);
-            print!("{c}");
-        }
-        println!()
     }
 }
 
@@ -152,13 +118,44 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let regex = load(include_str!("./input.txt"));
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 4018);
+    }
 
-        let doors = part_one(&regex);
-        assert_eq!(doors, 4018);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 8581);
+    }
 
-        let rooms = part_two(&regex);
-        assert_eq!(rooms, 8581);
+    #[test]
+    fn example1_part_one()
+    {
+        let input = include_str!("../examples/example1.txt");
+        assert_eq!(part_one(input), 10);
+    }
+
+    #[test]
+    fn example2_part_one()
+    {
+        let input = include_str!("../examples/example2.txt");
+        assert_eq!(part_one(input), 18);
+    }
+
+    #[test]
+    fn example3_part_one()
+    {
+        let input = include_str!("../examples/example3.txt");
+        assert_eq!(part_one(input), 23);
+    }
+
+    #[test]
+    fn example4_part_one()
+    {
+        let input = include_str!("../examples/example4.txt");
+        assert_eq!(part_one(input), 31);
     }
 }

@@ -1,62 +1,66 @@
-fn main() {
+use petgraph::prelude::UnGraph;
+
+type Point = [i8;4];
+
+fn main()
+{
     use std::time::Instant;
 
-    let pts = load(include_str!("./input.txt"));
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let constellations = part_one(&pts);
-    let t2 = Instant::now();
-    println!("Part 1: {}  ({:?})", constellations, t2 - t1);
+    let t = Instant::now();
+    println!("Part 1: {}  ({:?})", part_one(input), t.elapsed());
 }
 
-type Point = Vec<i32>;
+fn part_one(input: &str) -> usize
+{
+    use petgraph::algo::connected_components;
 
-fn load(input: &str) -> Vec<Point> {
+    let pts = load(input);
+    let mut graph = UnGraph::<(), ()>::default();
+    let nodes = pts.iter()
+        .map(|_| graph.add_node(()))
+        .collect::<Vec<_>>();
+
+    for i in 0..pts.len()-1 {
+        for j in i+1..pts.len() {
+            if md(&pts[i], &pts[j]) < 4 {
+                graph.add_edge(nodes[i], nodes[j], ());
+            }
+        }
+    }
+
+    connected_components(&graph)
+}
+
+fn load(input: &str) -> Vec<Point>
+{
     input.lines()
-        .map(|l| 
+        .map(|l| {
+            let mut pt = [0;4];
             l.split(',')
-                .map(|s| s.parse::<i32>().unwrap())
-                .collect()
-        )
+                .enumerate()
+                .filter_map(|(i, s)| s.parse::<i8>().ok().map(|n| (i, n)))
+                .for_each(|(i, n)| pt[i] = n);
+            pt
+        })
         .collect()
 }
 
-fn part_one(pts: &[Point]) -> i32 {
-    use std::collections::VecDeque;
-
-    let mut pts = pts.to_vec();
-
-    let mut count = 0;
-    while !pts.is_empty() {
-        let mut q = VecDeque::from([pts.remove(0)]);
-        while let Some(a) = q.pop_front() {
-            let v = pts.iter()
-                .enumerate()
-                .filter_map(|(i, b)| (md(&a, b) <= 3).then_some(i))
-                .collect::<Vec<_>>();
-            v.iter().rev().for_each(|i| q.push_back(pts.remove(*i)));
-        }
-
-        count += 1;
-    }
-
-    count
-}
-
-fn md(a: &[i32], b: &[i32]) -> i32 {
+fn md(a: &Point, b: &Point) -> i8
+{
     a.iter().zip(b.iter()).map(|(v1, v2)| (v1 - v2).abs()).sum()
 }
 
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let pts = load(include_str!("./input.txt"));
-
-    let constellations = part_one(&pts);
-    assert_eq!(constellations, 377);
-  }
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 377);
+    }
 }

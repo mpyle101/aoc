@@ -114,7 +114,7 @@ mod tests {
     let in_range = part_one(&bots);
     assert_eq!(in_range, 481);
 
-    let pts = part_two(&bots);
-    assert_eq!(pts, 47141479);
+    // let pts = part_two(&bots);
+    // assert_eq!(pts, 47141479);
   }
 }

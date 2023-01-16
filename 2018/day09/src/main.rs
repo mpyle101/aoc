@@ -1,20 +1,38 @@
-fn main() {
+
+fn main()
+{
     use std::time::Instant;
 
-    let (players, last_marble) = load(include_str!("./input.txt"));
+    let input = include_str!("./input.txt");
 
-    let t1 = Instant::now();
-    let score = part_one(players, last_marble);
-    let t2 = Instant::now();
-    println!("Part 1: {}  ({:?})", score, t2 - t1);
+    let t = Instant::now();
+    println!("Part 1: {}  ({:?})", part_one(input), t.elapsed());
 
-    let t1 = Instant::now();
-    let score = part_two(players, last_marble);
-    let t2 = Instant::now();
-    println!("Part 2: {}  ({:?})", score, t2 - t1);
+    let t = Instant::now();
+    println!("Part 2: {}  ({:?})", part_two(input), t.elapsed());
 }
 
-fn part_one(players: u32, last_marble: u32) -> u32 {
+fn part_one(input: &str) -> u32
+{
+    let (players, last_marble) = load(input);
+    doit(players, last_marble)
+}
+
+fn part_two(input: &str) -> u32
+{
+    let (players, last_marble) = load(input);
+    doit(players, last_marble * 100)
+}
+
+fn load(input: &str) -> (u32, u32)
+{
+    let v: Vec<_> = input.split(' ').collect();
+
+    (v[0].parse::<u32>().unwrap(), v[6].parse::<u32>().unwrap())
+}
+
+fn doit(players: u32, last_marble: u32) -> u32
+{
     use std::collections::{HashMap, VecDeque};
 
     let mut scores = HashMap::new();
@@ -36,29 +54,21 @@ fn part_one(players: u32, last_marble: u32) -> u32 {
     *scores.values().max().unwrap()
 }
 
-fn part_two(players: u32, last_marble: u32) -> u32 {
-    part_one(players, last_marble * 100)
-}
-
-fn load(input: &str) -> (u32, u32) {
-    let v: Vec<_> = input.split(' ').collect();
-
-    (v[0].parse::<u32>().unwrap(), v[6].parse::<u32>().unwrap())
-}
-
-
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let (players, last_marble) = load(include_str!("./input.txt"));
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("./input.txt");
+        assert_eq!(part_one(input), 375465);
+    }
 
-    let score = part_one(players, last_marble);
-    assert_eq!(score, 375465);
-
-    let score = part_one(players, last_marble);
-    assert_eq!(score, 3037741441);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("./input.txt");
+        assert_eq!(part_two(input), 3037741441);
+    }
 }

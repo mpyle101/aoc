@@ -1,4 +1,5 @@
 use std::hash::BuildHasherDefault;
+use bit_iter::BitIter;
 use indexmap::IndexMap;
 use rustc_hash::FxHasher;
 
@@ -67,39 +68,39 @@ fn next_states<const I: usize>(state: u32, isotopes: &[usize]) -> Vec<u32>
     let objects = (1..=I*2)
         .map(|i| i*2)
         .filter(|&i| state & (BITS << i) == elevator << i)
-        .collect::<Vec<_>>();
+        .fold(0u32, |st, i| st | 1 << i);
 
     // Get all possible states of moving one or two objects
     // to the available floors and filter out the ones with
     // unprotected microchips on the same floor as generators.
-    get_all(state, &objects, floors)
+    let objs = BitIter::from(objects);
+    possible_states(state, &objs, floors)
         .filter(|&st| valid(st, isotopes))
         .collect()
 }
 
-fn get_all(
+fn possible_states(
     state: u32,
-    objects: &[usize],
+    objects: &BitIter<u32>,
     floors: u8) -> impl Iterator<Item = u32> + '_
 {
-    use bit_iter::BitIter;
     use itertools::Itertools;
 
     let iter = BitIter::from(floors);
     iter.flat_map(move |b| {
         let floor = b as u32;
-        objects.iter()
-            .map(move |&i| {
+        objects
+            .map(move |i| {
                 let st = (state & !BITS) | (floor & BITS);
                 let mask = BITS << i;
                 (st & !mask) | ((floor << i) & mask)
             })
-        .chain(objects.iter()
+        .chain(objects
             .combinations(2)
             .map(move |v| {
                 let st = (state & !BITS) | (floor & BITS);
-                let mask = (BITS << *v[0]) | (BITS << *v[1]);
-                (st & !mask) | ((floor << *v[0]) & mask) | ((floor << *v[1]) & mask)
+                let mask = (BITS << v[0]) | (BITS << v[1]);
+                (st & !mask) | ((floor << v[0]) & mask) | ((floor << v[1]) & mask)
             })
         )
     })
@@ -117,8 +118,8 @@ fn valid(state: u32, isotopes: &[usize]) -> bool
 }
 
 // Lifted from the pathfinding crate and modified to our
-// specific needs: we don't need the whole path, just the
-// length and the first step.
+// specific needs as we don't need the whole path, just the
+// length.
 fn bfs<FN, IN>(
     start: u32,
     mut successors: FN,

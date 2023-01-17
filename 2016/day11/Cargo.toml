@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 bit-iter = "1.1.1"
+indexmap = "1.9.2"
 itertools = "0.10.3"
-pathfinding = "3.0.6"
+rustc-hash = "1.1.0"

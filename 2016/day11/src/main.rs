@@ -1,3 +1,10 @@
+use std::hash::BuildHasherDefault;
+use indexmap::IndexMap;
+use rustc_hash::FxHasher;
+
+type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
+
+const BITS: u32 = 0x3;
 
 fn main()
 {
@@ -6,11 +13,9 @@ fn main()
     // Didn't feel like parsing the input (really? sentences?).
 
     // State values represent the floor a given object is on.
-    // state[0] is the elevator; after that each pair of
-    // values is the microchip and generator location for a
-    // given isotope. The Isotope enum specifies the offset
-    // in the state for a given isotope's floor values. From
-    // this, the goal state consists of an array of all 4's.
+    // The first two bits are the elevator, after that there
+    // are two bits per object with a microchip followed by
+    // it's generator.
 
     let t = Instant::now();
     println!("Part 1: {} ({:?})", part_one(), t.elapsed());
@@ -21,108 +26,142 @@ fn main()
 
 fn part_one() -> usize
 {
-    use pathfinding::prelude::bfs;
+    // Thulium, Ruthenium, Promethium, Polonium, Cobalt, Elevator
+    let start: u32 = 0b00_00_00_00_00_01_00_01_00_00_00;
+    let goal:  u32 = 0b11_11_11_11_11_11_11_11_11_11_11;
 
-    let state = [1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1];
-    // Cobalt, Polonium, Promethium, Ruthenium, Thulium
-    let isotopes = [1, 3, 5, 7, 9];
+    // Cobalt, Polonium, Promethium, Ruthenium, Thulium, Elevator
+    let isotopes = [2, 6, 10, 14, 18];
+    let steps = bfs(start, |st| next_states::<5>(st, &isotopes), goal);
 
-    let goal = [4u8;11];
-    let steps = bfs(&state, |st| next_states(st, &isotopes), |&st| st == goal);
-
-    let v = steps.unwrap();
-
-    // The vector contains the initial state.
-    v.len() - 1
+    steps.unwrap()
 }
 
 #[allow(dead_code)]
 fn part_two() -> usize
 {
-    use pathfinding::prelude::bfs;
+    // Dilithium, Elerium, Thulium, Ruthenium, Promethium, Polonium, Cobalt, Elevator
+    let start: u32 = 0b00_00_00_00_00_00_00_00_00_01_00_01_00_00_00;
+    let goal:  u32 = 0b11_11_11_11_11_11_11_11_11_11_11_11_11_11_11;
 
-    let state = [1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     // Cobalt, Polonium, Promethium, Ruthenium, Thulium, Elerium, Dilithium
-    let isotopes = [1, 3, 5, 7, 9, 11, 13];
+    let isotopes = [2, 6, 10, 14, 18, 22, 26];
+    let steps = bfs(start, |st| next_states::<7>(st, &isotopes), goal);
 
-    let goal = [4u8;15];
-    let steps = bfs(&state, |st| next_states(st, &isotopes), |&st| st == goal);
-
-    let v = steps.unwrap();
-
-    // The vector contains the initial state.
-    v.len() - 1
+    steps.unwrap()
 }
 
-fn next_states<const N: usize>(state: &[u8;N], isotopes: &[usize]) -> Vec<[u8;N]>
+fn next_states<const I: usize>(state: u32, isotopes: &[usize]) -> Vec<u32>
 {
     // Get the floors the elevator can move to.
-    let elevator = state[0];
+    let elevator = state & 0x3;
     let floors: u8 = match elevator {
-        1 => 0b0010,
-        2 => 0b0101,
-        3 => 0b1010,
-        4 => 0b0100,
+        0 => 0b0010,
+        1 => 0b0101,
+        2 => 0b1010,
+        3 => 0b0100,
         _ => unreachable!()
     };
 
     // Get the objects on the current floor (skip the elevator).
-    let objects = state.iter()
-        .enumerate()
-        .skip(1)
-        .filter_map(|(i, &n)| (n == elevator).then_some(i))
+    let objects = (1..=I*2)
+        .map(|i| i*2)
+        .filter(|&i| state & (BITS << i) == elevator << i)
         .collect::<Vec<_>>();
 
     // Get all possible states of moving one or two objects
     // to the available floors and filter out the ones with
     // unprotected microchips on the same floor as generators.
     get_all(state, &objects, floors)
-        .filter(|st| valid(st, isotopes))
+        .filter(|&st| valid(st, isotopes))
         .collect()
 }
 
-fn get_all<'a, const N: usize>(
-    state: &'a [u8;N],
-    objects: &'a [usize],
-    floors: u8) -> impl Iterator<Item = [u8;N]> + 'a
+fn get_all(
+    state: u32,
+    objects: &[usize],
+    floors: u8) -> impl Iterator<Item = u32> + '_
 {
     use bit_iter::BitIter;
     use itertools::Itertools;
 
     let iter = BitIter::from(floors);
     iter.flat_map(move |b| {
-        let floor = b as u8 + 1;
+        let floor = b as u32;
         objects.iter()
             .map(move |&i| {
-                let mut st = *state;
-                st[0] = floor;
-                st[i] = floor;
-                st
+                let st = (state & !BITS) | (floor & BITS);
+                let mask = BITS << i;
+                (st & !mask) | ((floor << i) & mask)
             })
         .chain(objects.iter()
             .combinations(2)
             .map(move |v| {
-                let mut st = *state;
-                st[0] = floor;
-                st[*v[0]] = floor;
-                st[*v[1]] = floor;
-                st
+                let st = (state & !BITS) | (floor & BITS);
+                let mask = (BITS << *v[0]) | (BITS << *v[1]);
+                (st & !mask) | ((floor << *v[0]) & mask) | ((floor << *v[1]) & mask)
             })
         )
     })
 }
 
-fn valid<const N: usize>(state: &[u8;N], isotopes: &[usize]) -> bool
+fn valid(state: u32, isotopes: &[usize]) -> bool
 {
     // A state is invalid if there are unprotected microchips
     // on the same floor as a generator for another isotope.
+    let val = |i| (state & (BITS << i)) >> i;
+
     !isotopes.iter()
-        .filter(|&i| state[*i] != state[i + 1])
-        .any(|&i| isotopes.iter().any(|n| state[i] == state[n + 1]))
+        .filter(|&&i| val(i) != val(i+2))
+        .any(|&i| isotopes.iter().any(|&n| val(i) == val(n+2)))
+}
+
+// Lifted from the pathfinding crate and modified to our
+// specific needs: we don't need the whole path, just the
+// length and the first step.
+fn bfs<FN, IN>(
+    start: u32,
+    mut successors: FN,
+    goal: u32) -> Option<usize>
+where
+    FN: FnMut(u32) -> IN,
+    IN: IntoIterator<Item = u32>,
+{
+    use indexmap::map::Entry::Vacant;
+
+    let mut i = 0;
+    let mut parents: FxIndexMap<u32, usize> = FxIndexMap::default();
+    parents.insert(start, usize::max_value());
+    while let Some((node, _)) = parents.get_index(i) {
+        for successor in successors(*node) {
+            if successor == goal {
+                return Some(bfs_length(&parents, i));
+            }
+            if let Vacant(e) = parents.entry(successor) {
+                e.insert(i);
+            }
+        }
+        i += 1;
+    }
+
+    None
+}
+
+fn bfs_length(parents: &FxIndexMap<u32, usize>, start: usize) -> usize
+{
+    let mut count = 0;
+    let mut i = start;
+
+    while let Some((_, value)) = parents.get_index(i) {
+        count += 1;
+        i = *value;
+    }
+
+    count
 }
 
 #[allow(dead_code)]
-fn print(state: &[u8])
+fn print<const I: usize>(state: u32)
 {
     let symbols = [
         "E ",
@@ -135,17 +174,22 @@ fn print(state: &[u8])
         "Dm", "Dg"
     ];
     
-    let mut floor = 4;
-    while floor > 0 {
-        print!("F{} ", floor);
-        state.iter().enumerate()
-            .for_each(|(i, n)| if *n == floor {
-                    print!("{} ", symbols[i])
+    let val = |i| { let st = state & (0x3u32 << i); st >> i};
+
+    let mut floor = 3;
+    loop {
+        print!("F{} ", floor + 1);
+        (0..=I*4)
+            .enumerate()
+            .step_by(2)
+            .for_each(|(i, n)| if val(n) == floor {
+                    print!("{} ", symbols[i/2])
                 } else {
                     print!(".  ")
                 }
             );
         println!();
+        if floor == 0 { break; }
         floor -= 1;
     }    
 }

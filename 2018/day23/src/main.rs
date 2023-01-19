@@ -80,11 +80,11 @@ fn part_two_bk(input: &str) -> i64
 {
     // :sad-panda:
     // Unfortunately, this approach doesn't work for our input set
-    // because using manhattan distance to determine if a group has
-    // full pair wise overlap, they some mutual overlap only works
-    // in spaces up to 2D. The overlap.png file shows an example of
-    // a data set where all the points touch each other but there is
-    // no point in common to all of them. We can see we got unlucky
+    // because using manhattan distance to determine that if a group
+    // has full pair wise overlap, it has some mutual overlap only
+    // works in spaces up to 2D. The overlap.png file shows an example
+    // of a data set where all the points touch each other but there
+    // is no point in common to all of them. We can see we got unlucky
     // with the input data because this code produces: 47141438 and
     // the correct answer is 47141479. Soooo close.
 

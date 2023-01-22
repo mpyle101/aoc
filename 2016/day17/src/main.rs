@@ -29,7 +29,6 @@ fn part_one(input: &str) -> String
     v[input.len()..].iter().map(|&b| b as char).collect::<String>()
 }
 
-#[allow(dead_code)]
 fn part_two(input: &str) -> usize
 {
     let goal = (3, 3);
@@ -96,8 +95,7 @@ where
     while let Some((node, _)) = parents.get_index(i) {
         for st in successors(node) {
             if st.0 == goal {
-                let length = bfs_length(&parents, i);
-                longest = longest.max(length);
+                longest = longest.max(bfs_length(&parents, i));
             } else if let Vacant(e) = parents.entry(st) { 
                 e.insert(i);
             }
@@ -120,6 +118,7 @@ fn bfs_length(parents: &FxIndexMap<State, usize>, start: usize) -> usize
 
     count
 }
+
 
 #[cfg(test)]
 mod tests {

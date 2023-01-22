@@ -1,69 +1,57 @@
-use lazy_static::lazy_static;
 
-lazy_static! {
-    static ref TRAPPED: [[i32;3]; 4] = [
-        [1, 1, 0], [0, 1, 1], [1, 0, 0], [0, 0, 1]
-    ];
-}
+const TRAPPED: [&[u8]; 4] = [
+    b"^^.", b".^^", b"^..", b"..^"
+];
 
 fn main() {
-    use std::{fs, time::Instant};
+    use std::time::Instant;
 
-    let input = fs::read_to_string("./input.txt").unwrap();
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let tiles = safe_tiles(&input, 40);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", tiles, t2 - t1);
+    let t = Instant::now();
+    println!("Part 1: {} ({:?})", safe_tiles(&input, 40), t.elapsed());
 
-    let t1 = Instant::now();
-    let tiles = safe_tiles(&input, 400000);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", tiles, t2 - t1);
+    let t = Instant::now();
+    println!("Part 2: {} ({:?})", safe_tiles(&input, 400000), t.elapsed());
 }
 
 fn safe_tiles(input: &str, rows: usize) -> usize {
-    use std::collections::HashSet;
+    let mut tiles = input.as_bytes().to_vec();
+    let mut safe = tiles.iter().filter(|&b| *b == b'.').count();
+    tiles.insert(0, b'.');
+    tiles.push(b'.');
 
-    let cols = input.len();
-    let row0 = input.chars()
-        .enumerate()
-        .filter_map(|(i, c)| (c == '^').then_some(i as i32))
-        .collect::<HashSet<_>>();
+    for _ in 1..rows {
+        let mut row = Vec::with_capacity(tiles.len());
 
-    let n = row0.len();
-    let trapped = (1..rows as i32).fold((row0, n), |(row, n), _| {
-        let traps = (0..cols as i32).filter_map(|x| {
-            let t = [
-                row.get(&(x - 1)).is_some() as i32,
-                row.get(&x).is_some() as i32,
-                row.get(&(x + 1)).is_some() as i32,
-            ];
-            TRAPPED.contains(&t).then_some(x)
-        })
-        .collect::<HashSet<_>>();
+        // Add "walls" so the window matching for the next row works.
+        row.push(b'.');
+        tiles.windows(3)
+            .for_each(|arr| row.push(if TRAPPED.contains(&arr) { b'^' } else { b'.' }));
+        row.push(b'.');
 
-        let l = traps.len();
-        (traps, n + l)
-    });
+        // Subtract 2 for the "walls".
+        safe += row.iter().filter(|&b| *b == b'.').count() - 2;
+        tiles = row;
+    }
 
-    rows * cols - trapped.1
+    safe
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
 
     #[test]
-    fn it_works() {
-        let input = fs::read_to_string("./input.txt").unwrap();
+    fn input_part_one() {
+        let input = include_str!("../input.txt");
+        assert_eq!(safe_tiles(&input, 40), 1956);
+    }
 
-        let tiles = safe_tiles(&input, 40);
-        assert_eq!(tiles, 1956);
-
-        let tiles = safe_tiles(&input, 400000);
-        assert_eq!(tiles, 19995121);
+    #[test]
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(safe_tiles(&input, 400000), 19995121);
     }
 }

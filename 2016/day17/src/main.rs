@@ -1,3 +1,8 @@
+use std::hash::BuildHasherDefault;
+use indexmap::IndexMap;
+use rustc_hash::FxHasher;
+
+type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
 
 fn main()
 {
@@ -27,25 +32,13 @@ fn part_one(input: &str) -> String
 #[allow(dead_code)]
 fn part_two(input: &str) -> usize
 {
-    use pathfinding::prelude::yen;
-    
     let goal = (3, 3);
     let passcode = input.bytes().collect::<Vec<_>>();
-    let steps = yen(
-        &((0, 0), passcode),
-        |st| doors(st).iter().map(|st| (st.clone(), 1)).collect::<Vec<_>>(),
-        |st| st.0 == goal,
-        1500    // manually increase until longest path doesn't change
-    );
-
-    let mut paths = steps.iter().map(|v| v.0.last().unwrap().1.clone()).collect::<Vec<_>>();
-    paths.sort_by_key(|a| a.len());
-    let longest = paths.last().unwrap().len() - input.len();
-
-    longest
+    
+    bfs_longest(&((0, 0), passcode), doors, goal)
 }
 
-const DELTA: [((i8, i8), u8);4] = [
+const DOORS: [((i8, i8), u8);4] = [
     (( 0, -1), b'U'),
     (( 0,  1), b'D'),
     ((-1,  0), b'L'),
@@ -54,6 +47,7 @@ const DELTA: [((i8, i8), u8);4] = [
 
 fn doors(((x, y), passcode): &State) -> Vec<State>
 {
+    // Each set of 4 bits is the hex value we want.
     let h = md5::compute(passcode);
     [
         h[0] >> 4 & 0x0F,
@@ -63,7 +57,7 @@ fn doors(((x, y), passcode): &State) -> Vec<State>
     ].iter()
         .enumerate()
         .filter_map(move |(i, door)| {
-            let ((dx, dy), c) = DELTA[i];
+            let ((dx, dy), c) = DOORS[i];
             let pt = (x + dx, y + dy);
             (is_open(door) && in_bounds(pt)).then_some({
                 let mut v = passcode.clone();
@@ -83,6 +77,48 @@ fn is_open(b: &u8) -> bool
 {
     // hex b, c, d, e & f
     (11..16).contains(b)
+}
+
+fn bfs_longest<FN, IN>(
+    start: &State,
+    mut successors: FN,
+    goal: (i8, i8)) -> usize
+where
+    FN: FnMut(&State) -> IN,
+    IN: IntoIterator<Item = State>,
+{
+    use indexmap::map::Entry::*;
+
+    let mut i = 0;
+    let mut longest = 0;
+    let mut parents: FxIndexMap<State, usize> = FxIndexMap::default();
+    parents.insert(start.clone(), usize::max_value());
+    while let Some((node, _)) = parents.get_index(i) {
+        for st in successors(node) {
+            if st.0 == goal {
+                let length = bfs_length(&parents, i);
+                longest = longest.max(length);
+            } else if let Vacant(e) = parents.entry(st) { 
+                e.insert(i);
+            }
+        }
+        i += 1;
+    }
+
+    longest
+}
+
+fn bfs_length(parents: &FxIndexMap<State, usize>, start: usize) -> usize
+{
+    let mut count = 0;
+    let mut i = start;
+
+    while let Some((_, value)) = parents.get_index(i) {
+        count += 1;
+        i = *value;
+    }
+
+    count
 }
 
 #[cfg(test)]

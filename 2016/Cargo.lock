@@ -98,8 +98,10 @@ version = "0.1.0"
 name = "day17"
 version = "0.1.0"
 dependencies = [
+ "indexmap",
  "md5",
  "pathfinding",
+ "rustc-hash",
 ]
 
 [[package]]

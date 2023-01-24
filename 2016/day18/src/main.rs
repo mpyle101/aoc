@@ -9,10 +9,10 @@ fn main() {
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    println!("Part 1: {} ({:?})", safe_tiles(&input, 40), t.elapsed());
+    println!("Part 1: {} ({:?})", safe_tiles(input, 40), t.elapsed());
 
     let t = Instant::now();
-    println!("Part 2: {} ({:?})", safe_tiles(&input, 400000), t.elapsed());
+    println!("Part 2: {} ({:?})", safe_tiles(input, 400000), t.elapsed());
 }
 
 fn safe_tiles(input: &str, rows: usize) -> usize {
@@ -46,12 +46,12 @@ mod tests {
     #[test]
     fn input_part_one() {
         let input = include_str!("../input.txt");
-        assert_eq!(safe_tiles(&input, 40), 1956);
+        assert_eq!(safe_tiles(input, 40), 1956);
     }
 
     #[test]
     fn input_part_two() {
         let input = include_str!("../input.txt");
-        assert_eq!(safe_tiles(&input, 400000), 19995121);
+        assert_eq!(safe_tiles(input, 400000), 19995121);
     }
 }

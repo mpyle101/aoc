@@ -30,7 +30,7 @@ fn load(input: &str) -> Vec<Cmd> {
             "div" => Div(c, parse(it.next())),
             "mod" => Mod(c, parse(it.next())),
             "eql" => Eql(c, parse(it.next())),
-                _ => panic!("Unknown command: {}", cmd),
+                _ => panic!("Unknown command: {cmd}"),
         }
     })
     .collect()

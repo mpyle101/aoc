@@ -82,7 +82,7 @@ fn print(dots: &HashSet<(u32, u32)>) {
         (0..40).for_each(|x| {
             print!(".");
             let c = if dots.contains(&(x, y)) { '#' } else { '.' };
-            print!("{}", c);
+            print!("{c}");
         });
         println!();
     })

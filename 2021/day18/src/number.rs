@@ -12,8 +12,8 @@ impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Value::Null       => write!(f, ""),
-            Value::Regular(n) => write!(f, "{}", n),
-            Value::Complex(n) => write!(f, "{}", n)
+            Value::Regular(n) => write!(f, "{n}"),
+            Value::Complex(n) => write!(f, "{n}")
         }
     }
 }
@@ -77,26 +77,26 @@ mod tests {
     fn parsing() {
         let s = "[1,1]";
         let n = Number::new(&mut s[1..].chars());
-        assert_eq!(format!("{}", n), s);
+        assert_eq!(format!("{n}"), s);
 
         let s = "[[8,8],7]";
         let n = Number::new(&mut s[1..].chars());
-        assert_eq!(format!("{}", n), s);
+        assert_eq!(format!("{n}"), s);
 
         let s = "[7,[[4,3],[8,5]]]";
         let n = Number::new(&mut s[1..].chars());
-        assert_eq!(format!("{}", n), s);
+        assert_eq!(format!("{n}"), s);
 
         let s = "[[[[0,0],2],9],[[[2,1],1],[5,[4,7]]]]";
         let n = Number::new(&mut s[1..].chars());
-        assert_eq!(format!("{}", n), s);
+        assert_eq!(format!("{n}"), s);
 
         let s = "[[[[8,8],[6,7]],[[1,0],6]],[[5,[2,8]],[[8,0],[3,7]]]]";
         let n = Number::new(&mut s[1..].chars());
-        assert_eq!(format!("{}", n), s);
+        assert_eq!(format!("{n}"), s);
 
         let s = "[[[[9,8],[4,6]],[7,[9,1]]],[[[8,7],[4,7]],[[6,6],[8,1]]]]";
         let n = Number::new(&mut s[1..].chars());
-        assert_eq!(format!("{}", n), s);
+        assert_eq!(format!("{n}"), s);
     }
 }

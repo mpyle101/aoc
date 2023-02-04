@@ -119,7 +119,7 @@ fn parse_packet(bits: &[u8]) -> (Packet, usize) {
             5 => Greater(packets),
             6 => LessThan(packets),
             7 => EqualTo(packets),
-            _ => panic!("Unknown operator: {}", type_id),
+            _ => panic!("Unknown operator: {type_id}"),
         }, n)
 
     };

@@ -10,7 +10,7 @@ fn main() {
 
   loop {
     let prompt: String = vm.drain().iter().map(|v| (*v as u8) as char).collect();
-    print!("{}", prompt);
+    print!("{prompt}");
 
     let mut buf = String::new();
     io::stdin().read_line(&mut buf).unwrap();

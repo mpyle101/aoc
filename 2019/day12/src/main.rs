@@ -24,7 +24,7 @@ fn main() {
     let vz = find_cycle(&mut moons, 2);
 
     let iterations = vx.lcm(&vy).lcm(&vz);
-    println!("Iterations: {} {} {} {}", vx, vy, vz, iterations)
+    println!("Iterations: {vx} {vy} {vz} {iterations}")
 }
 
 fn load(moons: &str) -> Vec<Moon> {
@@ -58,7 +58,7 @@ fn find_cycle(moons: &mut [Moon], index: usize) -> u64 {
         iterations += 1;
 
         if iterations % 1_000_000 == 0 {
-            println!("Iterations: {}", iterations)
+            println!("Iterations: {iterations}")
         }
     }
 

@@ -44,7 +44,7 @@ fn main() {
     };
 
     let checksum: u32 = orbits.into_iter().map(|o| o.count).sum();
-    println!("Checksum: {}", checksum);
+    println!("Checksum: {checksum}");
 
     let mut xfers = HashMap::new();
     data.lines()
@@ -56,7 +56,7 @@ fn main() {
     let idx = walk_back(&you, &san);
     let min_xfers = (you.len() - idx) + (san.len() - idx);
 
-    println!("Minimum xfers: {}", min_xfers);
+    println!("Minimum xfers: {min_xfers}");
 }
 
 fn insert<'a>(map: &mut HashMap<&'a str, Vec<&'a str>>, orbit: &[&'a str]) {

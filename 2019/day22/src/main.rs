@@ -4,11 +4,8 @@
 fn main() {
     let shuffles = load(include_str!("./shuffles.txt"));
 
-    let pos = part_one(&shuffles);
-    println!("Part 1: {}", pos);
-
-    let pos = part_two(&shuffles);
-    println!("Part 2: {}", pos);
+    println!("Part 1: {}", part_one(&shuffles));
+    println!("Part 2: {}", part_two(&shuffles));
 }
 
 fn part_one(shuffles: &[Shuffle]) -> i128 {

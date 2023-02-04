@@ -13,7 +13,7 @@ fn main() {
     .filter(|&p| check_password2(p))
     .count();
 
-  println!("{} valid passwords", count);
+  println!("{count} valid passwords");
 }
 
 fn make_password(v: u32, rc: &RefCell<[u8; 6]>) -> &RefCell<[u8; 6]> {

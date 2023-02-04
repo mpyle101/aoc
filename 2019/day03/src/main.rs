@@ -18,7 +18,7 @@ fn main() {
     let vec_x = find_x_steps(&path_a, &pts_a, &path_b, &pts_b);
     let min_x = vec_x.iter().min();
     
-    println!("{:#?}", min_x);
+    println!("{min_x:#?}");
 }
 
 #[derive(Debug, PartialEq)]

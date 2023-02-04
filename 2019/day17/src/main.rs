@@ -75,7 +75,7 @@ fn part_two(program: &str) -> Result<i64, &str> {
 #[allow(dead_code)]
 fn draw(screen: &[i64]) {
     let s: String = screen.iter().map(|b| (*b as u8) as char).collect();
-    println!("{}", s);
+    println!("{s}");
 }
 
 #[allow(dead_code)]
@@ -96,7 +96,7 @@ fn print_screen(
             } else {
                 '.'
             };
-            print!("{}", c);
+            print!("{c}");
         }
         println!();
     }

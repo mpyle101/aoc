@@ -31,7 +31,7 @@ fn part_one(program: &str) -> Result<(), &str> {
             "s" => Some(Command::South),
             "d" => Some(Command::East),
             cmd => {
-                println!("Unknown command: {}", cmd);
+                println!("Unknown command: {cmd}");
                 None
             }
         };
@@ -45,7 +45,7 @@ fn part_one(program: &str) -> Result<(), &str> {
         }
 
         board.draw(&droid);
-        println!("Moves: {}", moves);
+        println!("Moves: {moves}");
     };
 
     Ok(())

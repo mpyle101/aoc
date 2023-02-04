@@ -5,10 +5,10 @@ fn main() {
     let program = include_str!("./program.txt");
 
     let blocks = part_one(program);
-    println!("Block tiles: {}", blocks);
+    println!("Block tiles: {blocks}");
 
     let score = part_two(program);
-    println!("Score: {}", score);
+    println!("Score: {score}");
 }
 
 fn part_one(program: &str) -> usize {

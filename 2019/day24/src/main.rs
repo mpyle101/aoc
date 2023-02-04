@@ -7,11 +7,8 @@ type Pt = (i32, i32, i32);
 fn main() {
     let map = load(include_str!("./eris.txt"));
 
-    let bio = part_one(&map);
-    println!("Part 1: {}", bio);
-
-    let bugs = part_two(&map);
-    println!("Part 2: {}", bugs);
+    println!("Part 1: {}", part_one(&map));
+    println!("Part 2: {}", part_two(&map));
 }
 
 fn part_one(eris: &MapState) -> u64 {

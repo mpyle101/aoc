@@ -23,7 +23,7 @@ use std::hash::{Hash, Hasher};
 fn main() {
     let coords = load(include_str!("./asteroids.txt"));
     let site = process(&coords).unwrap();
-    println!("{:?}", site);
+    println!("{site:?}");
 
     let mut lines = coords.iter()
         .map(|dst| Line::new(&site.loc, dst))

@@ -60,7 +60,7 @@ impl Layer {
   pub fn draw(&self) {
     self.pixels.chunks(25)
       .map(|l| l.iter().map(|v| if *v == 0u8 { '*' } else { ' ' }).collect())
-      .for_each(|l:String| println!("{:?}", l));
+      .for_each(|l:String| println!("{l:?}"));
   }
 
   pub fn stack(&self, other: &Self) -> Self {

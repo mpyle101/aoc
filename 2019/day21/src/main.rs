@@ -3,11 +3,8 @@ use vm::Vm;
 fn main() {
   let program = include_str!("./program.txt");
 
-  let damage = part_one(program);
-  println!("Part 1: {}", damage);
-
-  let damage = part_two(program);
-  println!("Part 2: {}", damage);
+  println!("Part 1: {}", part_one(program));
+  println!("Part 2: {}", part_two(program));
 }
 
 fn part_one(program: &str) -> i64 {

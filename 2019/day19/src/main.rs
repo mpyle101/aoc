@@ -5,10 +5,10 @@ fn main() {
     let program = include_str!("./program.txt");
 
     let points = part_one(program);
-    println!("Affected points: {}", points);
+    println!("Affected points: {points}");
 
     let closest = part_two(program);
-    println!("Closest point: {}", closest);
+    println!("Closest point: {closest}");
 }
 
 fn part_one(program: &str) -> i64 {

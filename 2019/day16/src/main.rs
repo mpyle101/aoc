@@ -18,10 +18,10 @@
 fn main() {
   let signal = load(include_str!("./signal.txt"));
   let result = fft(100, &signal);
-  println!("FFT: {}", result);
+  println!("FFT: {result}");
 
   let result = part_two(&signal);
-  println!("FFT: {}", result);
+  println!("FFT: {result}");
 }
 
 fn load(signal: &str) -> Vec<i32> {

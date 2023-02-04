@@ -10,13 +10,13 @@ fn main() {
     .map(|phases| run(program, &phases))
     .map(Result::unwrap)
     .max().unwrap();
-  println!("One pass signal: {}", signal);
+  println!("One pass signal: {signal}");
 
   let signal = (5..=9).permutations(5)
     .map(|phases| feedback(program, &phases))
     .map(Result::unwrap)
     .max().unwrap();
-  println!("Feedback signal: {}", signal);
+  println!("Feedback signal: {signal}");
 }
 
 struct Amp {

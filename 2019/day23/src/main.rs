@@ -7,11 +7,8 @@ type Packets = HashMap<i64, Vec<(i64, i64)>>;
 fn main() {
     let program = include_str!("./nic.txt");
 
-    let y = part_one(program);
-    println!("Part 1: {}", y);
-
-    let y = part_two(program);
-    println!("Part 2: {}", y);
+    println!("Part 1: {}", part_one(program));
+    println!("Part 2: {}", part_two(program));
 }
 
 fn part_one(nic: &str) -> i64 {

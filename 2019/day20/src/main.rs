@@ -177,7 +177,6 @@ mod tests {
     let maze = load(include_str!("./test_m.txt"));
 
     let path = part_one(&maze).unwrap();
-    println!("{:?}", path);
     assert_eq!(path.len() - 1, 58);
   }
 
@@ -186,7 +185,6 @@ mod tests {
     let maze = load(include_str!("./test_r.txt"));
 
     let path = part_two(&maze).unwrap();
-    println!("{:?}", path);
     assert_eq!(path.len() - 1, 396);
   }
 }

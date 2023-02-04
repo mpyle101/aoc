@@ -6,11 +6,8 @@ type Rules<'a> = HashMap<u32, Rule<'a>>;
 fn main() {
     let (mut rules, msgs) = load(include_str!("./input.txt"));
 
-    let valid = part_one(&rules, msgs);
-    println!("Part 1: {}", valid);
-
-    let valid = part_two(&mut rules, msgs);
-    println!("Part 2: {}", valid);
+    println!("Part 1: {}", part_one(&rules, msgs));
+    println!("Part 2: {}", part_two(&mut rules, msgs));
 }
 
 fn part_one(rules: &Rules, msgs: &str) -> usize {

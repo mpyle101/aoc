@@ -132,7 +132,6 @@ mod tests {
     #[test]
     fn example_3() {
         let shuttles = load_shuttles("0\n67,7,59,61");
-        println!("{:?}", shuttles);
         let ts = part_two(&shuttles);
         assert_eq!(ts, 754018);
     }

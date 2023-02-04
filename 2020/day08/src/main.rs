@@ -1,11 +1,8 @@
 fn main() {
     let program = load(include_str!("./program.txt"));
 
-    let acc = part_one(&program);
-    println!("Part 1: {}", acc);
-
-    let acc = part_two(&program);
-    println!("Part 2: {}", acc);
+    println!("Part 1: {}", part_one(&program));
+    println!("Part 2: {}", part_two(&program));
 }
 
 #[derive(Clone, Copy, Debug)]

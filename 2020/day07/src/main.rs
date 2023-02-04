@@ -5,12 +5,10 @@ type Bags2<'a> = HashMap<(&'a str, &'a str), Vec<((&'a str, &'a str), u32)>>;
 
 fn main() {
     let bags = load_one(include_str!("./input.txt"));
-    let colors = part_one(&bags);
-    println!("Part 1: {}", colors);
+    println!("Part 1: {}", part_one(&bags));
 
     let bags = load_two(include_str!("./input.txt"));
-    let total = part_two(&bags);
-    println!("Part 2: {}", total);
+    println!("Part 2: {}", part_two(&bags));
 }
 
 fn part_one(bags: &Bags1) -> usize {

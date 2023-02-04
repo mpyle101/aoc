@@ -1,25 +1,29 @@
-fn main() {
+fn main()
+{
     let passes = load(include_str!("./passes.txt"));
     
-    let ticket = part_one(&passes).unwrap();
-    println!("Part1: {}", ticket);
-    
-    let ticket = part_two(&passes);
-    println!("Part2: {}", ticket);
+    println!("Part1: {}", part_one(&passes));
+    println!("Part2: {}", part_two(&passes));
 }
 
-fn load(passes: &str) -> Vec<&str> {
+fn load(passes: &str) -> Vec<&str>
+{
     passes.lines().collect()
 }
 
-fn part_one(passes: &[&str]) -> Option<u32> {
+fn part_one(passes: &[&str]) -> u32
+{
     let rows: Vec<_> = passes.iter().map(|s| find_row(&s[0..7])).collect();
     let cols: Vec<_> = passes.iter().map(|s| find_col(&s[7..])).collect();
 
-    rows.iter().zip(cols.iter()).map(|(r, c)| r * 8 + c).max()
+    rows.iter()
+        .zip(cols.iter()).map(|(r, c)| r * 8 + c)
+        .max()
+        .unwrap()
 }
 
-fn part_two(passes: &[&str]) -> u32 {
+fn part_two(passes: &[&str]) -> u32
+{
     let rows: Vec<_> = passes.iter().map(|s| find_row(&s[0..7])).collect();
     let cols: Vec<_> = passes.iter().map(|s| find_col(&s[7..])).collect();
     let mut sids: Vec<_> = rows.iter().zip(cols.iter()).map(|(r, c)| r * 8 + c).collect();
@@ -36,7 +40,8 @@ fn part_two(passes: &[&str]) -> u32 {
     0
 }
 
-fn find_row(pass: &str) -> u32 {
+fn find_row(pass: &str) -> u32
+{
     let mut rows = (0..128).collect::<Vec<u32>>();
 
     for &c in pass.as_bytes() {
@@ -47,7 +52,8 @@ fn find_row(pass: &str) -> u32 {
     rows[0]
 }
 
-fn find_col(pass: &str) -> u32 {
+fn find_col(pass: &str) -> u32
+{
     let mut cols = (0..8).collect::<Vec<u32>>();
 
     for &c in pass.as_bytes() {
@@ -64,13 +70,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn input_part_one()
+    {
         let passes = load(include_str!("./passes.txt"));
-        
-        let ticket = part_one(&passes).unwrap();
-        assert_eq!(ticket, 998);
+        assert_eq!(part_one(&passes), 998);
+    }
 
-        let ticket = part_two(&passes);
-        assert_eq!(ticket, 676);
+    #[test]
+    fn input_part_two()
+    {
+        let passes = load(include_str!("./passes.txt"));
+        assert_eq!(part_two(&passes), 676);
     }
 }

@@ -5,9 +5,7 @@ fn main() {
 
     let black = part_one(input);
     println!("Part 1: {}", black.len());
-
-    let tiles = part_two(&black);
-    println!("Part 2: {}", tiles);
+    println!("Part 2: {}", part_two(&black));
 }
 
 fn part_one(input: &str) -> HashSet<(i32, i32)> {

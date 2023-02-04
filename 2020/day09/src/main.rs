@@ -2,10 +2,10 @@ fn main() {
     let xmas = load(include_str!("./xmas.txt"));
 
     let num = part_one(&xmas);
-    println!("Part 1: {}", num);
+    println!("Part 1: {num}");
 
     let num = part_two(&xmas, num);
-    println!("Part 2: {}", num);
+    println!("Part 2: {num}");
 }
 
 fn load(input: &str) -> Vec<u64> {

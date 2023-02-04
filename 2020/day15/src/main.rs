@@ -1,11 +1,8 @@
 fn main() {
     let numbers = [1, 0, 15, 2, 10, 13];
 
-    let n = part_one(&numbers);
-    println!("Part 1: {}", n);
-
-    let n = part_two(&numbers);
-    println!("Part 2: {}", n);
+    println!("Part 1: {}", part_one(&numbers));
+    println!("Part 2: {}", part_two(&numbers));
 }
 
 fn part_one(nums: &[usize]) -> usize {

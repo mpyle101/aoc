@@ -1,11 +1,8 @@
 fn main() {
     let cmds = load(include_str!("./program.txt"));
 
-    let checksum = part_one(&cmds);
-    println!("Part 1: {}", checksum);
-
-    let checksum = part_two(&cmds);
-    println!("Part 2: {}", checksum);
+    println!("Part 1: {}", part_one(&cmds));
+    println!("Part 2: {}", part_two(&cmds));
 }
 
 fn part_one(cmds: &[Cmd]) -> u64 {

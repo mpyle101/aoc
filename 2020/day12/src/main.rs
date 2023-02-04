@@ -3,11 +3,8 @@ use std::str;
 fn main() {
     let moves = include_str!("./moves.txt");
 
-    let dist = part_one(moves);
-    println!("Part1: {}", dist);
-
-    let dist = part_two(moves);
-    println!("Part2: {}", dist);
+    println!("Part1: {}", part_one(moves));
+    println!("Part2: {}", part_two(moves));
 }
 
 fn part_one(moves: &str) -> i32 {

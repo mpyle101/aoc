@@ -3,11 +3,8 @@ use std::collections::HashSet;
 fn main() {
     let map = load(include_str!("./map.txt"));
 
-    let trees = part_one(&map);
-    println!("Part1: {}", trees);
-
-    let trees = part_two(&map);
-    println!("Part2: {}", trees);
+    println!("Part1: {}", part_one(&map));
+    println!("Part2: {}", part_two(&map));
 }
 
 #[derive(Debug)]

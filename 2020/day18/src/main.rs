@@ -3,11 +3,8 @@
 fn main() {
     let exprs = include_str!("./expr.txt");
 
-    let val = part_one(exprs);
-    println!("Part 1: {}", val);
-
-    let val = part_two(exprs);
-    println!("Part 2: {}", val);
+    println!("Part 1: {}", part_one(exprs));
+    println!("Part 2: {}", part_two(exprs));
 }
 
 fn part_one(input: &str) -> i64 {

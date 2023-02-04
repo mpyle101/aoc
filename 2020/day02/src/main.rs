@@ -2,11 +2,8 @@
 fn main() {
     let policies = load(include_str!("./passwords.txt"));
 
-    let valid = part_one(&policies);
-    println!("Part1: {}", valid);
-
-    let valid = part_two(&policies);
-    println!("Part2: {}", valid);
+    println!("Part1: {}", part_one(&policies));
+    println!("Part2: {}", part_two(&policies));
 }
 
 #[derive(Debug)]

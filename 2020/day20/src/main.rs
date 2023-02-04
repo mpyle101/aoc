@@ -25,11 +25,8 @@ fn main() {
     let tiles = load(include_str!("./input.txt"));
     let image = find_image(&tiles).unwrap();
 
-    let corners = part_one(&image);
-    println!("Part 1: {}", corners);
-
-    let rough = part_two(&image);
-    println!("Part 2: {}", rough);
+    println!("Part 1: {}", part_one(&image));
+    println!("Part 2: {}", part_two(&image));
 }
 
 fn part_one(image: &Image) -> u64 {

@@ -3,11 +3,11 @@ use std::collections::{HashMap, HashSet};
 fn main() {
     let passports = load(include_str!("./passports.txt"), false);
     let valid = passports.iter().filter(|p| p.is_valid()).count();
-    println!("Part1: {}", valid);
+    println!("Part1: {valid}");
 
     let passports = load(include_str!("./passports.txt"), true);
     let valid = passports.iter().filter(|p| p.is_valid()).count();
-    println!("Part2: {}", valid);
+    println!("Part2: {valid}");
 }
 
 type Year = u32;

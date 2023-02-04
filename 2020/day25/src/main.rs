@@ -3,7 +3,7 @@ fn main() {
         .map(|l| l.parse::<u64>().unwrap()).collect();
 
     let enc_key = part_one(public_keys[0], public_keys[1]);
-    println!("Part 1: {}", enc_key);
+    println!("Part 1: {enc_key}");
 }
 
 fn part_one(card: u64, door: u64) -> u64 {

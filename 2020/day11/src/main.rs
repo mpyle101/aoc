@@ -3,11 +3,8 @@ use std::collections::HashSet;
 fn main() {
     let (seats, rows, cols) = load(include_str!("./seats.txt"));
 
-    let occupied = part_one(&seats);
-    println!("Part1: {}", occupied);
-
-    let occupied = part_two(&seats, rows, cols);
-    println!("Part2: {}", occupied);
+    println!("Part1: {}", part_one(&seats));
+    println!("Part2: {}", part_two(&seats, rows, cols));
 }
 
 type Pos = (i32, i32);

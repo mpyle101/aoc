@@ -75,7 +75,7 @@ fn rotate(facing: &Facing, dir: Direction, deg: i32) -> Facing {
         0b00100000 => Facing::East,
         0b00001000 => Facing::South,
         0b00000010 => Facing::West,
-        _ => panic!("Unknown rotate result: {:#010b}", d)
+        _ => panic!("Unknown rotate result: {d:#010b}")
     }
 }
 

@@ -85,7 +85,7 @@ fn apply_mask(pattern: &str, addr: &u64) -> Vec<u64> {
     use std::collections::HashMap;
     let mut cache = HashMap::new();
 
-    let addr_bits = format!("{:036b}", addr);
+    let addr_bits = format!("{addr:036b}");
     let result = pattern.as_bytes().iter().zip(
         addr_bits.as_bytes().iter())
         .map(|(p, a)| match p {

@@ -163,7 +163,7 @@ impl Board {
                 Some(Tile::Oxygen) => 'O',
                 None => '?',
             }).collect();
-            println!("{}", row);
+            println!("{row}");
         };
     }
 

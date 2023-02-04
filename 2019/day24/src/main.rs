@@ -52,7 +52,7 @@ fn draw(state: &MapState) {
     (0..5).for_each(|row| {
         (0..5).for_each(|col| {
             let c = if state.contains(&(row, col)) { '#' } else { '.' };
-            print!("{}", c);
+            print!("{c}");
         });
         println!();
     });

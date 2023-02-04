@@ -1,3 +1,4 @@
+
 fn main() {
     use std::{fs, time::Instant};
     
@@ -70,7 +71,7 @@ fn part_two(input: &str) -> String {
     let dense = (0..256)
         .step_by(16)
         .map(|i| (i..i+16).skip(1).fold(sparse[i], |v, n| v ^ sparse[n]))
-        .map(|v| format!("{:02x}", v))
+        .map(|v| format!("{v:02x}"))
         .collect::<Vec<_>>();
     
     dense.join("")

@@ -72,7 +72,7 @@ fn check(r: i32, p: i32, op: &str) -> bool {
         "<=" => r <= p,
         "==" => r == p,
         "!=" => r != p,
-        _ => panic!("Unknown operator: {}", op)
+        _ => panic!("Unknown operator: {op}")
     }
 }
 

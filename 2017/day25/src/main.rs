@@ -25,7 +25,7 @@ fn part_one(steps: i32) -> usize {
             'D' => if *v == 0 { *v = 1; (-1, 'E') } else { *v = 1; ( 1, 'A') },
             'E' => if *v == 0 { *v = 1; (-1, 'F') } else { *v = 0; (-1, 'D') },
             'F' => if *v == 0 { *v = 1; ( 1, 'A') } else { *v = 0; (-1, 'E') },
-            _ => panic!("Unknown state: {}", state)
+            _ => panic!("Unknown state: {state}")
         };
 
         state = st;

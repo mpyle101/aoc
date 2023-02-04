@@ -124,7 +124,7 @@ fn load(input: &str) -> Vec<Cmd> {
             "sub" => sub(p1, p2),
             "mul" => mul(p1, p2),
             "jnz" => jnz(p1, p2),
-            _ => panic!("Unknown command: {}", cmd)
+            _ => panic!("Unknown command: {cmd}")
         }
     })
     .collect()

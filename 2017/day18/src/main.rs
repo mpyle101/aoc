@@ -148,7 +148,7 @@ fn load(input: &str) -> Vec<Cmd> {
             "mul" => mul(p1, get_value(it.next().unwrap())),
             "mod" => rem(p1, get_value(it.next().unwrap())),
             "jgz" => jgz(p1, get_value(it.next().unwrap())),
-            _ => panic!("Unknown command: {}", cmd)
+            _ => panic!("Unknown command: {cmd}")
         }
     })
     .collect()

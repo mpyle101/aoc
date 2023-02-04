@@ -14,7 +14,7 @@ fn main() {
 
 fn part_one(key: &str) -> i32 {
     (0..128).fold(0, |used, row| {
-        let hash = knot(&format!("{}-{}", key, row));
+        let hash = knot(&format!("{key}-{row}"));
         let bits = hash.bytes().map(|c| {
             let mut n = if c <= b'9' { c - b'0' } else { c - b'a' + 10 };
             let mut bits = 0;
@@ -32,7 +32,7 @@ fn part_two(key: &str) -> i32 {
 
     let mut used = HashSet::new();
     (0..128).for_each(|y| {
-        let hash = knot(&format!("{}-{}", key, y));
+        let hash = knot(&format!("{key}-{y}"));
         let bits = hash.bytes().map(|c| {
                 let n = if c <= b'9' { c - b'0' } else { c - b'a' + 10 };
                 format!("{:04b}", n)

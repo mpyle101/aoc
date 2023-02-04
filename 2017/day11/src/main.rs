@@ -44,7 +44,7 @@ fn step(s: &str, (x, y): (i32, i32)) -> (i32, i32) {
         "s"  => (x - 2, y - 2),
         "sw" => (x - 4, y),
         "nw" => (x - 2, y + 2),
-        _ => panic!("Unknown direction: {}", s)
+        _ => panic!("Unknown direction: {s}")
     }
 }
 

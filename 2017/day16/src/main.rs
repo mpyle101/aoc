@@ -5,15 +5,11 @@ fn main() {
     let input = fs::read_to_string("./input.txt").unwrap();
     let moves = load(&input);
 
-    let t1 = Instant::now();
-    let programs = part_one(&moves);
-    let t2 = Instant::now();
-    println!("Part 1: {} {:?}", programs, t2 - t1);
+    let t = Instant::now();
+    println!("Part 1: {} {:?}", part_one(&moves), t.elapsed());
 
-    let t1 = Instant::now();
-    let programs = part_two(&moves);
-    let t2 = Instant::now();
-    println!("Part 2: {} {:?}", programs, t2 - t1);
+    let t = Instant::now();
+    println!("Part 2: {} {:?}", part_two(&moves), t.elapsed());
 }
 
 enum Move {
@@ -58,7 +54,7 @@ fn load(input: &str) -> Vec<Move> {
                 let b = s.chars().nth(3).unwrap();
                 Xfer(a, b)
             },
-            _ => panic!("Unknown dance move: {}", s)
+            _ => panic!("Unknown dance move: {s}")
         }
     )
     .collect()

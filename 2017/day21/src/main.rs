@@ -83,7 +83,7 @@ fn enhance(pixels: &Matrix<char>, rules: &Rules, iterations: usize) -> usize {
 #[allow(dead_code)]
 fn print(m: &Matrix<char>) {
     m.iter().for_each(|row| {
-        row.iter().for_each(|c| print!("{}", c));
+        row.iter().for_each(|c| print!("{c}"));
         println!();
     });
     println!();

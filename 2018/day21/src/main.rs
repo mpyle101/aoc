@@ -1,4 +1,3 @@
-#![allow(clippy::uninlined_format_args)]
 
 fn main() {
     use std::time::Instant;
@@ -153,7 +152,7 @@ impl Opcode {
 
         match self {
             ipx(a) => *a as usize,
-            _ => panic!("eval unsupported for {:?}", self)
+            _ => panic!("eval unsupported for {self:?}")
         }
     }
 }

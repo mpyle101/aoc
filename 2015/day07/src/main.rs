@@ -3,11 +3,8 @@ use std::collections::HashMap;
 fn main() {
     let mut wires = load(include_str!("./input.txt"));
 
-    let signal = part_one(&wires);
-    println!("Part 1: {}", signal);
-
-    let signal = part_two(&mut wires);
-    println!("Part 2: {}", signal);
+    println!("Part 1: {}", part_one(&wires));
+    println!("Part 2: {}", part_two(&mut wires));
 }
 
 fn part_one(wires: &HashMap<&str, Wire>) -> u32 {

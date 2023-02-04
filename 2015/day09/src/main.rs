@@ -4,11 +4,8 @@ use std::collections::{HashMap, HashSet};
 fn main() {
     let routes = load(include_str!("./input.txt"));
 
-    let shortest = part_one(&routes);
-    println!("Part 1: {}", shortest);
-
-    let longest = part_two(&routes);
-    println!("Part 2: {}", longest);
+    println!("Part 1: {}", part_one(&routes));
+    println!("Part 2: {}", part_two(&routes));
 }
 
 fn part_one(routes: &Routes) -> u32 {

@@ -3,11 +3,8 @@ use ndarray::{Array2, SliceInfo, SliceInfoElem, Dim};
 fn main() {
     let cmds = load(include_str!("./input.txt"));
 
-    let lights = part_one(&cmds);
-    println!("Part 1: {}", lights);
-
-    let brightness = part_two(&cmds);
-    println!("Part 2: {}", brightness);
+    println!("Part 1: {}", part_one(&cmds));
+    println!("Part 2: {}", part_two(&cmds));
 }
 
 fn part_one(cmds: &[Cmd]) -> i32 {

@@ -1,11 +1,8 @@
 fn main() {
     let strings = include_str!("./input.txt");
 
-    let diff = part_one(strings);
-    println!("Part 1: {}", diff);
-
-    let diff = part_two(strings);
-    println!("Part 2: {}", diff);
+    println!("Part 1: {}", part_one(strings));
+    println!("Part 2: {}", part_two(strings));
 }
 
 fn part_one(strings: &str) -> usize {

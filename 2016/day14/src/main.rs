@@ -26,7 +26,7 @@ fn get_keys(salt: &str, n: i32) -> usize {
 
     let mut index = 0;
     while keys.len() < 64 {
-        let key  = format!("{}{}", salt, index);
+        let key  = format!("{salt}{index}");
         let hash = mash(key.clone(), n);
 
         if let Some(c1) = check5(&hash) {

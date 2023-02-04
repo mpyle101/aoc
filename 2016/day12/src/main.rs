@@ -85,7 +85,7 @@ fn load(input: &str) -> Vec<Cmd> {
                     jnz(x as i32 - 'a' as i32, y, false)
                 }
             }
-            _ => panic!("Unknown command: {}", cmd)
+            _ => panic!("Unknown command: {cmd}")
         }
         
     })

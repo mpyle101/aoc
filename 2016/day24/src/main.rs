@@ -136,7 +136,7 @@ fn print(wires: &Wires, open: &Points) {
             } else {
                 '#'
             };
-            print!("{}", c);
+            print!("{c}");
         });
         println!();
     })

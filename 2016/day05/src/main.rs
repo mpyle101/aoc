@@ -23,7 +23,7 @@ fn part_one(door_id: &str) -> String {
 
     let mut i = 0;
     while i < 8 {
-        let s = format!("{}{}", door_id, index);
+        let s = format!("{door_id}{index}");
         let digest = md5::compute(s);
         let hash = hex::encode(digest.iter());
         hash.chars().enumerate().take(6).for_each(|(n, c)| buf[n] = c);

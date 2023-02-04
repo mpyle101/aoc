@@ -27,7 +27,7 @@ fn load(input: &str) -> Vec<Action> {
         match v.chars().next() {
             Some('L') => Action::Left(blocks),
             Some('R') => Action::Right(blocks),
-            _ => panic!("Unknown action: {:?}", v)
+            _ => panic!("Unknown action: {v}")
         }
     })
     .collect()

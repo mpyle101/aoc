@@ -123,7 +123,7 @@ fn load(input: &str) -> Vec<Cmd> {
             "inc" => inc(p1),
             "jnz" => jnz(p1, get_value(it.next().unwrap())),
             "tgl" => tgl(p1),
-            _ => panic!("Unknown command: {}", cmd)
+            _ => panic!("Unknown command: {cmd}")
         }
     })
     .collect()

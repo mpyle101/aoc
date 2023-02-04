@@ -23,7 +23,7 @@ fn part_one(input: &str) -> String {
                 'D' => (2.min(p.0 + 1), p.1),
                 'L' => (p.0, 0.max(p.1 - 1)),
                 'R' => (p.0, 2.min(p.1 + 1)),
-                _ => panic!("Unknown direction: {}", c)
+                _ => panic!("Unknown direction: {c}")
             }
         );
         (key.0 * 3 + key.1 + 1) as u32

@@ -35,7 +35,7 @@ fn part_two(key: &str) -> i32 {
         let hash = knot(&format!("{key}-{y}"));
         let bits = hash.bytes().map(|c| {
                 let n = if c <= b'9' { c - b'0' } else { c - b'a' + 10 };
-                format!("{:04b}", n)
+                format!("{n:04b}")
             })
             .collect::<Vec<_>>()
             .join("");
@@ -98,7 +98,7 @@ fn knot(input: &str) -> String {
     let dense = (0..256)
         .step_by(16)
         .map(|i| (i..i+16).skip(1).fold(sparse[i], |v, n| v ^ sparse[n]))
-        .map(|v| format!("{:02x}", v))
+        .map(|v| format!("{v:02x}"))
         .collect::<Vec<_>>();
     
     dense.join("")

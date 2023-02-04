@@ -20,7 +20,7 @@ fn main() {
     } + 26;
 
     println!("Part 1: LKPHZHHJ");
-    println!("Part 2: {}", secs);
+    println!("Part 2: {secs}");
 }
 
 fn load(input: &str) -> Vec<Point> {

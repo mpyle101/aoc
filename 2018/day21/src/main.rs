@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 fn main() {
     use std::time::Instant;
 
@@ -94,7 +96,7 @@ fn load(input: &str) -> Program {
             "eqir" => eqir(a, b, c),
             "eqri" => eqri(a, b, c),
             "eqrr" => eqrr(a, b, c),
-            _ => panic!("Unknown opcode: {}", opc)
+            _ => panic!("Unknown opcode: {opc}")
         }
     })
     .collect::<Vec<_>>()

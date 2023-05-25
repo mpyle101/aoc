@@ -16,7 +16,7 @@ fn part_one(input: &str) -> Vec<u8> {
     reduce(input.as_bytes().iter().cloned())
 }
 
-#[allow(clippy::almost_complete_letter_range)]
+#[allow(clippy::almost_complete_range)]
 fn part_two(input: &[u8]) -> usize {
     (b'a'..b'z').map(|b| {
         let polymer = input.iter().cloned().filter(|&v| v | 32 != b);

@@ -25,7 +25,6 @@ impl error::Error for NotFound {}
 fn load(input: &str) -> Result<Vec<i32>, std::num::ParseIntError> {
     input.lines()
         .map(|v| v.parse::<i32>())
-        .into_iter()
         .collect()
 }
 

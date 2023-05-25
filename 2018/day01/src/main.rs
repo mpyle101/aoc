@@ -17,7 +17,7 @@ fn main() {
 }
 
 fn load(input: &str) -> Result<Vec<i32>, std::num::ParseIntError> {
-    input.lines().map(|v| v.parse::<i32>()).into_iter().collect()
+    input.lines().map(|v| v.parse::<i32>()).collect()
 }
 
 fn part_one(deltas: &[i32]) -> i32 {

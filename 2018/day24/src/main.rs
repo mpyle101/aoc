@@ -173,6 +173,7 @@ enum Team {
 }
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq)]
     struct Damage: u8 {
         const NONE        = 0b00000000;
         const COLD        = 0b00000001;

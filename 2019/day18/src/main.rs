@@ -118,7 +118,7 @@ fn calc_paths(map: &Map) -> HashMap<u32, (u32, u32)> {
     map.keys.iter().chain(map.robots.iter())
         .combinations(2)
         .filter_map(|v| {
-            bfs(v[0].0, |p| open(p), |p| p == v[1].0)
+            bfs(v[0].0, open, |p| p == v[1].0)
                 .map(|path| {
                     let doors = find_doors(&path, map);
                     let steps = path.len() as u32 - 1;
@@ -163,7 +163,7 @@ struct Map {
 struct State {
     keys:  u32,         // bits representing keys left to find
     found: u32,         // bits representing found keys
-    steps: u32,         // number of steps take so far
+    steps: u32,         // number of steps taken so far
     count: usize,       // number of robots
     robots: [u32;4],    // bit representing location as current key
 }

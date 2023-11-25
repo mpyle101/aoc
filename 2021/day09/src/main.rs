@@ -25,7 +25,8 @@ fn load(input: &str) -> Vec<u32> {
 
 fn part_one(heights: &[u32]) -> u32 {
     heights.iter().enumerate()
-        .filter_map(|(i, n)| is_lowest(heights, i).then(|| n+1))
+        .filter(|&(i, _)| is_lowest(heights, i))
+        .map(|(_, n)| n+1)
         .sum()
 }
 

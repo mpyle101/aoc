@@ -28,10 +28,10 @@ fn load(input: &str) -> HashMap<&str, Vec<&str>> {
 
             // We can't go back to the start or end
             if a != "end" && b != "start" {
-                m.entry(a).or_insert_with(Vec::new).push(b);
+                m.entry(a).or_default().push(b);
             }
             if a != "start" && b != "end" {
-                m.entry(b).or_insert_with(Vec::new).push(a);
+                m.entry(b).or_default().push(a);
             }
             m
         })

@@ -89,6 +89,7 @@ impl PartialEq for Layer {
   }
 }
 
+#[allow(clippy::non_canonical_partial_ord_impl)]
 impl PartialOrd for Layer {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
     self.zeros.partial_cmp(&other.zeros)

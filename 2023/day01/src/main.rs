@@ -56,24 +56,21 @@ fn part_two(input: &str) -> u32
                 let v = &bytes[n..];
                 if v[0].is_ascii_digit() {
                     digit = v[0] - b'0';
-                } else {
-                    for (key, value) in nums.iter() {
-                        if v.starts_with(key) {
-                            digit = *value;
-                            break;
-                        }
-                    }
+                } else if let Some((_, value)) = 
+                    nums.iter().find(|(key, _)| v.starts_with(key))
+                {
+                    digit = *value;
                 }
 
                 if digit > 0 {
                     d2 = digit;
                     if d1 == 0 {
-                        d1 = digit;
+                        d1 = digit * 10;
                     }
                 }
             });
 
-            d1 as u32 * 10 + d2 as u32
+            d1 as u32 + d2 as u32
         })
         .sum()
 }

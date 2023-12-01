@@ -66,11 +66,9 @@ fn part_two(input: &str) -> u32
                 }
 
                 if digit > 0 {
+                    d2 = digit;
                     if d1 == 0 {
                         d1 = digit;
-                        d2 = digit;
-                    } else {
-                        d2 = digit;
                     }
                 }
             });

@@ -33,9 +33,7 @@ fn part_one(input: &str) -> u32
 
 fn part_two(input: &str) -> u32
 {
-    use std::collections::HashMap;
-
-    let nums = HashMap::from([
+    let nums = vec![
         ("one".as_bytes(), 1),
         ("two".as_bytes(), 2),
         ("three".as_bytes(), 3),
@@ -45,7 +43,7 @@ fn part_two(input: &str) -> u32
         ("seven".as_bytes(), 7),
         ("eight".as_bytes(), 8),
         ("nine".as_bytes(), 9),
-    ]);
+    ];
 
     input.lines()
         .map(|s| {

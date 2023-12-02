@@ -19,27 +19,8 @@ fn part_one(input: &str) -> usize
         .enumerate()
         .map(|(id, line)| {
             let gid = id + 1;
-            let s = if gid < 10 {
-                &line[8..]
-            } else if gid == 100 {
-                &line[10..]
-            } else {
-                &line[9..]
-            };
-            let mut cubes = (0, 0, 0);
-            let mut iter = s.split(' ');
-            while let Some(count) = iter.next() {
-                let v: u32 = count.parse().unwrap();
-                let color = iter.next().unwrap();
-                let ch = color.chars().next().unwrap();
-                match ch {
-                    'r' => if cubes.0 < v { cubes.0 = v },
-                    'b' => if cubes.1 < v { cubes.1 = v },
-                    'g' => if cubes.2 < v { cubes.2 = v },
-                     _  => panic!("Unknown color: {ch}")
-                }
-            }
-            (gid, cubes)
+            let idx = (8 + gid.ilog(10)) as usize;
+            (gid, cubes(&line[idx..]))
         })
         .filter(|(_, (r, b, g))| *r <= 12 && *b <= 14 && *g <= 13)
         .map(|(gid, _)| gid)
@@ -52,30 +33,32 @@ fn part_two(input: &str) -> u32
         .enumerate()
         .map(|(id, line)| {
             let gid = id + 1;
-            let s = if gid < 10 {
-                &line[8..]
-            } else if gid == 100 {
-                &line[10..]
-            } else {
-                &line[9..]
-            };
-            let mut cubes = (0, 0, 0);
-            let mut iter = s.split(' ');
-            while let Some(count) = iter.next() {
-                let v: u32 = count.parse().unwrap();
-                let color = iter.next().unwrap();
-                let ch = color.chars().next().unwrap();
-                match ch {
-                    'r' => if cubes.0 < v { cubes.0 = v },
-                    'b' => if cubes.1 < v { cubes.1 = v },
-                    'g' => if cubes.2 < v { cubes.2 = v },
-                     _  => panic!("Unknown color: {ch}")
-                }
-            }
-            cubes
+            let idx = (8 + gid.ilog(10)) as usize;
+            cubes(&line[idx..])
         })
         .map(|(r, b, g)| r * b * g)
         .sum()
+}
+
+fn cubes(line: &str) -> (u32, u32, u32)
+{
+    use std::cmp::max;
+
+    let mut cubes = (0, 0, 0);
+    let mut iter = line.split(' ');
+    while let Some(count) = iter.next() {
+        let v: u32 = count.parse().unwrap();
+        let color = iter.next().unwrap();
+        let ch = color.as_bytes()[0];
+        match ch {
+            b'r' => cubes.0 = max(cubes.0, v),
+            b'b' => cubes.1 = max(cubes.1, v),
+            b'g' => cubes.2 = max(cubes.2, v),
+              _  => panic!("Unknown color: {ch}")
+        }
+    }
+
+    cubes
 }
 
 

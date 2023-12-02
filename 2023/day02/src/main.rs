@@ -15,6 +15,9 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
+    // [r, b, g]
+    let max = [13, 15, 14];
+
     input.lines()
         .enumerate()
         .map(|(id, line)| {
@@ -22,7 +25,7 @@ fn part_one(input: &str) -> usize
             let idx = (8 + gid.ilog(10)) as usize;
             (gid, cubes(&line[idx..]))
         })
-        .filter(|(_, (r, b, g))| *r <= 12 && *b <= 14 && *g <= 13)
+        .filter(|(_, arr)| (0..3).all(|i| arr[i] < max[i]))
         .map(|(gid, _)| gid)
         .sum()
 }
@@ -36,26 +39,22 @@ fn part_two(input: &str) -> u32
             let idx = (8 + gid.ilog(10)) as usize;
             cubes(&line[idx..])
         })
-        .map(|(r, b, g)| r * b * g)
+        .map(|cubes| cubes.iter().product::<u32>())
         .sum()
 }
 
-fn cubes(line: &str) -> (u32, u32, u32)
+fn cubes(line: &str) -> [u32;3]
 {
     use std::cmp::max;
 
-    let mut cubes = (0, 0, 0);
+    let mut cubes = [0, 0, 0];
     let mut iter = line.split(' ');
     while let Some(count) = iter.next() {
         let v: u32 = count.parse().unwrap();
         let color = iter.next().unwrap();
-        let ch = color.as_bytes()[0];
-        match ch {
-            b'r' => cubes.0 = max(cubes.0, v),
-            b'b' => cubes.1 = max(cubes.1, v),
-            b'g' => cubes.2 = max(cubes.2, v),
-              _  => panic!("Unknown color: {ch}")
-        }
+        let c = color.as_bytes()[0];
+        let i = (c == b'b') as usize + 2 * (c == b'g') as usize;
+        cubes[i] = max(cubes[i], v);
     }
 
     cubes

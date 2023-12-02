@@ -7,7 +7,15 @@ fn main()
     let t = Instant::now();
     let calibration = part_one(input);
     println!("Part 1: {} ({:?})", calibration, t.elapsed());
+/*
+    let t = Instant::now();
+    let calibration = part_one_alt1(input);
+    println!("Part 1: {} ({:?})", calibration, t.elapsed());
 
+    let t = Instant::now();
+    let calibration = part_one_alt2(input);
+    println!("Part 1: {} ({:?})", calibration, t.elapsed());
+*/
     let t = Instant::now();
     let calibration = part_two(input);
     println!("Part 2: {} ({:?})", calibration, t.elapsed());
@@ -75,6 +83,30 @@ fn part_two(input: &str) -> u32
         .sum()
 }
 
+#[allow(dead_code)]
+fn part_one_alt1(input: &str) -> u32
+{
+    // seems fastest
+    input.lines()
+        .map(|s| (
+            s.as_bytes().iter().find(|c| c.is_ascii_digit()).map(|c| *c - b'0').unwrap(),
+            s.as_bytes().iter().rfind(|c| c.is_ascii_digit()).map(|c| *c - b'0').unwrap()
+        ))
+        .map(|(d1, d2)| d1 as u32 * 10 + d2 as u32)
+        .sum()
+}
+
+#[allow(dead_code)]
+fn part_one_alt2(input: &str) -> u32
+{
+    input.lines()
+        .map(|s| (
+            s.chars().find_map(|c| c.to_digit(10)).unwrap(),
+            s.chars().rev().find_map(|c| c.to_digit(10)).unwrap()
+        ))
+        .map(|(d1, d2)| d1 * 10 + d2)
+        .sum()
+}
 
 #[cfg(test)]
 mod tests {
@@ -99,4 +131,19 @@ mod tests {
         let input = include_str!("../example.txt");
         assert_eq!(part_two(input), 281);
     }
+
+    #[test]
+    fn input_part_one_alt1()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one_alt1(input), 53974);
+    }
+
+    #[test]
+    fn input_part_one_alt2()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one_alt2(input), 53974);
+    }
+
 }

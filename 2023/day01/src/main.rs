@@ -89,8 +89,14 @@ fn part_one_alt1(input: &str) -> u32
     // seems fastest
     input.lines()
         .map(|s| (
-            s.as_bytes().iter().find(|c| c.is_ascii_digit()).map(|c| *c - b'0').unwrap(),
-            s.as_bytes().iter().rfind(|c| c.is_ascii_digit()).map(|c| *c - b'0').unwrap()
+            s.as_bytes().iter()
+                .find(|c| c.is_ascii_digit())
+                .map(|c| *c - b'0')
+                .unwrap(),
+            s.as_bytes().iter()
+                .rfind(|c| c.is_ascii_digit())
+                .map(|c| *c - b'0')
+                .unwrap()
         ))
         .map(|(d1, d2)| d1 as u32 * 10 + d2 as u32)
         .sum()
@@ -99,6 +105,7 @@ fn part_one_alt1(input: &str) -> u32
 #[allow(dead_code)]
 fn part_one_alt2(input: &str) -> u32
 {
+    // slickest :D
     input.lines()
         .map(|s| (
             s.chars().find_map(|c| c.to_digit(10)).unwrap(),

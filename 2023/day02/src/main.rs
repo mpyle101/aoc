@@ -13,7 +13,7 @@ fn main()
     println!("Part 2: {} ({:?})", games, t.elapsed());
 }
 
-fn part_one(input: &str) -> usize
+fn part_one(input: &str) -> u32
 {
     // [r, b, g]
     let max = [13, 15, 14];
@@ -26,7 +26,7 @@ fn part_one(input: &str) -> usize
             (gid, cubes(&line[idx..]))
         })
         .filter(|(_, arr)| (0..3).all(|i| arr[i] < max[i]))
-        .map(|(gid, _)| gid)
+        .map(|(gid, _)| gid as u32)
         .sum()
 }
 

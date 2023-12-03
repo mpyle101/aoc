@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 fn main()
 {
     use std::time::Instant;
@@ -15,54 +13,60 @@ fn main()
     println!("Part 2: {} ({:?})", gears, t.elapsed());
 }
 
+#[derive(Clone, Copy)]
+struct Part {
+    v: u32,
+    x: usize,
+    y1: usize,
+    y2: usize,
+}
+
+#[derive(Clone, Copy)]
+struct Symbol {
+    t: usize,   // top
+    l: usize,   // left
+    b: usize,   // bottom
+    r: usize,   // right
+}
+
 fn part_one(input: &str) -> u32
 {
     let mut parts = vec![];
-    let mut symbols = HashSet::new();
+    let mut symbols = vec![];
 
     input.lines()
         .enumerate()
         .for_each(|(x, line)| {
-            let mut v = 0;
-            let mut idx = 0;
-            let mut pos = [(-1, -1); 3];
             let mut last = b'.';
+            let mut part = Part { v: 0, x: 0, y1: 0, y2: 0 };
 
             line.as_bytes().iter()
                 .enumerate()
                 .for_each(|(y, c)| {
                     if c.is_ascii_digit() {
-                        v = v * 10 + (*c - b'0') as u32;
-                        pos[idx] = (x as i32, y as i32);
-                        idx += 1;
+                        part.x = x;
+                        part.y2 = y;
+                        if part.v == 0 { part.y1 = y; }
+                        part.v = part.v * 10 + (*c - b'0') as u32;
                     } else {
                         if last.is_ascii_digit() {
-                            parts.push((v, pos));
-                            v = 0;
-                            idx = 0;
-                            pos = [(-1, -1); 3];
+                            parts.push(part);
+                            part = Part { v: 0, x: 0, y1: 0, y2: 0 };
                         }
                         if *c != b'.' {
-                            let r = x as i32;
-                            let c = y as i32;
-                            symbols.extend([
-                                (r-1, c-1), (r-1, c), (r-1, c+1), (r, c-1),
-                                (r, c+1), (r+1, c-1), (r+1, c), (r+1, c+1)
-                            ]);
+                            symbols.push(Symbol{ t: x-1, l: y-1, b: x+1, r: y+1 });
                         }
                     }
                     last = *c;
                 });
 
             if last.is_ascii_digit() {
-                parts.push((v, pos));
+                parts.push(part);
             }
         });
 
     parts.iter()
-        .filter_map(|(v, pos)| 
-            pos.iter().any(|p| symbols.contains(p)).then_some(v)
-        )
+        .map(|part| part_value(part, &symbols))
         .sum()
 }
 
@@ -74,35 +78,31 @@ fn part_two(input: &str) -> u32
     input.lines()
         .enumerate()
         .for_each(|(x, line)| {
-            let mut v = 0;
-            let mut idx = 0;
-            let mut pos = [(-1, -1); 3];
             let mut last = b'.';
+            let mut part = Part { v: 0, x: 0, y1: 0, y2: 0 };
             
             line.as_bytes().iter()
                 .enumerate()
                 .for_each(|(y, c)| {
                     if c.is_ascii_digit() {
-                        v = v * 10 + (*c - b'0') as u32;
-                        pos[idx] = (x as i32, y as i32);
-                        idx += 1;
+                        part.x = x;
+                        part.y2 = y;
+                        if part.v == 0 { part.y1 = y; }
+                        part.v = part.v * 10 + (*c - b'0') as u32;
                     } else {
                         if last.is_ascii_digit() {
-                            parts.push((v, pos));
-                            
-                            v = 0;
-                            idx = 0;
-                            pos = [(-1, -1); 3];
+                            parts.push(part);
+                            part = Part { v: 0, x: 0, y1: 0, y2: 0 };
                         }
                         if *c == b'*' {
-                            gears.push((x as i32, y as i32));
+                            gears.push((x, y));
                         }
                     }
                     last = *c;
                 });
 
             if last.is_ascii_digit() {
-                parts.push((v, pos));
+                parts.push(part);
             }
         });
 
@@ -111,21 +111,32 @@ fn part_two(input: &str) -> u32
         .sum()
 }
 
-fn gear_ratio((x, y): &(i32, i32), parts: &[(u32, [(i32, i32); 3])]) -> u32
+fn part_value(part: &Part, symbols: &[Symbol]) -> u32
 {
-    let aura = [
-        (x-1, y-1), (x-1, *y), (x-1, y+1), (*x, y-1),
-        (*x, y+1), (x+1, y-1), (x+1, *y), (x+1, y+1)
-    ];
+    if symbols.iter().any(|sym| 
+        part.x >= sym.t && part.x <= sym.b && part.y2 >= sym.l && part.y1 <= sym.r
+    ) {
+        part.v
+    } else {
+        0
+    }
+}
+
+fn gear_ratio((x, y): &(usize, usize), parts: &[Part]) -> u32
+{
+    // top, left, bottom, right
+    let aura = [x-1, y-1, x+1, y+1];
 
     let mut pn = [0, 0];
     let mut idx = 0;
 
-    for (v, pos) in parts {
-        if pos.iter().any(|p| *p != (-1, -1) && aura.contains(p)) {
+    for part in parts {
+        if part.x >= aura[0] && part.x <= aura[2] && 
+           part.y2 >= aura[1] && part.y1 <= aura[3]
+        {
             if idx == 2 { return 0; } // too many parts
 
-            pn[idx] = *v;
+            pn[idx] = part.v;
             idx += 1;
         }
     }

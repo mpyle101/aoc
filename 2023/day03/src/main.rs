@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 fn main()
 {
@@ -18,129 +18,119 @@ fn main()
 fn part_one(input: &str) -> u32
 {
     let mut parts = vec![];
-    let mut symbols = vec![];
+    let mut symbols = HashSet::new();
 
     input.lines()
         .enumerate()
         .for_each(|(x, line)| {
-            let mut v = 0u32;
-            let mut p = (0, 0);
+            let mut v = 0;
+            let mut idx = 0;
+            let mut pos = [(-1, -1); 3];
             let mut last = b'.';
 
             line.as_bytes().iter()
                 .enumerate()
                 .for_each(|(y, c)| {
                     if c.is_ascii_digit() {
-                        if v == 0 { p = (x as i32, y as i32) }
-                        v = v * 10 + (*c - b'0') as u32
+                        v = v * 10 + (*c - b'0') as u32;
+                        pos[idx] = (x as i32, y as i32);
+                        idx += 1;
                     } else {
                         if last.is_ascii_digit() {
-                            parts.push((v, p));
+                            parts.push((v, pos));
                             v = 0;
-                            p = (0, 0);
+                            idx = 0;
+                            pos = [(-1, -1); 3];
                         }
                         if *c != b'.' {
-                            symbols.push((x as i32, y as i32))
+                            let r = x as i32;
+                            let c = y as i32;
+                            symbols.extend([
+                                (r-1, c-1), (r-1, c), (r-1, c+1), (r, c-1),
+                                (r, c+1), (r+1, c-1), (r+1, c), (r+1, c+1)
+                            ]);
                         }
                     }
                     last = *c;
                 });
 
             if last.is_ascii_digit() {
-                parts.push((v, p));
+                parts.push((v, pos));
             }
         });
 
     parts.iter()
-        .filter(|&&part| is_adjacent(part, &symbols))
-        .map(|(v, _)| v)
+        .filter_map(|(v, pos)| 
+            pos.iter().any(|p| symbols.contains(p)).then_some(v)
+        )
         .sum()
 }
 
 fn part_two(input: &str) -> u32
 {
     let mut parts = vec![];
-    let mut gears: HashMap<(i32, i32), Vec<u32>> = HashMap::new();
+    let mut gears = vec![];
 
     input.lines()
         .enumerate()
         .for_each(|(x, line)| {
             let mut v = 0;
-            let mut p = (0, 0);
+            let mut idx = 0;
+            let mut pos = [(-1, -1); 3];
             let mut last = b'.';
-
+            
             line.as_bytes().iter()
                 .enumerate()
                 .for_each(|(y, c)| {
                     if c.is_ascii_digit() {
-                        if v == 0 { p = (x as i32, y as i32) }
-                        v = v * 10 + (*c - b'0') as u32
+                        v = v * 10 + (*c - b'0') as u32;
+                        pos[idx] = (x as i32, y as i32);
+                        idx += 1;
                     } else {
                         if last.is_ascii_digit() {
-                            parts.push((v, p));
+                            parts.push((v, pos));
+                            
                             v = 0;
-                            p = (0, 0);
+                            idx = 0;
+                            pos = [(-1, -1); 3];
                         }
                         if *c == b'*' {
-                            gears.insert((x as i32, y as i32), Vec::new());
+                            gears.push((x as i32, y as i32));
                         }
                     }
                     last = *c;
                 });
 
             if last.is_ascii_digit() {
-                parts.push((v, p));
+                parts.push((v, pos));
             }
         });
 
-    parts.iter().for_each(|&part| update_gears(part, &mut gears) );
-    gears.values()
-        .filter(|v| v.len() == 2)
-        .map(|v| v.iter().product::<u32>())
+    gears.iter()
+        .map(|gear| gear_ratio(gear, &parts))
         .sum()
 }
 
-fn is_adjacent(part: (u32, (i32, i32)), symbols: &[(i32, i32)]) -> bool
+fn gear_ratio((x, y): &(i32, i32), parts: &[(u32, [(i32, i32); 3])]) -> u32
 {
-    let pos = positions(part);
-    pos.iter().any(|p| symbols.contains(p))
-}
+    let aura = [
+        (x-1, y-1), (x-1, *y), (x-1, y+1), (*x, y-1),
+        (*x, y+1), (x+1, y-1), (x+1, *y), (x+1, y+1)
+    ];
 
-fn update_gears(part: (u32, (i32, i32)), gears: &mut HashMap<(i32, i32), Vec<u32>>)
-{
-    let pos = positions(part);
-    for (k, v) in gears {
-        if pos.contains(k) {
-            v.push(part.0)
+    let mut pn = [0, 0];
+    let mut idx = 0;
+
+    for (v, pos) in parts {
+        if pos.iter().any(|p| *p != (-1, -1) && aura.contains(p)) {
+            if idx == 2 { return 0; } // too many parts
+
+            pn[idx] = *v;
+            idx += 1;
         }
     }
-}
 
-fn positions((v, (x, y)): (u32, (i32, i32))) -> [(i32, i32); 12]
-{
-    let mut pos = [
-        (x-1, y-1), (x-1, y), (x-1, y+1),(x, y-1),
-        (x+1, y-1), (x+1, y), (x+1, y+1),(x, y+1),
-        (-1, -1), (-1, -1), (-1, -1), (-1, -1)
-    ];
-    match v.ilog(10) {
-        0 => {},
-        1 => {
-            pos[7] = (x, y+2);
-            pos[8] = (x-1, y+2);
-            pos[9] = (x+1, y+2);
-        },
-        2 => {
-            pos[7]  = (x, y+3);
-            pos[8]  = (x-1, y+2);
-            pos[9]  = (x+1, y+2);
-            pos[10] = (x-1, y+3);
-            pos[11] = (x+1, y+3);
-        },
-        _ => panic!("Big number: {v}")
-    }
-
-    pos
+    if pn[0] == 0 { 0 } else { pn[0] * pn[1] }
 }
 
 

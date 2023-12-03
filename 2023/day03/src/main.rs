@@ -95,7 +95,7 @@ fn part_two(input: &str) -> u32
                             part = Part { v: 0, x: 0, y1: 0, y2: 0 };
                         }
                         if *c == b'*' {
-                            gears.push((x, y));
+                            gears.push(Symbol{ t: x-1, l: y-1, b: x+1, r: y+1 });
                         }
                     }
                     last = *c;
@@ -122,21 +122,16 @@ fn part_value(part: &Part, symbols: &[Symbol]) -> u32
     }
 }
 
-fn gear_ratio((x, y): &(usize, usize), parts: &[Part]) -> u32
+fn gear_ratio(gear: &Symbol, parts: &[Part]) -> u32
 {
-    // top, left, bottom, right
-    let aura = [x-1, y-1, x+1, y+1];
-
     let mut pn = [0, 0];
     let mut idx = 0;
 
-    for part in parts {
-        if part.x >= aura[0] && part.x <= aura[2] && 
-           part.y2 >= aura[1] && part.y1 <= aura[3]
-        {
+    for p in parts {
+        if p.x >= gear.t && p.x <= gear.b && p.y2 >= gear.l && p.y1 <= gear.r {
             if idx == 2 { return 0; } // too many parts
 
-            pn[idx] = part.v;
+            pn[idx] = p.v;
             idx += 1;
         }
     }

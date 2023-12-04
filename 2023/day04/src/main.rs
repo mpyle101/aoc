@@ -15,23 +15,22 @@ fn main()
 
 fn part_one(input: &str) -> u32
 {
-    use std::collections::HashSet;
-
     input.lines()
         .map(|line| {
             let s = &line[9..];
             let (s1, s2) = s.split_once('|').unwrap();
-            let winners: HashSet<u32> = s1.split(' ')
+            let winners: Vec<u32> = s1.split(' ')
                 .flat_map(|v| v.parse::<u32>())
                 .collect();
-            let mine: HashSet<u32> = s2.split(' ')
+            let count = s2.split(' ')
                 .flat_map(|v| v.parse::<u32>())
-                .collect();
-            let good = &winners & &mine;
-            if good.is_empty() { 
+                .filter(|n| winners.contains(n))
+                .count();
+
+            if count == 0 { 
                 0
             } else {
-                2u32.pow(good.len() as u32 - 1)
+                2u32.pow(count as u32 - 1)
             }
         })
         .sum()
@@ -39,20 +38,17 @@ fn part_one(input: &str) -> u32
 
 fn part_two(input: &str) -> u32
 {
-    use std::collections::HashSet;
-
     let winners: Vec<usize> = input.lines()
         .map(|line| {
             let s = &line[9..];
             let (s1, s2) = s.split_once('|').unwrap();
-            let winners: HashSet<u32> = s1.split(' ')
+            let winners: Vec<u32> = s1.split(' ')
                 .flat_map(|v| v.parse::<u32>())
                 .collect();
-            let mine: HashSet<u32> = s2.split(' ')
+            s2.split(' ')
                 .flat_map(|v| v.parse::<u32>())
-                .collect();
-            let good = &winners & &mine;
-            good.len()
+                .filter(|n| winners.contains(n))
+                .count()
         })
         .collect();
 

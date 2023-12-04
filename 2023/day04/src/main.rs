@@ -5,24 +5,27 @@ fn main()
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let cards = part_one(input);
+    let cards = part_one::<10, 10>(input);
     println!("Part 1: {} ({:?})", cards, t.elapsed());
 
     let t = Instant::now();
-    let cards = part_two(input);
+    let cards = part_two::<10, 10>(input);
     println!("Part 2: {} ({:?})", cards, t.elapsed());
 }
 
-fn part_one(input: &str) -> u32
+fn part_one<const N: usize, const I: usize>(input: &str) -> u32
 {
+    let mut winners = [0; N];
+
     input.lines()
         .map(|line| {
-            let s = &line[9..];
-            let (s1, s2) = s.split_once('|').unwrap();
-            let winners: Vec<u32> = s1.split(' ')
-                .flat_map(|v| v.parse::<u32>())
-                .collect();
-            let count = s2.split(' ')
+            let str = &line[I..];
+            let (s1, s2) = str.split_once('|').unwrap();
+            s1.split_whitespace()
+                .enumerate()
+                .flat_map(|(i, s)| s.parse::<u32>().map(|n| (i, n)))
+                .for_each(|(i, n)| { winners[i] = n; });
+            let count = s2.split_whitespace()
                 .flat_map(|v| v.parse::<u32>())
                 .filter(|n| winners.contains(n))
                 .count();
@@ -36,25 +39,28 @@ fn part_one(input: &str) -> u32
         .sum()
 }
 
-fn part_two(input: &str) -> u32
+fn part_two<const N: usize, const I: usize>(input: &str) -> u32
 {
-    let winners: Vec<usize> = input.lines()
+    let mut winners = [0; N];
+
+    let counts: Vec<usize> = input.lines()
         .map(|line| {
-            let s = &line[9..];
+            let s = &line[I..];
             let (s1, s2) = s.split_once('|').unwrap();
-            let winners: Vec<u32> = s1.split(' ')
-                .flat_map(|v| v.parse::<u32>())
-                .collect();
-            s2.split(' ')
+            s1.split_whitespace()
+                .enumerate()
+                .flat_map(|(i, s)| s.parse::<u32>().map(|n| (i, n)))
+                .for_each(|(i, n)| { winners[i] = n; });
+            s2.split_whitespace()
                 .flat_map(|v| v.parse::<u32>())
                 .filter(|n| winners.contains(n))
                 .count()
         })
         .collect();
 
-    let mut cards = vec![1; winners.len()];
+    let mut cards = vec![1; counts.len()];
     for  idx in 0..cards.len() {
-        let count = winners[idx];
+        let count = counts[idx];
         (idx+1..=idx+count).for_each(|i| cards[i] += cards[idx]);
     }
 
@@ -70,27 +76,27 @@ mod tests {
     fn input_part_one()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one(input), 32609);
+        assert_eq!(part_one::<10, 10>(input), 32609);
     }
 
     #[test]
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_two(input), 14624680);
+        assert_eq!(part_two::<10, 10>(input), 14624680);
     }
 
     #[test]
     fn example_part_one()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_one(input), 13);
+        assert_eq!(part_one::<5, 8>(input), 13);
     }
 
     #[test]
     fn example_part_two()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_two(input), 30);
+        assert_eq!(part_two::<5, 8>(input), 30);
     }
 }

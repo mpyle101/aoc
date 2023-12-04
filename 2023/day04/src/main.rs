@@ -5,22 +5,22 @@ fn main()
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let cards = part_one::<10, 10>(input);
+    let cards = part_one::<10>(input);
     println!("Part 1: {} ({:?})", cards, t.elapsed());
 
     let t = Instant::now();
-    let cards = part_two::<10, 10>(input);
+    let cards = part_two::<10>(input);
     println!("Part 2: {} ({:?})", cards, t.elapsed());
 }
 
-fn part_one<const N: usize, const I: usize>(input: &str) -> u32
+fn part_one<const N: usize>(input: &str) -> u32
 {
     let mut winners = [0; N];
 
     input.lines()
         .map(|line| {
-            let str = &line[I..];
-            let (s1, s2) = str.split_once('|').unwrap();
+            let (_, c) = line.split_once(':').unwrap();
+            let (s1, s2) = c.split_once('|').unwrap();
             s1.split_whitespace()
                 .enumerate()
                 .flat_map(|(i, s)| s.parse::<u32>().map(|n| (i, n)))
@@ -39,14 +39,14 @@ fn part_one<const N: usize, const I: usize>(input: &str) -> u32
         .sum()
 }
 
-fn part_two<const N: usize, const I: usize>(input: &str) -> u32
+fn part_two<const N: usize>(input: &str) -> u32
 {
     let mut winners = [0; N];
 
     let counts: Vec<usize> = input.lines()
         .map(|line| {
-            let s = &line[I..];
-            let (s1, s2) = s.split_once('|').unwrap();
+            let (_, c) = line.split_once(':').unwrap();
+            let (s1, s2) = c.split_once('|').unwrap();
             s1.split_whitespace()
                 .enumerate()
                 .flat_map(|(i, s)| s.parse::<u32>().map(|n| (i, n)))
@@ -76,27 +76,27 @@ mod tests {
     fn input_part_one()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one::<10, 10>(input), 32609);
+        assert_eq!(part_one::<10>(input), 32609);
     }
 
     #[test]
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_two::<10, 10>(input), 14624680);
+        assert_eq!(part_two::<10>(input), 14624680);
     }
 
     #[test]
     fn example_part_one()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_one::<5, 8>(input), 13);
+        assert_eq!(part_one::<5>(input), 13);
     }
 
     #[test]
     fn example_part_two()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_two::<5, 8>(input), 30);
+        assert_eq!(part_two::<5>(input), 30);
     }
 }

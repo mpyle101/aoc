@@ -20,10 +20,9 @@ fn part_one(input: &str) -> u32
 
     input.lines()
         .enumerate()
-        .map(|(id, line)| {
-            let gid = id + 1;
-            let idx = (8 + gid.ilog(10)) as usize;
-            (gid, cubes(&line[idx..]))
+        .map(|(i, line)| {
+            let (_, s) = line.split_once(':').unwrap();
+            (i + 1, cubes(s.trim()))
         })
         .filter(|(_, arr)| (0..3).all(|i| arr[i] < max[i]))
         .map(|(gid, _)| gid as u32)
@@ -33,11 +32,9 @@ fn part_one(input: &str) -> u32
 fn part_two(input: &str) -> u32
 {
     input.lines()
-        .enumerate()
-        .map(|(id, line)| {
-            let gid = id + 1;
-            let idx = (8 + gid.ilog(10)) as usize;
-            cubes(&line[idx..])
+        .map(|line| {
+            let (_, s) = line.split_once(':').unwrap();
+            cubes(s.trim())
         })
         .map(|cubes| cubes.iter().product::<u32>())
         .sum()

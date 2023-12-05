@@ -7,12 +7,12 @@ fn main()
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let cards = part_one(input);
-    println!("Part 1: {} ({:?})", cards, t.elapsed());
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
-    let cards = part_two(input);
-    println!("Part 2: {} ({:?})", cards, t.elapsed());
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 #[derive(Debug)]

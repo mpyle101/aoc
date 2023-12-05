@@ -48,7 +48,7 @@ fn part_two(input: &str) -> u64
     while let Some(s) = iter.next() {
         let start = s.parse().unwrap();
         let run: u64 = iter.next().map(|n| n.parse().unwrap()).unwrap();
-        seeds.push(Range { start, end: start + run })
+        seeds.push(start..start + run)
     }
     let stages = stages(rest, true);
 
@@ -71,8 +71,8 @@ fn stages(input: &str, sort: bool) -> Vec<Vec<Mapping>>
                     let run: u64 = it.next().map(|n| n.parse().unwrap()).unwrap();
 
                     Mapping {
-                        src: (src..src+run),
-                        dst: (dst..dst+run),
+                        src: src..src + run,
+                        dst: dst..dst + run,
                     }
                 })
                 .collect();
@@ -106,7 +106,7 @@ fn location_for_range(seeds: &Range<u64>, stages: &[Vec<Mapping>]) -> u64
     for stage in stages {
         let mut v = vec![];
         for range in ranges {
-            let mut src =  Range { start: range.start, end: range.end };
+            let mut src =  range.start..range.end;
             for mapping in stage {
                 if mapping.src.contains(&src.start) {
                     let delta = src.start - mapping.src.start;
@@ -115,17 +115,17 @@ fn location_for_range(seeds: &Range<u64>, stages: &[Vec<Mapping>]) -> u64
                     let dst = if mapping.src.contains(&src.end) {
                         let len = src.end - src.start;
                         src.end = src.start;
-                        Range { start, end: start + len }
+                        start..start + len
                     } else {
                         src.start = mapping.src.end;
-                        Range { start, end: mapping.dst.end}
+                        start..mapping.dst.end
                     };
                     v.push(dst);
                 } else if mapping.src.contains(&src.end) {
                     let delta = src.end - mapping.src.start;
                     let end = mapping.dst.start + delta;
                     src.end = mapping.src.start;
-                    v.push(Range { end, start: mapping.dst.start })
+                    v.push(mapping.dst.start..end)
                 }
             }
             if !src.is_empty() {

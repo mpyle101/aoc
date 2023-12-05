@@ -30,7 +30,7 @@ fn part_one(input: &str) -> u64
     let seeds: Vec<u64> = values.trim().split(' ')
         .flat_map(|v| v.parse())
         .collect();
-    let stages = stages(rest, false);
+    let stages = stages(rest);
 
     seeds.iter()
         .map(|&seed| location_for_seed(seed, &stages))
@@ -50,7 +50,7 @@ fn part_two(input: &str) -> u64
         let run: u64 = iter.next().map(|n| n.parse().unwrap()).unwrap();
         seeds.push(start..start + run)
     }
-    let stages = stages(rest, true);
+    let stages = stages(rest);
 
     seeds.iter()
         .map(|r| location_for_range(r, &stages))
@@ -58,11 +58,11 @@ fn part_two(input: &str) -> u64
         .unwrap()
 }
 
-fn stages(input: &str, sort: bool) -> Vec<Vec<Mapping>>
+fn stages(input: &str) -> Vec<Vec<Mapping>>
 {
     input.split("\n\n")
         .map(|mapping| {
-            let mut mappings: Vec<_> = mapping.split('\n')
+            mapping.split('\n')
                 .skip(1)
                 .map(|s| {
                     let mut it = s.split(' ');
@@ -75,11 +75,7 @@ fn stages(input: &str, sort: bool) -> Vec<Vec<Mapping>>
                         dst: dst..dst + run,
                     }
                 })
-                .collect();
-            if sort {
-                mappings.sort_by(|a, b| a.src.start.cmp(&b.src.start));
-            }
-            mappings
+                .collect()
         })
         .collect()
 }

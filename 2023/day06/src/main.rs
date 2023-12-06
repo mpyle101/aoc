@@ -45,6 +45,7 @@ fn part_two(input: &str) -> u64
     let v: String = s.split_whitespace().collect();
     let dist: u64 = v.parse().unwrap();
 
+    // Big jumps forward and then single jumps back.
     let mut iter = (1..time).step_by(10000).peekable();
     while iter.next_if(|n| n * (time - n) <= dist).is_some() {}
     let pos = iter.next().unwrap();
@@ -52,6 +53,7 @@ fn part_two(input: &str) -> u64
     while iter.next_if(|n| n * (time - n) > dist).is_some() {}
     let start = iter.next().unwrap() + 1;
 
+    // And vice-versa
     let mut iter = (start..time - 1).rev().step_by(10000).peekable();
     while iter.next_if(|n| n * (time - n) <= dist).is_some() {}
     let pos = iter.next().unwrap();

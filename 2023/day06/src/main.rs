@@ -45,9 +45,15 @@ fn part_two(input: &str) -> u64
     let v: String = s.split_whitespace().collect();
     let dist: u64 = v.parse().unwrap();
 
-    (1..time).map(|n| n * (time - n))
-        .filter(|&d| d > dist)
-        .count() as u64
+    let mut iter = (1..time).peekable();
+    while iter.next_if(|n| n * (time - n) <= dist).is_some() {}
+    let start = iter.next().unwrap();
+
+    let mut iter = (start..time - 1).rev().peekable();
+    while iter.next_if(|n| n * (time - n) <= dist).is_some() {}
+    let end = iter.next().unwrap();
+
+    end - start +1
 }
 
 

@@ -25,15 +25,12 @@ struct Mapping
 fn part_one(input: &str) -> u64
 {
     let (first, rest) = input.split_once("\n\n").unwrap();
-    let (_, values) = first.split_once(':').unwrap();
-
-    let seeds: Vec<u64> = values.trim().split(' ')
-        .flat_map(|v| v.parse())
-        .collect();
     let stages = stages(rest);
 
-    seeds.iter()
-        .map(|&seed| location_for_seed(seed, &stages))
+    let (_, values) = first.split_once(':').unwrap();
+    values.trim().split(' ')
+        .flat_map(|v| v.parse::<u64>())
+        .map(|seed| location_for_seed(seed, &stages))
         .min()
         .unwrap()
 }

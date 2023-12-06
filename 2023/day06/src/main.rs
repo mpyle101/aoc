@@ -45,15 +45,21 @@ fn part_two(input: &str) -> u64
     let v: String = s.split_whitespace().collect();
     let dist: u64 = v.parse().unwrap();
 
-    let mut iter = (1..time).peekable();
+    let mut iter = (1..time).step_by(10000).peekable();
     while iter.next_if(|n| n * (time - n) <= dist).is_some() {}
-    let start = iter.next().unwrap();
+    let pos = iter.next().unwrap();
+    let mut iter = (1..pos - 1).rev().peekable();
+    while iter.next_if(|n| n * (time - n) > dist).is_some() {}
+    let start = iter.next().unwrap() + 1;
 
-    let mut iter = (start..time - 1).rev().peekable();
+    let mut iter = (start..time - 1).rev().step_by(10000).peekable();
     while iter.next_if(|n| n * (time - n) <= dist).is_some() {}
+    let pos = iter.next().unwrap();
+    let mut iter = (pos + 1..time).peekable();
+    while iter.next_if(|n| n * (time - n) > dist).is_some() {}
     let end = iter.next().unwrap();
 
-    end - start +1
+    end - start
 }
 
 

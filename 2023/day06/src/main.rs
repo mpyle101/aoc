@@ -10,7 +10,7 @@ fn main()
 
     let t = Instant::now();
     let result = part_two(input);
-    println!("Part 1: {} ({:?})", result, t.elapsed());
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> u32
@@ -45,25 +45,38 @@ fn part_two(input: &str) -> u64
     let v: String = s.split_whitespace().collect();
     let dist: u64 = v.parse().unwrap();
 
-    // Big jumps forward and then single jumps back.
-    let mut iter = (1..time).step_by(10000).peekable();
-    while iter.next_if(|n| n * (time - n) <= dist).is_some() {}
-    let pos = iter.next().unwrap();
-    let mut iter = (1..pos - 1).rev().peekable();
-    while iter.next_if(|n| n * (time - n) > dist).is_some() {}
-    let start = iter.next().unwrap() + 1;
-
-    // And vice-versa
-    let mut iter = (start..time - 1).rev().step_by(10000).peekable();
-    while iter.next_if(|n| n * (time - n) <= dist).is_some() {}
-    let pos = iter.next().unwrap();
-    let mut iter = (pos + 1..time).peekable();
-    while iter.next_if(|n| n * (time - n) > dist).is_some() {}
-    let end = iter.next().unwrap();
+    // Using PartialOrd traits like u64::lt gets us into
+    // some ugly lifetime issues with borrowing temporary
+    // values and things not living long enough...sigh.
+    let gt = |a, b| a > b;
+    let lt = |a, b| a < b;
+    let start = find(time, dist, lt, gt);
+    let end   = find(time, dist, gt, lt);
 
     end - start
 }
 
+fn find<F, R>(time: u64, dist: u64, fwd: F, rev: R) -> u64
+    where
+        F: Fn(u64, u64) -> bool,
+        R: Fn(u64, u64) -> bool
+{
+    let mut n = time / 2;
+    let mut step = time / 4;
+
+    while step > 1 {
+        while fwd(n * (time - n), dist) {
+            n += step;
+            step /= 2;
+        }
+        while rev(n * (time - n), dist) {
+            n -= step;
+            step /= 2;
+        }    
+    }
+
+    n + 1
+}
 
 
 #[cfg(test)]

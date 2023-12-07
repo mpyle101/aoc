@@ -83,11 +83,23 @@ fn part_two(input: &str) -> u32
         .sum()
 }
 
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+enum Rank
+{
+    HighCard,
+    OnePair,
+    TwoPair,
+    ThreeOfAKind,
+    FullHouse,
+    FourOfAKind,
+    FiveOfAKind
+}
+
 #[derive(Debug, PartialEq)]
 struct Hand
 {
     bid: u32,
-    rank: u8,
+    rank: Rank,
     cards: [u8;5],
 }
 
@@ -112,25 +124,29 @@ impl Ord for Hand
     }
 }
 
-fn rank(cards: &[u8;5]) -> u8
+fn rank(cards: &[u8;5]) -> Rank
 {
+    use Rank::*;
+
     let mut counts = [0u8;13];
     cards.iter().for_each(|c| counts[*c as usize] += 1);
     counts.sort_by(|a, b| b.cmp(a));
 
     match &counts[..2] {
-        [5, 0] => 6,
-        [4, 1] => 5,
-        [3, 2] => 4,
-        [3, 1] => 3,
-        [2, 2] => 2,
-        [2, 1] => 1,
-             _ => 0
+        [5, 0] => FiveOfAKind,
+        [4, 1] => FourOfAKind,
+        [3, 2] => FullHouse,
+        [3, 1] => ThreeOfAKind,
+        [2, 2] => TwoPair,
+        [2, 1] => OnePair,
+             _ => HighCard
     }
 }
 
-fn rank_joker(cards: &[u8;5]) -> u8
+fn rank_joker(cards: &[u8;5]) -> Rank
 {
+    use Rank::*;
+    
     let mut counts = [0u8;13];
     cards.iter().for_each(|c| counts[*c as usize] += 1);
     let jokers = counts[0];
@@ -139,25 +155,25 @@ fn rank_joker(cards: &[u8;5]) -> u8
     counts[2] = jokers;
 
     match &counts[..3] {
-        [5, 0, 0] => 6,    // five of a kind
-        [5, 0, 5] => 6,    // five of a kind
-        [4, 1, 4] => 6,    // five of a kind
-        [4, 1, 1] => 6,    // five of a kind
-        [4, 1, 0] => 5,    // four of a kind
-        [3, 2, 3] => 6,    // five of a kind
-        [3, 2, 2] => 6,    // five of a kind
-        [3, 2, 0] => 4,    // full house
-        [3, 1, 3] => 5,    // four of a kind
-        [3, 1, 1] => 5,    // four of a kind
-        [3, 1, 0] => 3,    // three of a kind
-        [2, 2, 2] => 5,    // four of a kind
-        [2, 2, 1] => 4,    // full house
-        [2, 2, 0] => 2,    // two pair
-        [2, 1, 2] => 3,    // three of a kind
-        [2, 1, 1] => 3,    // three of a kind
-        [2, 1, 0] => 1,    // one pair
-        [1, 1, 1] => 1,    // one pair
-                _ => 0,    // high card
+        [5, 0, 0] => FiveOfAKind,
+        [5, 0, 5] => FiveOfAKind,
+        [4, 1, 4] => FiveOfAKind,
+        [4, 1, 1] => FiveOfAKind,
+        [4, 1, 0] => FourOfAKind,
+        [3, 2, 3] => FiveOfAKind,
+        [3, 2, 2] => FiveOfAKind,
+        [3, 2, 0] => FullHouse,
+        [3, 1, 3] => FourOfAKind,
+        [3, 1, 1] => FourOfAKind,
+        [3, 1, 0] => ThreeOfAKind,
+        [2, 2, 2] => FourOfAKind,
+        [2, 2, 1] => FullHouse,
+        [2, 2, 0] => TwoPair,
+        [2, 1, 2] => ThreeOfAKind,
+        [2, 1, 1] => ThreeOfAKind,
+        [2, 1, 0] => OnePair,
+        [1, 1, 1] => OnePair,
+                _ => HighCard,
     }
 }
 

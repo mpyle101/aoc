@@ -1,4 +1,5 @@
 use std::ops::Range;
+use std::str::Split;
 
 fn main()
 {
@@ -38,21 +39,40 @@ fn part_one(input: &str) -> u64
 fn part_two(input: &str) -> u64
 {
     let (first, rest) = input.split_once("\n\n").unwrap();
-    let (_, values) = first.split_once(':').unwrap();
-    let mut iter = values.trim().split(' ');
-
-    let mut seeds: Vec<Range<u64>> = vec![];
-    while let Some(s) = iter.next() {
-        let start = s.parse().unwrap();
-        let run: u64 = iter.next().map(|n| n.parse().unwrap()).unwrap();
-        seeds.push(start..start + run)
-    }
     let stages = stages(rest);
 
-    seeds.iter()
-        .map(|r| location_for_range(r, &stages))
+    let (_, values) = first.split_once(':').unwrap();
+    let iter: RangeIter = values.trim().into();
+    iter.map(|r| location_for_range(&r, &stages))
         .min()
         .unwrap()
+}
+
+struct RangeIter<'a>
+{
+    iter: Split<'a, char>,
+}
+impl<'a> From<&'a str> for RangeIter<'a>
+{
+    fn from(s: &'a str) -> Self
+    {
+        RangeIter { iter: s.split(' ') }
+    }
+}
+impl<'a> Iterator for RangeIter<'a>
+{
+    type Item = Range<u64>;
+
+    fn next(&mut self) -> Option<Range<u64>>
+    {
+        if let Some(v1) = self.iter.next().map(|n| n.parse::<u64>().unwrap()) {
+            self.iter.next()
+                .map(|n| n.parse::<u64>().unwrap())
+                .map(|v2| (v1..v1 + v2))
+        } else {
+            None
+        }
+    }
 }
 
 fn stages(input: &str) -> Vec<Vec<Mapping>>

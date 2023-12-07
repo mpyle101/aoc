@@ -25,12 +25,12 @@ fn part_one(input: &str) -> u32
                 .zip(cards.iter_mut())
                 .for_each(|(src, dst)| {
                     *dst = match src {
-                        b'T' => b'9' + 1,
-                        b'J' => b'9' + 2,
-                        b'Q' => b'9' + 3,
-                        b'K' => b'9' + 4,
-                        b'A' => b'9' + 5,
-                           _ => src,
+                        b'A' => 12,
+                        b'K' => 11,
+                        b'Q' => 10,
+                        b'J' => 9,
+                        b'T' => 8,
+                           _ => src - b'2',
                     }
                 });
 
@@ -59,12 +59,12 @@ fn part_two(input: &str) -> u32
                 .zip(cards.iter_mut())
                 .for_each(|(src, dst)| {
                     *dst = match src {
-                        b'T' => b'9' + 1,
-                        b'J' => b'2' - 1,
-                        b'Q' => b'9' + 2,
-                        b'K' => b'9' + 3,
-                        b'A' => b'9' + 4,
-                           _ => src,
+                        b'A' => 12,
+                        b'K' => 11,
+                        b'Q' => 10,
+                        b'T' => 9,
+                        b'J' => 0,
+                           _ => src - b'1',
                     }
                 });
 
@@ -115,49 +115,49 @@ impl Ord for Hand
 fn strength(cards: &[u8;5]) -> u8
 {
     let mut counts = [0u8;13];
-    cards.iter().for_each(|c| counts[(c - b'2') as usize] += 1);
+    cards.iter().for_each(|c| counts[*c as usize] += 1);
     counts.sort_by(|a, b| b.cmp(a));
 
-    match &counts[..5] {
-        [5, 0, 0, 0, 0] => 6,
-        [4, 1, 0, 0, 0] => 5,
-        [3, 2, 0, 0, 0] => 4,
-        [3, 1, 1, 0, 0] => 3,
-        [2, 2, 1, 0, 0] => 2,
-        [2, 1, 1, 1, 0] => 1,
-                      _ => 0
+    match &counts[..4] {
+        [5, 0, 0, 0] => 6,
+        [4, 1, 0, 0] => 5,
+        [3, 2, 0, 0] => 4,
+        [3, 1, 1, 0] => 3,
+        [2, 2, 1, 0] => 2,
+        [2, 1, 1, 1] => 1,
+                   _ => 0
     }
 }
 
 fn strength_joker(cards: &[u8;5]) -> u8
 {
     let mut counts = [0u8;13];
-    cards.iter().for_each(|c| counts[(c - b'1') as usize] += 1);
+    cards.iter().for_each(|c| counts[*c as usize] += 1);
     let jokers = counts[0];
 
     counts.sort_by(|a, b| b.cmp(a));
-    counts[5] = jokers;
+    counts[4] = jokers;
 
-    match &counts[..6] {
-        [5, 0, 0, 0, 0, 0] => 6,    // five of a kind
-        [5, 0, 0, 0, 0, 5] => 6,    // five of a kind
-        [4, 1, 0, 0, 0, 4] => 6,    // five of a kind
-        [4, 1, 0, 0, 0, 1] => 6,    // five of a kind
-        [4, 1, 0, 0, 0, 0] => 5,    // four of a kind
-        [3, 2, 0, 0, 0, 3] => 6,    // five of a kind
-        [3, 2, 0, 0, 0, 2] => 6,    // five of a kind
-        [3, 2, 0, 0, 0, 0] => 4,    // full house
-        [3, 1, 1, 0, 0, 3] => 5,    // four of a kind
-        [3, 1, 1, 0, 0, 1] => 5,    // four of a kind
-        [3, 1, 1, 0, 0, 0] => 3,    // three of a kind
-        [2, 2, 1, 0, 0, 2] => 5,    // four of a kind
-        [2, 2, 1, 0, 0, 1] => 4,    // full house
-        [2, 2, 1, 0, 0, 0] => 2,    // two pair
-        [2, 1, 1, 1, 0, 2] => 3,    // three of a kind
-        [2, 1, 1, 1, 0, 1] => 3,    // three of a kind
-        [2, 1, 1, 1, 0, 0] => 1,    // one pair
-        [1, 1, 1, 1, 1, 1] => 1,    // one pair
-                         _ => 0,    // high card
+    match &counts[..5] {
+        [5, 0, 0, 0, 0] => 6,    // five of a kind
+        [5, 0, 0, 0, 5] => 6,    // five of a kind
+        [4, 1, 0, 0, 4] => 6,    // five of a kind
+        [4, 1, 0, 0, 1] => 6,    // five of a kind
+        [4, 1, 0, 0, 0] => 5,    // four of a kind
+        [3, 2, 0, 0, 3] => 6,    // five of a kind
+        [3, 2, 0, 0, 2] => 6,    // five of a kind
+        [3, 2, 0, 0, 0] => 4,    // full house
+        [3, 1, 1, 0, 3] => 5,    // four of a kind
+        [3, 1, 1, 0, 1] => 5,    // four of a kind
+        [3, 1, 1, 0, 0] => 3,    // three of a kind
+        [2, 2, 1, 0, 2] => 5,    // four of a kind
+        [2, 2, 1, 0, 1] => 4,    // full house
+        [2, 2, 1, 0, 0] => 2,    // two pair
+        [2, 1, 1, 1, 2] => 3,    // three of a kind
+        [2, 1, 1, 1, 1] => 3,    // three of a kind
+        [2, 1, 1, 1, 0] => 1,    // one pair
+        [1, 1, 1, 1, 1] => 1,    // one pair
+                      _ => 0,    // high card
     }
 }
 

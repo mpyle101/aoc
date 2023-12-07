@@ -37,7 +37,7 @@ fn part_one(input: &str) -> u32
             Hand {
                 cards,
                 bid: bid.parse::<u32>().unwrap(),
-                strength: strength(&cards),
+                rank: rank(&cards),
             }
         })
         .collect();
@@ -71,7 +71,7 @@ fn part_two(input: &str) -> u32
             Hand {
                 cards,
                 bid: bid.parse::<u32>().unwrap(),
-                strength: strength_joker(&cards),
+                rank: rank_joker(&cards),
             }
         })
         .collect();
@@ -87,8 +87,8 @@ fn part_two(input: &str) -> u32
 struct Hand
 {
     bid: u32,
+    rank: u8,
     cards: [u8;5],
-    strength: u8,
 }
 
 impl Eq for Hand {}
@@ -103,7 +103,7 @@ impl Ord for Hand
 {
     fn cmp(&self, other: &Self) -> Ordering
     {
-        let ordering = self.strength.cmp(&other.strength);
+        let ordering = self.rank.cmp(&other.rank);
         if ordering == Ordering::Equal {
             self.cards.cmp(&other.cards)
         } else {
@@ -112,7 +112,7 @@ impl Ord for Hand
     }
 }
 
-fn strength(cards: &[u8;5]) -> u8
+fn rank(cards: &[u8;5]) -> u8
 {
     let mut counts = [0u8;13];
     cards.iter().for_each(|c| counts[*c as usize] += 1);
@@ -129,7 +129,7 @@ fn strength(cards: &[u8;5]) -> u8
     }
 }
 
-fn strength_joker(cards: &[u8;5]) -> u8
+fn rank_joker(cards: &[u8;5]) -> u8
 {
     let mut counts = [0u8;13];
     cards.iter().for_each(|c| counts[*c as usize] += 1);

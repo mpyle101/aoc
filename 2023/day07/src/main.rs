@@ -44,8 +44,8 @@ fn part_one(input: &str) -> u32
     hands.sort();
     
     hands.iter()
-        .enumerate()
-        .map(|(i, hand)| (i + 1) as u32 * hand.bid)
+        .zip(1..)
+        .map(|(hand, i)| i * hand.bid)
         .sum()
 }
 
@@ -78,8 +78,8 @@ fn part_two(input: &str) -> u32
     hands.sort();
     
     hands.iter()
-        .enumerate()
-        .map(|(i, hand)| (i + 1) as u32 * hand.bid)
+        .zip(1..)
+        .map(|(hand, i)| i * hand.bid)
         .sum()
 }
 

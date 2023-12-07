@@ -20,17 +20,17 @@ fn part_one(input: &str) -> u32
     let mut hands: Vec<_> = input.split('\n')
         .map(|s| {
             let mut cards = [0u8;5];
-            let (c, bid) = s.split_once(' ').unwrap();
-            c.bytes()
+            let (raw, bid) = s.split_once(' ').unwrap();
+            raw.bytes()
                 .zip(cards.iter_mut())
-                .for_each(|(src, dst)| {
-                    *dst = match src {
+                .for_each(|(c, card)| {
+                    *card = match c {
                         b'A' => 12,
                         b'K' => 11,
                         b'Q' => 10,
                         b'J' => 9,
                         b'T' => 8,
-                           _ => src - b'2',
+                           _ => c - b'2',
                     }
                 });
 
@@ -54,17 +54,17 @@ fn part_two(input: &str) -> u32
     let mut hands: Vec<_> = input.split('\n')
         .map(|s| {
             let mut cards = [0u8;5];
-            let (c, bid) = s.split_once(' ').unwrap();
-            c.bytes()
+            let (raw, bid) = s.split_once(' ').unwrap();
+            raw.bytes()
                 .zip(cards.iter_mut())
-                .for_each(|(src, dst)| {
-                    *dst = match src {
+                .for_each(|(c, card)| {
+                    *card = match c {
                         b'A' => 12,
                         b'K' => 11,
                         b'Q' => 10,
                         b'T' => 9,
                         b'J' => 0,
-                           _ => src - b'1',
+                           _ => c - b'1',
                     }
                 });
 

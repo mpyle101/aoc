@@ -16,14 +16,13 @@ fn main()
 fn part_one(input: &str) -> u32
 {
     let (line1, line2) = input.split_once('\n').unwrap();
-
-    let (_, values) = line1.split_once(':').unwrap();
-    let mut times = values.split_whitespace();
+    let (_, times) = line1.split_once(':').unwrap();
     let (_, values) = line2.split_once(':').unwrap();
 
     values.split_whitespace()
         .flat_map(|v| v.parse::<u32>())
-        .map(|d| (times.next().map_or(0, |v| v.parse::<u32>().unwrap()), d))
+        .zip(times.split_whitespace())
+        .map(|(d, t)| (t.parse::<u32>().unwrap(), d))
         .map(|(t, d)|
             (1..t)
                 .map(|n| n * (t - n))

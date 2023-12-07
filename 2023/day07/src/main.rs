@@ -161,6 +161,7 @@ fn strength_joker(cards: &[u8;5]) -> u8
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;

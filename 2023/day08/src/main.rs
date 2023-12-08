@@ -8,19 +8,19 @@ fn main()
 
     let t = Instant::now();
     let result = part_one(input);
-    println!("Part 1.0: {} ({:?})", result, t.elapsed());
+    println!("Part 1:  {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
     let result = part_one_alt(input);
-    println!("Part 1.1: {} ({:?})", result, t.elapsed());
+    println!("Part 1a: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
     let result = part_two(input);
-    println!("Part 2.0: {} ({:?})", result, t.elapsed());
+    println!("Part 2:  {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
     let result = part_two_alt(input);
-    println!("Part 2.1: {} ({:?})", result, t.elapsed());
+    println!("Part 2a: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> u32
@@ -28,22 +28,13 @@ fn part_one(input: &str) -> u32
     let (inst, rest) = input.split_once("\n\n").unwrap();
 
     let nodes: HashMap<_, _> = rest.split('\n')
-        .map(|s| {
-            let mut iter = s.split(' ');
-            let key = iter.next().unwrap();
-            iter.next();    // =
-            let left = &iter.next().unwrap()[1..4];
-            let right = &iter.next().unwrap()[0..3];
-
-            (key, (left, right))
-
-        })
+        .map(parse)
         .collect();
 
-    let mut node = "AAA";
+    let mut node = "AAA".as_bytes();
     let mut iter = inst.bytes().cycle();
     let mut steps = 0;
-    while node != "ZZZ" {
+    while node != b"ZZZ" {
         steps += 1;
         let dir = iter.next().unwrap();
         let (l, r) = nodes.get(node).unwrap();
@@ -67,17 +58,13 @@ fn part_two(input: &str) -> u64
     let mut states = vec![];
     let nodes: HashMap<_, _> = rest.split('\n')
         .map(|s| {
-            let mut iter = s.split(' ');
-            let key = iter.next().unwrap().as_bytes();
-            iter.next();    // =
-            let left = &iter.next().unwrap().as_bytes()[1..4];
-            let right = &iter.next().unwrap().as_bytes()[0..3];
+            let (key, dest) = parse(s);
 
             if key[2] == b'A' {
                 keys.push(key);
                 states.push(HashMap::<(usize, [u8;3]), u64>::new());
             }
-            (key, (left, right))
+            (key, dest)
 
         })
         .collect();
@@ -132,18 +119,15 @@ fn part_one_alt(input: &str) -> u32
     let mut slots = HashMap::new();
 
     rest.split('\n')
-        .for_each(|s| {
-            let mut iter = s.split(' ');
-            let key = iter.next().unwrap();
-            iter.next();    // =
-            let left = &iter.next().unwrap()[1..4];
-            let right = &iter.next().unwrap()[0..3];
+        .for_each(|line| {
+            let (key, (left, right)) = parse(line);
 
             let left_idx = *slots.entry(left).or_insert(slot);
             if left_idx == slot { 
                 slot += 1;
                 nodes.push((0, 0))
             }
+
             let right_idx = *slots.entry(right).or_insert(slot);
             if right_idx == slot { 
                 slot += 1;
@@ -158,8 +142,11 @@ fn part_one_alt(input: &str) -> u32
                 nodes[key_idx] = (left_idx, right_idx)
             }
 
-            if key == "AAA" { start = key_idx }
-            if key == "ZZZ" { end = key_idx }
+            if key == b"AAA" { 
+                start = key_idx 
+            } else if key == b"ZZZ" { 
+                end = key_idx 
+            }
         });
 
     let mut idx = start;
@@ -193,18 +180,15 @@ fn part_two_alt(input: &str) -> u64
 
     let mut states = vec![];
     rest.split('\n')
-        .for_each(|s| {
-            let mut iter = s.split(' ');
-            let key = iter.next().unwrap().as_bytes();
-            iter.next();    // =
-            let left = &iter.next().unwrap().as_bytes()[1..4];
-            let right = &iter.next().unwrap().as_bytes()[0..3];
+        .for_each(|line| {
+            let (key, (left, right)) = parse(line);
 
             let left_idx = *slots.entry(left).or_insert(slot);
             if left_idx == slot { 
                 slot += 1;
                 nodes.push((0, 0))
             }
+
             let right_idx = *slots.entry(right).or_insert(slot);
             if right_idx == slot { 
                 slot += 1;
@@ -222,19 +206,18 @@ fn part_two_alt(input: &str) -> u64
             if key[2] == b'A' {
                 keys.push(key_idx);
                 states.push(HashMap::<(usize, usize), u64>::new());
-            }
-            if key[2] == b'Z' {
+            } else if key[2] == b'Z' {
                 ends.push(key_idx)
             }
 
         });
 
     let mut iter = inst.bytes().enumerate().cycle();
-    let mut steps = 0u64;
-    let mut cycles = vec![0u64;keys.len()];
+    let mut res = 0;
+    let mut steps = 0;
+    let mut remove = Vec::with_capacity(keys.len());
 
-    let mut found = false;
-    while !found && cycles.iter().any(|n| *n == 0) {
+    while !keys.is_empty() {
         steps += 1;
         let (idx, dir) = iter.next().unwrap();
         for idx in keys.iter_mut() {
@@ -247,23 +230,37 @@ fn part_two_alt(input: &str) -> u64
         }
 
         for (i, key) in keys.iter().enumerate() {
-            if ends.contains(key) && cycles[i] == 0 {
+            if ends.contains(key) {
                 let map = &mut states[i];
                 if let Some(n) = map.insert((idx, *key), steps) {
-                    cycles[i] = steps - n;
+                    let cycle = steps - n;
+                    res = if res == 0 { cycle } else { lcm(res, cycle) };
+                    remove.push(i);
                 }
             }
         }
 
-        found = keys.iter().all(|key| ends.contains(key));
+        remove.sort_by(|a, b| b.cmp(a));
+        remove.iter()
+            .for_each(|&i| {
+                keys.remove(i);
+                states.remove(i);
+            });
+        remove.clear();
     }
 
-    if found {
-        steps
-    } else {
-        let first = cycles[0];
-        cycles.iter().fold(first, |a, b| lcm(a, *b))
-    }
+    res
+}
+
+fn parse(line: &str) -> (&[u8], (&[u8], &[u8]))
+{
+    let mut iter = line.split(' ');
+    let key = iter.next().unwrap().as_bytes();
+    iter.next();    // =
+    let left = &iter.next().unwrap().as_bytes()[1..4];
+    let right = &iter.next().unwrap().as_bytes()[0..3];
+        
+    (key, (left, right))
 }
 
 

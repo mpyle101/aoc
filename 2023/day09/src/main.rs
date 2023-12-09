@@ -6,11 +6,11 @@ fn main()
 
     let t = Instant::now();
     let result = part_one(input);
-    println!("Part 1: {} ({:?})", result, t.elapsed());
+    println!("Part 1:  {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
     let result = part_two(input);
-    println!("Part 2: {} ({:?})", result, t.elapsed());
+    println!("Part 2:  {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> i32
@@ -20,7 +20,10 @@ fn part_one(input: &str) -> i32
             let seq: Vec<i32> = line.split(' ')
                 .flat_map(|s| s.parse())
                 .collect();
-            extrapolate(&seq)
+
+            HistoryIter::from(&seq)
+                .flat_map(|v| v.last().copied())
+                .sum::<i32>()
         })
         .sum()
 }
@@ -32,41 +35,46 @@ fn part_two(input: &str) -> i32
             let seq: Vec<i32> = line.split(' ')
                 .flat_map(|s| s.parse())
                 .collect();
-            interpolate(&seq)
-        })
+            let vals: Vec<_> = HistoryIter::from(&seq)
+                .map(|v| v[0])
+                .collect();
+    
+            vals.iter().rev()
+                .cloned()
+                .reduce(|acc, n| n - acc)
+                .unwrap()
+            })
         .sum()
 }
 
-fn extrapolate(seq: &[i32]) -> i32
+struct HistoryIter
 {
-    let mut vals = vec![*seq.last().unwrap()];
-    let mut diffs = differences(seq);
-    while diffs.iter().any(|n| *n != 0) {
-        vals.push(*diffs.last().unwrap());
-        diffs = differences(&diffs);
-    }
-
-    vals.iter().sum()
+    hist: Vec<i32>,
 }
-
-fn interpolate(seq: &[i32]) -> i32
+impl From<&Vec<i32>> for HistoryIter
 {
-    let mut vals = vec![seq[0]];
-    let mut diffs = differences(seq);
-    while diffs.iter().any(|n| *n != 0) {
-        vals.push(diffs[0]);
-        diffs = differences(&diffs);
+    fn from(seq: &Vec<i32>) -> Self
+    {
+        HistoryIter { hist: seq.clone() }
     }
-
-    vals.iter().rev()
-        .cloned()
-        .reduce(|acc, n| n - acc)
-        .unwrap()
 }
-
-fn differences(seq: &[i32]) -> Vec<i32>
+impl Iterator for HistoryIter
 {
-    (1..seq.len()).map(|i| seq[i] - seq[i-1]).collect()
+    type Item = Vec<i32>;
+
+    fn next(&mut self) -> Option<Vec<i32>>
+    {
+        use std::mem::take;
+
+        if self.hist.iter().any(|n| *n != 0) {
+            let seq = take(&mut self.hist);
+            self.hist = (1..seq.len()).map(|i| seq[i] - seq[i-1]).collect();
+
+            Some(seq)
+        } else {
+            None
+        }
+    }
 }
 
 

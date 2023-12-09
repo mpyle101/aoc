@@ -39,30 +39,26 @@ fn part_two(input: &str) -> i32
 
 fn extrapolate(seq: &[i32]) -> i32
 {
-    let mut v = vec![];
-    let mut last = vec![seq[seq.len() - 1]];
+    let mut vals = vec![*seq.last().unwrap()];
     let mut diffs = differences(seq);
     while diffs.iter().any(|n| *n != 0) {
-        last.push(diffs[diffs.len() - 1]);
-        v.push(diffs);
-        diffs = differences(&v[v.len() - 1]);
+        vals.push(*diffs.last().unwrap());
+        diffs = differences(&diffs);
     }
 
-    last.iter().sum()
+    vals.iter().sum()
 }
 
 fn interpolate(seq: &[i32]) -> i32
 {
-    let mut v = vec![];
-    let mut first = vec![seq[0]];
+    let mut vals = vec![seq[0]];
     let mut diffs = differences(seq);
     while diffs.iter().any(|n| *n != 0) {
-        first.push(diffs[0]);
-        v.push(diffs);
-        diffs = differences(&v[v.len() - 1]);
+        vals.push(diffs[0]);
+        diffs = differences(&diffs);
     }
 
-    first.iter().rev()
+    vals.iter().rev()
         .cloned()
         .reduce(|acc, n| n - acc)
         .unwrap()

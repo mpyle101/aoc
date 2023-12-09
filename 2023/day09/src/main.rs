@@ -62,10 +62,10 @@ fn interpolate(seq: &[i32]) -> i32
         diffs = differences(&v[v.len() - 1]);
     }
 
-    let init = first[first.len() - 1];
     first.iter().rev()
-        .skip(1)
-        .fold(init, |acc, n| n - acc)
+        .cloned()
+        .reduce(|acc, n| n - acc)
+        .unwrap()
 }
 
 fn differences(seq: &[i32]) -> Vec<i32>

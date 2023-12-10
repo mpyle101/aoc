@@ -22,11 +22,11 @@ fn part_one(input: &str) -> u32
     input.lines()
         .enumerate()
         .for_each(|(x, line)| {
+            rowlen = line.len();
+            graph.extend(line.chars());
             if let Some(y) = line.find('S') {
                 start = x * rowlen + y;
             }
-            rowlen = line.len();
-            graph.extend(line.chars());
         });
 
     let (mut p, _) = first_move(start, &graph, rowlen);

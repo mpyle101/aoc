@@ -69,20 +69,11 @@ fn part_two(input: &str) -> usize
         .filter(|p| !pipes.contains(p))
         .filter(|&p| {
             let q = p + rowlen - (p % rowlen);
-            let right = (p+1..q)
+            (p+1..q)
                 .map(|n| (n, graph[n]))
                 .filter(|(_, c)| *c == '7' || *c == 'F' || *c == '|')
                 .filter(|(n, _)| pipes.contains(n))
-                .count();
-
-           right % 2 == 1 && { // left
-                let q = p - p % rowlen;
-                (q..p)
-                    .map(|n| (n, graph[n]))
-                    .filter(|(_, c)| *c == '7' || *c == 'F' || *c == '|')
-                    .filter(|(n, _)| pipes.contains(n))
-                    .count() % 2 == 1
-            }
+                .count() % 2 == 1
         })
         .count()
 }

@@ -50,11 +50,11 @@ fn part_two(input: &str) -> usize
     input.lines()
         .enumerate()
         .for_each(|(x, line)| {
+            rowlen = line.len();
+            graph.extend(line.chars());
             if let Some(y) = line.find('S') {
                 start = x * rowlen + y;
             }
-            rowlen = line.len();
-            graph.extend(line.chars());
         });
 
     let mut pipes = HashSet::from([start]);

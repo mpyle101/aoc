@@ -2,7 +2,7 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../example3.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     let result = part_one(input);
@@ -29,15 +29,14 @@ fn part_one(input: &str) -> u32
             graph.extend(line.chars());
         });
 
-    let (mut p1, mut p2) = first_move(start, &graph, rowlen);
+    let (mut p, _) = first_move(start, &graph, rowlen);
     let mut steps = 1;
-    while p1.pos() != p2.pos() {
-        p1 = next_move(p1, &graph, rowlen);
-        p2 = next_move(p2, &graph, rowlen);
+    while p.pos() != start {
+        p = next_move(p, &graph, rowlen);
         steps += 1
     }
     
-    steps
+    steps / 2
 }
 
 fn part_two(input: &str) -> usize
@@ -58,47 +57,34 @@ fn part_two(input: &str) -> usize
             graph.extend(line.chars());
         });
 
-    let mut circuit = HashSet::from([start]);
-    let (mut p1, mut p2) = first_move(start, &graph, rowlen);
-    while p1.pos() != p2.pos() {
-        circuit.insert(p1.pos());
-        circuit.insert(p2.pos());
-
-        p1 = next_move(p1, &graph, rowlen);
-        p2 = next_move(p2, &graph, rowlen);
+    let mut pipes = HashSet::from([start]);
+    let (mut p, c) = first_move(start, &graph, rowlen);
+    while p.pos() != start {
+        pipes.insert(p.pos());
+        p = next_move(p, &graph, rowlen);
     }
-    circuit.insert(p1.pos());
     
-    let mut found = Vec::new();
-    let tiles = (0..graph.len())
-        .filter(|p| !circuit.contains(p))
+    graph[start] = c;
+    (0..graph.len())
+        .filter(|p| !pipes.contains(p))
         .filter(|&p| {
             let q = p + rowlen - (p % rowlen);
-            let count = (p+1..q)
-                .filter(|n| graph[*n] != '-' && circuit.contains(n))
+            let right = (p+1..q)
+                .map(|n| (n, graph[n]))
+                .filter(|(_, c)| *c == '7' || *c == 'F' || *c == '|')
+                .filter(|(n, _)| pipes.contains(n))
                 .count();
-            if count % 2 == 1 { found.push(p); println!("{p}: {count}") }
-            count % 2 == 1
+
+           right % 2 == 1 && { // left
+                let q = p - p % rowlen;
+                (q..p)
+                    .map(|n| (n, graph[n]))
+                    .filter(|(_, c)| *c == '7' || *c == 'F' || *c == '|')
+                    .filter(|(n, _)| pipes.contains(n))
+                    .count() % 2 == 1
+            }
         })
-        .count();
-
-    (0..graph.len() / rowlen)
-        .for_each(|x| {
-            (0..rowlen)
-                .for_each(|y| {
-                    let p = x * rowlen + y;
-                    if circuit.contains(&p) {
-                        print!("{}", graph[p])
-                    } else if found.contains(&p) {
-                        print!("*")
-                    } else {
-                        print!(".")
-                    }
-                });
-            println!();
-        });
-
-    tiles
+        .count()
 }
 
 #[derive(Debug, PartialEq)]
@@ -108,7 +94,6 @@ enum Move
     South(usize),
     East(usize),
     West(usize),
-    Idle,
 }
 impl Move
 {
@@ -118,36 +103,30 @@ impl Move
 
         match self {
             North(p) | South(p) | East(p) | West(p) => *p,
-            Idle => panic!("Should never be idle!")
         }
     }
 }
 
-fn first_move(start: usize, graph: &[char], rowlen: usize) -> (Move, Move)
+fn first_move(start: usize, graph: &[char], rowlen: usize) -> (Move, char)
 {
     use Move::*;
 
-    let mut p1 = Idle;
-    let mut p2 = Idle;
-
-    if let Some(p) = move_up(start, graph, rowlen) {
-        p1 = North(p);
+    let moves = (
+        move_up(start, graph, rowlen),
+        move_dn(start, graph, rowlen),
+        move_lt(start, graph, rowlen),
+        move_rt(start, graph, rowlen),
+    );
+    
+    match moves {
+        (Some(p), Some(_), None, None) => (North(p), '|'),
+        (Some(p), None, Some(_), None) => (North(p), 'J'),
+        (Some(p), None, None, Some(_)) => (North(p), 'L'),
+        (None, Some(p), Some(_), None) => (South(p), '7'),
+        (None, Some(p), None, Some(_)) => (South(p), 'F'),
+        (None, None, Some(p), Some(_)) => (West(p),  '-'),
+        _ => panic!("Bad start")
     }
-    if let Some(p) = move_down(start, graph, rowlen) {
-        if let Move::Idle = p1 { p1 = South(p) } else { p2 = South(p) }
-    }
-    if let Move::Idle = p2 {
-        if let Some(p) = move_left(start, graph, rowlen) {
-            if let Move::Idle = p1 { p1 = West(p) } else { p2 = West(p) }
-        }
-    }
-    if let Move::Idle = p2 {
-        if let Some(p) = move_right(start, graph, rowlen) {
-            p2 = East(p)
-        }
-    }
-
-    (p1, p2)
 }
 
 fn next_move(mv: Move, graph: &[char], rowlen: usize) -> Move
@@ -183,7 +162,7 @@ fn move_up(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
     None
 }
 
-fn move_down(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
+fn move_dn(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
 {
     if pos < graph.len() - rowlen {
         let c = graph[pos + rowlen];
@@ -195,7 +174,7 @@ fn move_down(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
     None
 }
 
-fn move_left(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
+fn move_lt(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
 {
     if pos % rowlen != 0 {
         let c = graph[pos - 1];
@@ -207,7 +186,7 @@ fn move_left(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
     None
 }
 
-fn move_right(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
+fn move_rt(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
 {
     if pos % rowlen < rowlen - 1 {
         let c = graph[pos + 1];
@@ -232,9 +211,37 @@ mod tests {
     }
 
     #[test]
-    fn example_part_one()
+    fn input_part_two()
     {
-        let input = include_str!("../example.txt");
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 363);
+    }
+
+    #[test]
+    fn example1_part_one()
+    {
+        let input = include_str!("../example1.txt");
         assert_eq!(part_one(input), 8);
+    }
+
+    #[test]
+    fn example2_part_two()
+    {
+        let input = include_str!("../example2.txt");
+        assert_eq!(part_two(input), 4);
+    }
+
+    #[test]
+    fn example3_part_two()
+    {
+        let input = include_str!("../example3.txt");
+        assert_eq!(part_two(input), 8);
+    }
+
+    #[test]
+    fn example4_part_two()
+    {
+        let input = include_str!("../example4.txt");
+        assert_eq!(part_two(input), 10);
     }
 }

@@ -27,13 +27,13 @@ fn sum_paths(input: &str, expansion: i64) -> u64
 {
     let mut cols = 0;
     let mut galaxies = input.lines()
-        .enumerate()
-        .flat_map(|(row, line)| {
+        .zip(0i64..)
+        .flat_map(|(line, row)| {
             cols = line.len() as i64;
             line.chars()
-                .enumerate()
-                .filter(|(_, c)| *c == '#')
-                .map(|(col, _)| row as i64 * cols + col as i64)
+                .zip(0i64..)
+                .filter(|(c, _)| *c == '#')
+                .map(|(_, col)| row * cols + col)
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
@@ -41,21 +41,21 @@ fn sum_paths(input: &str, expansion: i64) -> u64
     let mut rows = galaxies.last().unwrap() / cols + 1;
 
     let expand_rows = (0..rows)
-        .filter(|row| {
+        .filter(|row|
             ! (0..cols).any(|col| {
                 let pos = row * cols + col;
                 galaxies.contains(&pos)
             }) 
-        })
+        )
         .collect::<Vec<_>>();
 
     let expand_cols = (0..cols)
-        .filter(|col| {
+        .filter(|col|
             ! (0..rows).any(|row| {
                 let pos = row * cols + col;
                 galaxies.contains(&pos)
             }) 
-        })
+        )
         .collect::<Vec<_>>();
 
     expand_rows.iter().rev()

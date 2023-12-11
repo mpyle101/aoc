@@ -5,12 +5,12 @@ fn main()
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let games = part_one(input);
-    println!("Part 1: {} ({:?})", games, t.elapsed());
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
-    let games = part_two(input);
-    println!("Part 2: {} ({:?})", games, t.elapsed());
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> u32
@@ -19,11 +19,11 @@ fn part_one(input: &str) -> u32
     let max = [13, 15, 14];
 
     input.lines()
-        .enumerate()
-        .map(|(i, line)| {
-            let (_, s) = line.split_once(':').unwrap();
-            (i + 1, cubes(s.trim()))
-        })
+        .zip(1..)
+        .flat_map(|(line, gid)|
+            line.split_once(':')
+                .map(|(_, s)| (gid, cubes(s.trim())))
+        )
         .filter(|(_, arr)| (0..3).all(|i| arr[i] < max[i]))
         .map(|(gid, _)| gid as u32)
         .sum()
@@ -32,10 +32,10 @@ fn part_one(input: &str) -> u32
 fn part_two(input: &str) -> u32
 {
     input.lines()
-        .map(|line| {
-            let (_, s) = line.split_once(':').unwrap();
-            cubes(s.trim())
-        })
+        .flat_map(|line|
+            line.split_once(':')
+                .map(|(_, s)| cubes(s.trim()))
+        )
         .map(|cubes| cubes.iter().product::<u32>())
         .sum()
 }

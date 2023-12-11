@@ -61,10 +61,9 @@ fn sum_paths(input: &str, expansion: i64) -> u64
     expand_rows.iter().rev()
         .for_each(|row| {
             galaxies.iter_mut()
-                .for_each(|pos| {
-                    let r = *pos / cols;
-                    if r > *row { *pos += (expansion - 1) * cols }
-                });
+                .map(|pos| (*pos / cols, pos))
+                .filter(|(r, _)| r > row)
+                .for_each(|(_, pos)| { *pos += (expansion - 1) * cols; });
             rows += expansion;
         });
 

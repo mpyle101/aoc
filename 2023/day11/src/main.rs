@@ -78,14 +78,16 @@ fn sum_paths(input: &str, expansion: i64) -> u64
             cols += expansion;
         });
 
+    // Sum the manhattan distances for each unique pair of galaxies.
+    // (1, 2), (1, 3)...(1, n), (2, 3), (2, 4)...(2, n), etc.
     galaxies.iter()
         .enumerate()
-        .map(|(i, p)| (i, p / cols, p % cols))
-        .map(|(i, ri, ci)|
+        .map(|(i, pos)| (i, pos % cols, pos / cols))
+        .map(|(i, x1, y1)|
             galaxies.iter()
                 .skip(i + 1)
-                .map(|n| (n / cols, n % cols))
-                .map(|(rj, cj)| ri.abs_diff(rj) + ci.abs_diff(cj))
+                .map(|pos| (pos % cols, pos / cols))
+                .map(|(x2, y2)| x1.abs_diff(x2) + y1.abs_diff(y2))
                 .sum::<u64>()
         )
         .sum()

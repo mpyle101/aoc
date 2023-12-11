@@ -6,19 +6,19 @@ fn main()
 
     let t = Instant::now();
     let calibration = part_one(input);
-    println!("Part 1: {} ({:?})", calibration, t.elapsed());
-/*
-    let t = Instant::now();
-    let calibration = part_one_alt1(input);
-    println!("Part 1: {} ({:?})", calibration, t.elapsed());
+    println!("Part 1:  {} ({:?})", calibration, t.elapsed());
 
     let t = Instant::now();
-    let calibration = part_one_alt2(input);
-    println!("Part 1: {} ({:?})", calibration, t.elapsed());
-*/
+    let calibration = part_one_a(input);
+    println!("Part 1a: {} ({:?})", calibration, t.elapsed());
+
+    let t = Instant::now();
+    let calibration = part_one_b(input);
+    println!("Part 1b: {} ({:?})", calibration, t.elapsed());
+
     let t = Instant::now();
     let calibration = part_two(input);
-    println!("Part 2: {} ({:?})", calibration, t.elapsed());
+    println!("Part 2:  {} ({:?})", calibration, t.elapsed());
 }
 
 fn part_one(input: &str) -> u32
@@ -84,26 +84,26 @@ fn part_two(input: &str) -> u32
 }
 
 #[allow(dead_code)]
-fn part_one_alt1(input: &str) -> u32
+fn part_one_a(input: &str) -> u32
 {
     // seems fastest
     input.lines()
         .map(|s| (
-            s.as_bytes().iter()
-                .find(|c| c.is_ascii_digit())
-                .map(|c| *c - b'0')
-                .unwrap(),
-            s.as_bytes().iter()
-                .rfind(|c| c.is_ascii_digit())
-                .map(|c| *c - b'0')
-                .unwrap()
+            s.bytes()
+                .find(u8::is_ascii_digit)
+                .map(|c| c - b'0')
+                .unwrap() as u32,
+            s.bytes()
+                .rfind(u8::is_ascii_digit)
+                .map(|c| c - b'0')
+                .unwrap() as u32
         ))
-        .map(|(d1, d2)| d1 as u32 * 10 + d2 as u32)
+        .map(|(d1, d2)| d1 * 10 + d2 )
         .sum()
 }
 
 #[allow(dead_code)]
-fn part_one_alt2(input: &str) -> u32
+fn part_one_b(input: &str) -> u32
 {
     // slickest :D
     input.lines()
@@ -143,14 +143,14 @@ mod tests {
     fn input_part_one_alt1()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one_alt1(input), 53974);
+        assert_eq!(part_one_a(input), 53974);
     }
 
     #[test]
     fn input_part_one_alt2()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one_alt2(input), 53974);
+        assert_eq!(part_one_b(input), 53974);
     }
 
 }

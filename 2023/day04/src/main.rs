@@ -59,9 +59,9 @@ fn part_two<const N: usize>(input: &str) -> u32
         .collect();
 
     let mut cards = vec![1; counts.len()];
-    for  idx in 0..cards.len() {
-        let count = counts[idx];
-        (idx+1..=idx+count).for_each(|i| cards[i] += cards[idx]);
+    for i in 0..cards.len() {
+        let count = counts[i];
+        (i+1..=i+count).for_each(|j| cards[j] += cards[i]);
     }
 
     cards.iter().sum()

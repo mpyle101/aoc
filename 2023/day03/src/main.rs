@@ -38,26 +38,25 @@ fn part_one(input: &str) -> u32
         .enumerate()
         .for_each(|(x, line)| {
             let mut last = b'.';
-            let mut part = Part { v: 0, x: 0, y1: 0, y2: 0 };
+            let mut part = Part { x, v: 0, y1: 0, y2: 0 };
 
-            line.as_bytes().iter()
+            line.bytes()
                 .enumerate()
                 .for_each(|(y, c)| {
                     if c.is_ascii_digit() {
-                        part.x = x;
                         part.y2 = y;
                         if part.v == 0 { part.y1 = y; }
-                        part.v = part.v * 10 + (*c - b'0') as u32;
+                        part.v = part.v * 10 + (c - b'0') as u32;
                     } else {
                         if last.is_ascii_digit() {
                             parts.push(part);
-                            part = Part { v: 0, x: 0, y1: 0, y2: 0 };
+                            part = Part { x, v: 0, y1: 0, y2: 0 };
                         }
-                        if *c != b'.' {
+                        if c != b'.' {
                             symbols.push(Symbol{ t: x-1, l: y-1, b: x+1, r: y+1 });
                         }
                     }
-                    last = *c;
+                    last = c;
                 });
 
             if last.is_ascii_digit() {
@@ -79,26 +78,25 @@ fn part_two(input: &str) -> u32
         .enumerate()
         .for_each(|(x, line)| {
             let mut last = b'.';
-            let mut part = Part { v: 0, x: 0, y1: 0, y2: 0 };
+            let mut part = Part { x, v: 0, y1: 0, y2: 0 };
             
-            line.as_bytes().iter()
+            line.bytes()
                 .enumerate()
                 .for_each(|(y, c)| {
                     if c.is_ascii_digit() {
-                        part.x = x;
                         part.y2 = y;
                         if part.v == 0 { part.y1 = y; }
-                        part.v = part.v * 10 + (*c - b'0') as u32;
+                        part.v = part.v * 10 + (c - b'0') as u32;
                     } else {
                         if last.is_ascii_digit() {
                             parts.push(part);
-                            part = Part { v: 0, x: 0, y1: 0, y2: 0 };
+                            part = Part { x, v: 0, y1: 0, y2: 0 };
                         }
-                        if *c == b'*' {
+                        if c == b'*' {
                             gears.push(Symbol{ t: x-1, l: y-1, b: x+1, r: y+1 });
                         }
                     }
-                    last = *c;
+                    last = c;
                 });
 
             if last.is_ascii_digit() {

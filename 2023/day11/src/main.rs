@@ -9,80 +9,21 @@ fn main()
     println!("Part 1: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
-    let result = part_two(input, 1000000);
+    let result = part_two(input);
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> u32
+fn part_one(input: &str) -> u64
 {
-    let mut cols = 0;
-    let mut galaxies = vec![];
-
-    let mut row = 0;
-    input.lines()
-        .for_each(|line| {
-            cols = line.len() as i32;
-            let size = galaxies.len();
-            line.chars()
-                .enumerate()
-                .for_each(|(col, c)| if c == '#' {
-                    galaxies.push(row * cols + col as i32)
-                });
-            if galaxies.len() == size {
-                row += 2
-            } else {
-                row += 1
-            }
-        });
-    
-    let rows = galaxies.last().unwrap() / cols + 1;
-    let mut expand = vec![];
-    (0..cols)
-        .for_each(|col| {
-            let mut empty = true;
-            for row in 0..rows {
-                let pos = row * cols + col;
-                if galaxies.contains(&pos) {
-                    empty = false;
-                    break;
-                }
-            }
-            if empty {
-                expand.push(col)
-            }
-        });
-
-    expand.iter().rev()
-        .for_each(|col| {
-            for pos in galaxies.iter_mut() {
-                let c = *pos % cols;
-                *pos += *pos / cols;
-                if c > *col { *pos += 1 }
-            }
-            cols += 1
-        });
-
-    let mut paths = 0;
-    for i in 0..galaxies.len() {
-        let pi = galaxies[i];
-        let ri = pi / cols;
-        let ci = pi % cols;
-
-        galaxies.iter()
-            .skip(i + 1)
-            .for_each(|n| {
-                let rj = n / cols;
-                let cj = n % cols;
-                let md = ri.abs_diff(rj) + ci.abs_diff(cj);
-
-                paths += md
-            })
-    }
-
-    paths
+    sum_paths(input, 2)
 }
 
-fn part_two(input: &str, expansion: i64) -> u64
+fn part_two(input: &str) -> u64
+{
+    sum_paths(input, 1000000)
+}
+
+fn sum_paths(input: &str, expansion: i64) -> u64
 {
     let mut cols = 0;
     let mut galaxies = vec![];
@@ -100,75 +41,56 @@ fn part_two(input: &str, expansion: i64) -> u64
     
     let mut rows = galaxies.last().unwrap() / cols + 1;
 
-    let mut expand_rows = vec![];
-    (0..rows)
-        .for_each(|row| {
-            let mut empty = true;
-            for col in 0..cols {
+    let expand_rows = (0..rows)
+        .filter(|row| {
+            ! (0..cols).any(|col| {
                 let pos = row * cols + col;
-                if galaxies.contains(&pos) {
-                    empty = false;
-                    break;
-                }
-            }
-            if empty {
-                expand_rows.push(row)
-            }
-        });
+                galaxies.contains(&pos)
+            }) 
+        })
+        .collect::<Vec<_>>();
 
-    let mut expand_cols = vec![];
-    (0..cols)
-        .for_each(|col| {
-            let mut empty = true;
-            for row in 0..rows {
+    let expand_cols = (0..cols)
+        .filter(|col| {
+            ! (0..rows).any(|row| {
                 let pos = row * cols + col;
-                if galaxies.contains(&pos) {
-                    empty = false;
-                    break;
-                }
-            }
-            if empty {
-                expand_cols.push(col)
-            }
-        });
+                galaxies.contains(&pos)
+            }) 
+        })
+        .collect::<Vec<_>>();
 
     expand_rows.iter().rev()
         .for_each(|row| {
-            for pos in galaxies.iter_mut() {
-                let r = *pos / cols;
-                if r > *row { *pos += (expansion - 1) * cols }
-            }
+            galaxies.iter_mut()
+                .for_each(|pos| {
+                    let r = *pos / cols;
+                    if r > *row { *pos += (expansion - 1) * cols }
+                });
             rows += expansion
         });
 
     expand_cols.iter().rev()
         .for_each(|col| {
-            for pos in galaxies.iter_mut() {
-                let c = *pos % cols;
-                *pos += (*pos / cols) * expansion;
-                if c > *col { *pos += expansion - 1 }
-            }
+            galaxies.iter_mut()
+                .for_each(|pos| {
+                    let c = *pos % cols;
+                    *pos += (*pos / cols) * expansion;
+                    if c > *col { *pos += expansion - 1 }
+                });
             cols += expansion
         });
 
-    let mut paths = 0;
-    for i in 0..galaxies.len() {
-        let pi = galaxies[i];
-        let ri = pi / cols;
-        let ci = pi % cols;
-
-        galaxies.iter()
-            .skip(i + 1)
-            .for_each(|n| {
-                let rj = n / cols;
-                let cj = n % cols;
-                let md = ri.abs_diff(rj) + ci.abs_diff(cj);
-
-                paths += md
-            })
-    }
-
-    paths
+    galaxies.iter()
+        .enumerate()
+        .map(|(i, p)| (i, p / cols, p % cols))
+        .map(|(i, ri, ci)|
+            galaxies.iter()
+                .skip(i + 1)
+                .map(|n| (n / cols, n % cols))
+                .map(|(rj, cj)| ri.abs_diff(rj) + ci.abs_diff(cj))
+                .sum::<u64>()
+        )
+        .sum()
 }
 
 
@@ -187,7 +109,7 @@ mod tests {
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_two(input, 1000000), 904633799472);
+        assert_eq!(part_two(input), 904633799472);
     }
 
     #[test]
@@ -198,23 +120,23 @@ mod tests {
     }
 
     #[test]
-    fn example_part_two_2()
+    fn sum_paths_2()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_two(input, 2), 374);
+        assert_eq!(sum_paths(input, 2), 374);
     }
 
     #[test]
-    fn example_part_two_10()
+    fn sum_paths_10()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_two(input, 10), 1030);
+        assert_eq!(sum_paths(input, 10), 1030);
     }
 
     #[test]
-    fn example_part_two_100()
+    fn sum_paths100()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_two(input, 100), 8410);
+        assert_eq!(sum_paths(input, 100), 8410);
     }
 }

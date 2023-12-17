@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 fn main()
 {
     use std::time::Instant;
@@ -13,24 +15,23 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> u32
+fn part_one(input: &str) -> u64
 {
     input.lines()
         .map(|line| {
             let (springs, groups) = parse_record(line);
-            arrangements(&springs, &groups)
+            arrangements(springs, &groups)
         })
         .sum()
 }
 
-#[allow(dead_code)]
-fn part_two(input: &str) -> u32
+fn part_two(input: &str) -> u64
 {
     input.lines()
         .map(|line| {
             let (s, g) = parse_record(line);
             let springs = (0..5)
-                .map(|_| s.clone())
+                .map(|_| s)
                 .collect::<Vec<_>>()
                 .join("?");
             let groups = (0..5)
@@ -42,14 +43,9 @@ fn part_two(input: &str) -> u32
         .sum()
 }
 
-
-fn parse_record(line: &str) -> (String, Vec<u32>)
+fn parse_record(line: &str) -> (&str, Vec<u32>)
 {
-    let (s, g) = line.split_once(' ').unwrap();
-    let springs = s.split('.')
-        .filter(|st| ! st.is_empty())
-        .collect::<Vec<_>>()
-        .join(".");
+    let (springs, g) = line.split_once(' ').unwrap();
     let groups = g.split(',')
         .flat_map(|n| n.parse())
         .collect();
@@ -57,9 +53,65 @@ fn parse_record(line: &str) -> (String, Vec<u32>)
     (springs, groups)
 }
 
-fn arrangements(springs: &str, groups: &[u32]) -> u32
+fn arrangements(springs: &str, groups: &[u32]) -> u64
 {
-    count(springs, groups, &[0])
+    let mut cache = HashMap::new();
+    count(springs, groups, &[0], &mut cache)
+}
+
+fn count<'a>(
+    springs: &'a str,
+    groups: &[u32],
+    found: &[u32],
+    cache: &mut HashMap<(&'a str, Vec<u32>), u64>
+) -> u64
+{
+    if let Some(n) = cache.get(&(springs, found.to_vec())) {
+        return *n;
+    }
+
+    let i = found.len() - 1;
+
+    if !check(groups, found) {
+        return 0;
+    } else if springs.is_empty() {
+        if found[i] == 0 {
+            return (groups == &found[..i]) as u64
+        } else {
+            return (groups == found) as u64
+        }
+    }
+
+    let c = springs.chars().next().unwrap();
+    
+    let mut n = 0;
+    if c == '.' {
+        if found[i] == 0 {
+            n += count(&springs[1..], groups, found, cache)
+        } else {
+            let mut v = found.to_vec(); v.push(0);
+            n += count(&springs[1..], groups, &v, cache)
+        }
+    } else if c == '#' {
+        let mut v = found.to_vec(); v[i] += 1;
+        n += count(&springs[1..], groups, &v, cache)
+    } else {
+        // as '#'
+        let mut v = found.to_vec(); v[i] += 1;
+        n += count(&springs[1..], groups, &v, cache);
+ 
+        // as '.'
+        if found[i] == 0 {
+            n += count(&springs[1..], groups, found, cache)
+        } else {
+            let mut v = found.to_vec(); v.push(0);
+            n += count(&springs[1..], groups, &v, cache)
+        }
+    }
+
+    cache.insert((springs, found.to_vec()), n);
+
+    n
 }
 
 fn check(groups: &[u32], found: &[u32]) -> bool
@@ -76,102 +128,35 @@ fn check(groups: &[u32], found: &[u32]) -> bool
     found[..i].iter().zip(groups.iter()).all(|(a, b)| a == b)
 }
 
-fn count(springs: &str, groups: &[u32], found: &[u32]) -> u32
-{
-    let i = found.len() - 1;
-
-    if !check(groups, found) {
-        return 0;
-    } else if springs.is_empty() {
-        if found[i] == 0 {
-            return (groups == &found[..i]) as u32
-        } else {
-            return (groups == found) as u32
-        }
-    }
-
-    let c = springs.chars().next().unwrap();
-    
-    let mut n = 0;
-    if c == '.' {
-        if found[i] == 0 {
-            n += count(&springs[1..], groups, found)
-        } else {
-            let mut v = found.to_vec(); v.push(0);
-            n += count(&springs[1..], groups, &v)
-        }
-    } else if c == '#' {
-        let mut v = found.to_vec(); v[i] += 1;
-        n += count(&springs[1..], groups, &v)
-    } else {
-        // as '#'
-        let mut v = found.to_vec(); v[i] += 1;
-        n += count(&springs[1..], groups, &v);
- 
-        // as '.'
-        if found[i] == 0 {
-            n += count(&springs[1..], groups, found)
-        } else {
-            let mut v = found.to_vec(); v.push(0);
-            n += count(&springs[1..], groups, &v)
-        }
-    }
-
-    n
-}
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn input_part_one()
-    // {
-    //     let input = include_str!("../input.txt");
-    //     assert_eq!(part_one(input), 7307);
-    // }
-
-    // #[test]
-    // fn example_part_one()
-    // {
-    //     let input = include_str!("../example.txt");
-    //     assert_eq!(part_one(input), 21);
-    // }
-
     #[test]
-    fn example_1()
+    fn input_part_one()
     {
-        assert_eq!(arrangements("???.###", &[1,1,3]), 1);
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 7307);
     }
 
     #[test]
-    fn example_2()
+    fn input_part_two()
     {
-        assert_eq!(arrangements("??.??.?##", &[1,1,3]), 4);
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 3_415_570_893_842);
     }
 
     #[test]
-    fn example_3()
+    fn example_part_one()
     {
-        assert_eq!(arrangements("?#?#?#?#?#?#?#?", &[1,3,1,6]), 1);
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 21);
     }
 
     #[test]
-    fn example_4()
+    fn example_part_two()
     {
-        assert_eq!(arrangements("????.#.#", &[4,1,1]), 1);
-    }
-
-    #[test]
-    fn example_5()
-    {
-        assert_eq!(arrangements("????.######.#####", &[1,6,5]), 4);
-    }
-
-    #[test]
-    fn example_6()
-    {
-        assert_eq!(arrangements("?###????????", &[3,2,1]), 10);
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 525152);
     }
 }

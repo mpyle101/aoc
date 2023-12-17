@@ -8,9 +8,9 @@ fn main()
     let result = part_one(input);
     println!("Part 1: {} ({:?})", result, t.elapsed());
 
-//    let t = Instant::now();
-//    let result = part_two(input);
-//    println!("Part 2: {} ({:?})", result, t.elapsed());
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> u32
@@ -62,11 +62,27 @@ fn arrangements(springs: &str, groups: &[u32]) -> u32
     count(springs, groups, &[0])
 }
 
+fn check(groups: &[u32], found: &[u32]) -> bool
+{
+    let i = found.len() - 1;
+
+    if found.len() > groups.len() {
+        return found[i] == 0;
+    }
+    if found[i] > groups[i] {
+        return false
+    }
+
+    found[..i].iter().zip(groups.iter()).all(|(a, b)| a == b)
+}
+
 fn count(springs: &str, groups: &[u32], found: &[u32]) -> u32
 {
     let i = found.len() - 1;
 
-    if springs.is_empty() {
+    if !check(groups, found) {
+        return 0;
+    } else if springs.is_empty() {
         if found[i] == 0 {
             return (groups == &found[..i]) as u32
         } else {

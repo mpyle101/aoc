@@ -23,23 +23,25 @@ fn part_one(input: &str) -> u32
 
 fn part_two(input: &str) -> u32
 {
+    use rayon::prelude::*;
+
     let (ncols, nrows, items) = load(input);
     let lrow = nrows - 1;
     let lcol = ncols - 1;
 
-    let tp = (0..ncols)
+    let tp = (0..ncols).into_par_iter()
         .map(|col| energized(ncols, nrows, &items, ('v', col)))
         .max()
         .unwrap();
-    let bt = (0..ncols)
+    let bt = (0..ncols).into_par_iter()
         .map(|col| energized(ncols, nrows, &items, ('^', lrow * ncols + col)))
         .max()
         .unwrap();
-    let lt = (0..nrows)
+    let lt = (0..nrows).into_par_iter()
         .map(|row| energized(ncols, nrows, &items, ('>', row * ncols)))
         .max()
         .unwrap();
-    let rt = (0..nrows)
+    let rt = (0..nrows).into_par_iter()
         .map(|row| energized(ncols, nrows, &items, ('<', row * ncols + lcol)))
         .max()
         .unwrap();

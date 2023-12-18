@@ -17,7 +17,9 @@ fn main()
 
 fn part_one(input: &str) -> u64
 {
-    input.lines()
+    use rayon::prelude::*;
+
+    input.par_lines()
         .map(|line| {
             let (springs, groups) = parse_record(line);
             arrangements(springs, &groups)
@@ -27,7 +29,9 @@ fn part_one(input: &str) -> u64
 
 fn part_two(input: &str) -> u64
 {
-    input.lines()
+    use rayon::prelude::*;
+
+    input.par_lines()
         .map(|line| {
             let (s, g) = parse_record(line);
             let springs = (0..5)

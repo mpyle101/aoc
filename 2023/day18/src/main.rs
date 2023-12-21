@@ -100,20 +100,20 @@ fn fill(path: &[(i64, i64)]) -> i64
         })
         .collect();
 
-    let mut area = rects.iter()
+    let area: i64 = rects.iter()
         .map(|(tl, br)| (br.0 - tl.0 + 1) * (br.1 - tl.1 + 1))
         .sum();
 
-    for i in 0..rects.len() - 1 {
-        let a = rects[i];
-        for b in rects.iter().skip(i + 1) {
-            if let Some(r) = intersection(a, *b) {
-                area -= (r.1.0 - r.0.0 + 1) * (r.1.1 - r.0.1 + 1)
-            }
-        }
-    }
-
-    area
+    area - (0..rects.len() - 1)
+        .map(|i| {
+            let a = rects[i];
+            rects.iter()
+                .skip(i + 1)
+                .filter_map(|b| intersection(a, *b))
+                .map(|r| (r.1.0 - r.0.0 + 1) * (r.1.1 - r.0.1 + 1))
+                .sum::<i64>()
+        })
+        .sum::<i64>()
 }
 
 type Rect = ((i64, i64), (i64, i64));

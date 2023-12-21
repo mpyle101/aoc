@@ -99,11 +99,6 @@ fn fill(
         .map(|(p1, p2)| if p1.0 < p2.0 { (p1, p2) } else { (p2, p1) })
         .collect();
     h_edges.sort_by(|p1, p2| p1.1.1.cmp(&p2.1.1));
-    let mut h_lines: Vec<_> = h_edges.iter()
-        .map(|(p1, _)| p1.1)
-        .collect();
-    h_lines.sort();
-    h_lines.dedup();
 
     let mut v_edges: Vec<_> = path.windows(2)
         .map(|ch| (ch[0], ch[1]))

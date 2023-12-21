@@ -15,9 +15,6 @@ fn main()
 
 fn part_one(input: &str) -> i64
 {
-    let mut top_lt = (i64::MAX, i64::MAX);
-    let mut bot_rt = (i64::MIN, i64::MIN);
-
     let mut p = (0, 0);
     let path: Vec<_> = input.lines()
         .fold(vec![(0 ,0)], |mut v, line| {
@@ -25,25 +22,16 @@ fn part_one(input: &str) -> i64
             let dir = iter.next().unwrap().chars().next().unwrap();
             let n = iter.next().map(|s| s.parse().unwrap()).unwrap();
             p = dig(p, dir, n);
-
-            top_lt.0 = top_lt.0.min(p.0);
-            top_lt.1 = top_lt.1.min(p.1);
-            bot_rt.0 = bot_rt.0.max(p.0);
-            bot_rt.1 = bot_rt.1.max(p.1);
-    
             v.push(p);
             v
         });
 
-    fill(top_lt, bot_rt, &path)
+    fill(&path)
 }
 
 #[allow(dead_code)]
 fn part_two(input: &str) -> i64
 {
-    let mut top_lt = (i64::MAX, i64::MAX);
-    let mut bot_rt = (i64::MIN, i64::MIN);
-
     let mut p = (0, 0);
     let path: Vec<_> = input.lines()
         .fold(vec![(0 ,0)], |mut v, line| {
@@ -60,18 +48,12 @@ fn part_two(input: &str) -> i64
                 b'3' => 'U',
                 _ => panic!("Unkwown direction: {code}")
             };
-            p = dig(p, dir, n);
-
-            top_lt.0 = top_lt.0.min(p.0);
-            top_lt.1 = top_lt.1.min(p.1);
-            bot_rt.0 = bot_rt.0.max(p.0);
-            bot_rt.1 = bot_rt.1.max(p.1);
-    
+            p = dig(p, dir, n);    
             v.push(p);
             v
         });
 
-    fill(top_lt, bot_rt, &path)
+    fill(&path)
 }
 
 fn dig((x, y): (i64, i64), dir: char, n: i64) -> (i64, i64)
@@ -87,11 +69,7 @@ fn dig((x, y): (i64, i64), dir: char, n: i64) -> (i64, i64)
     }
 }
 
-fn fill(
-    _tl: (i64, i64),
-    _br: (i64, i64),
-    path: &[(i64, i64)]
-) -> i64
+fn fill(path: &[(i64, i64)]) -> i64
 {
     let mut h_edges: Vec<_> = path.windows(2)
         .map(|ch| (ch[0], ch[1]))
@@ -100,13 +78,10 @@ fn fill(
         .collect();
     h_edges.sort_by(|p1, p2| p1.1.1.cmp(&p2.1.1));
 
-    let mut v_edges: Vec<_> = path.windows(2)
+    let mut v_lines: Vec<_> = path.windows(2)
         .map(|ch| (ch[0], ch[1]))
         .filter(|(p1, p2)| p1.1 != p2.1)
         .map(|(p1, p2)| if p1.1 < p2.1 { (p1, p2) } else { (p2, p1) })
-        .collect();
-    v_edges.sort_by(|p1, p2| p1.0.0.cmp(&p2.0.0));
-    let mut v_lines: Vec<_> = v_edges.iter()
         .map(|(p1, _)| p1.0)
         .collect();
     v_lines.sort();
@@ -131,7 +106,7 @@ fn fill(
 
     for i in 0..rects.len() - 1 {
         let a = rects[i];
-        for b in rects.iter().skip(i+1) {
+        for b in rects.iter().skip(i + 1) {
             if let Some(r) = intersection(a, *b) {
                 area -= (r.1.0 - r.0.0 + 1) * (r.1.1 - r.0.1 + 1)
             }
@@ -142,7 +117,6 @@ fn fill(
 }
 
 type Rect = ((i64, i64), (i64, i64));
-
 fn intersection(
     ((x1, y1), (x2, y2)): Rect,
     ((x3, y3), (x4, y4)): Rect
@@ -176,7 +150,7 @@ mod tests {
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one(input), 54662804037719);
+        assert_eq!(part_two(input), 54_662_804_037_719);
     }
 
     #[test]

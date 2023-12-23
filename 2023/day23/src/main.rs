@@ -7,7 +7,7 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../example.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     let result = part_one(input);
@@ -16,19 +16,25 @@ fn main()
 
 fn part_one(input: &str) -> u32
 {
-    use pathfinding::prelude::yen;
+    use std::collections::VecDeque;
 
     let (start, goal, ncols, trail) = load(input);
-    let res = yen(
-        &State::new(start),
-        |st| step(st, ncols, &trail).into_iter().map(|st| (st, 1)),
-        |st| st.pos == goal,
-        10
-    );
 
-    println!("{}", res.len());
-    
-    res.last().unwrap().1
+    let mut steps = 0;
+    let mut q = VecDeque::from([State::new(start)]);
+    while let Some(st) = q.pop_front()
+    {
+        step(&st, ncols, &trail).iter()
+            .for_each(|st| {
+                if st.pos == goal {
+                    steps = steps.max(st.path.len() as u32);
+                } else {
+                    q.push_back(st.clone());
+                }
+            })
+    }
+
+    steps - 1
 }
 
 fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>

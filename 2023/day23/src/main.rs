@@ -1,5 +1,4 @@
 use std::collections::{HashMap, HashSet};
-use std::hash::{Hash, Hasher};
 
 type TrailMap = HashMap<i32, (char, Vec<i32>)>;
 
@@ -12,26 +11,55 @@ fn main()
     let t = Instant::now();
     let result = part_one(input);
     println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> u32
 {
-    use std::collections::VecDeque;
+    //use rayon::prelude::*;
 
-    let (start, goal, ncols, trail) = load(input);
+    let (start, goal, ncols, trail) = load(input, true);
 
     let mut steps = 0;
-    let mut q = VecDeque::from([State::new(start)]);
-    while let Some(st) = q.pop_front()
-    {
-        step(&st, ncols, &trail).iter()
-            .for_each(|st| {
-                if st.pos == goal {
-                    steps = steps.max(st.path.len() as u32);
-                } else {
-                    q.push_back(st.clone());
-                }
-            })
+    let mut q = vec![State::new(start)];
+    while !q.is_empty() {
+        if let Some(s) = q.iter()
+            .filter(|st| st.pos == goal)
+            .map(|st| st.path.len() as u32)
+            .max() {
+                steps = steps.max(s)
+            }
+
+        q = q.iter()
+            .filter(|st| st.pos != goal)
+            .flat_map(|st| step(st, ncols, &trail))
+            .collect();
+    }
+
+    steps - 1
+}
+
+fn part_two(input: &str) -> u32
+{
+    let (start, goal, ncols, trail) = load(input, false);
+
+    let mut steps = 0;
+    let mut q = vec![State::new(start)];
+    while !q.is_empty() {
+        if let Some(s) = q.iter()
+            .filter(|st| st.pos == goal)
+            .map(|st| st.path.len() as u32)
+            .max() {
+                steps = steps.max(s)
+            }
+
+        q = q.iter()
+            .filter(|st| st.pos != goal)
+            .flat_map(|st| step(st, ncols, &trail))
+            .collect();
     }
 
     steps - 1
@@ -69,7 +97,7 @@ fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>
     }
 }
 
-fn load(input: &str) -> (i32, i32, i32, TrailMap)
+fn load(input: &str, slippery: bool) -> (i32, i32, i32, TrailMap)
 {
     let mut start = i32::MAX;
     let mut goal = 0;
@@ -84,25 +112,26 @@ fn load(input: &str) -> (i32, i32, i32, TrailMap)
             line.chars()
                 .zip(0..)
                 .filter(|(c, _)| *c != '#')
-                .for_each(|(c, col)| {
+                .for_each(|(ch, col)| {
                     let pos = row * ncols + col;
                     goal = pos;
                     if start == i32::MAX { start = pos }
+                    let c = if !slippery { '.' } else { ch };
 
                     let mut v = vec![];
                     if let Some(p) = trail.get_mut(&(pos - 1)) {
-                        if c == '<' || c == '.' {
+                        if c == '.' || c == '<' {
                             v.push(pos - 1);
                         }
-                        if p.0 == '>' || p.0 == '.' {
+                        if p.0 == '.' || p.0 == '>' {
                             p.1.push(pos);
                         }
                     }
                     if let Some(p) = trail.get_mut(&(pos - ncols)) {
-                        if c == '^' || c == '.' {
+                        if c == '.' || c == '^' {
                             v.push(pos - ncols);
                         }
-                        if p.0 == 'v' || p.0 == '.' {
+                        if p.0 == '.' || p.0 == 'v' {
                             p.1.push(pos);
                         }
                     }
@@ -125,13 +154,6 @@ impl State {
         State { pos, path: HashSet::from([pos]) }
     }
 }
-impl Hash for State {
-    fn hash<H: Hasher>(&self, hasher: &mut H)
-    {
-        self.pos.hash(hasher);
-        self.path.iter().for_each(|p| p.hash(hasher));
-    }
-}
 
 
 #[cfg(test)]
@@ -142,7 +164,7 @@ mod tests {
     fn input_part_one()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one(input), 345015);
+        assert_eq!(part_one(input), 2334);
     }
 
     #[test]
@@ -150,5 +172,12 @@ mod tests {
     {
         let input = include_str!("../example.txt");
         assert_eq!(part_one(input), 94);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 154);
     }
 }

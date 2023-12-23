@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 type TrailMap = HashMap<i32, (char, Vec<i32>)>;
 
@@ -17,10 +17,8 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> u32
+fn part_one(input: &str) -> i32
 {
-    //use rayon::prelude::*;
-
     let (start, goal, ncols, trail) = load(input, true);
 
     let mut steps = 0;
@@ -28,7 +26,7 @@ fn part_one(input: &str) -> u32
     while !q.is_empty() {
         if let Some(s) = q.iter()
             .filter(|st| st.pos == goal)
-            .map(|st| st.path.len() as u32)
+            .map(|st| st.steps)
             .max() {
                 steps = steps.max(s)
             }
@@ -42,21 +40,23 @@ fn part_one(input: &str) -> u32
     steps - 1
 }
 
-fn part_two(input: &str) -> u32
+fn part_two(input: &str) -> i32
 {
+    use rayon::prelude::*;
+
     let (start, goal, ncols, trail) = load(input, false);
 
     let mut steps = 0;
     let mut q = vec![State::new(start)];
     while !q.is_empty() {
-        if let Some(s) = q.iter()
+        if let Some(s) = q.par_iter()
             .filter(|st| st.pos == goal)
-            .map(|st| st.path.len() as u32)
+            .map(|st| st.steps)
             .max() {
                 steps = steps.max(s)
             }
 
-        q = q.iter()
+        q = q.par_iter()
             .filter(|st| st.pos != goal)
             .flat_map(|st| step(st, ncols, &trail))
             .collect();
@@ -70,12 +70,13 @@ fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>
     let (c, tiles) = trail.get(&state.pos).unwrap();
     
     if *c == '.' {
+        let intersection = tiles.len() > 2;
         tiles.iter()
-            .filter(|p| !state.path.contains(p))
+            .filter(|&p| *p != state.last && !state.tiles.contains(p))
             .map(|&pos| {
-                let mut path = state.path.clone();
-                path.insert(pos);
-                State { pos, path }
+                let mut path = state.tiles.clone();
+                if intersection { path.push(state.pos) };
+                State { pos, last: state.pos, steps: state.steps + 1, tiles: path }
             })
             .collect()
     } else {
@@ -87,12 +88,11 @@ fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>
             _ => panic!("Unknown tile type: {c}")
         };
 
-        if state.path.contains(&pos) {
+        if pos == state.last || state.tiles.contains(&pos) {
             vec![]
         } else {
-            let mut path = state.path.clone();
-            path.insert(pos);
-            [State { pos, path }].to_vec()
+            let tiles = state.tiles.clone();
+            vec![State { pos, last: state.pos, steps: state.steps + 1, tiles }]
         }
     }
 }
@@ -146,12 +146,14 @@ fn load(input: &str, slippery: bool) -> (i32, i32, i32, TrailMap)
 #[derive(Clone, Eq, PartialEq)]
 struct State {
     pos: i32,
-    path: HashSet<i32>,
+    last: i32,
+    steps: i32,
+    tiles: Vec<i32>,
 }
 impl State {
     fn new(pos: i32) -> Self
     {
-        State { pos, path: HashSet::from([pos]) }
+        State { pos, last: -1, steps: 1, tiles: vec![] }
     }
 }
 
@@ -165,6 +167,13 @@ mod tests {
     {
         let input = include_str!("../input.txt");
         assert_eq!(part_one(input), 2334);
+    }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 6422);
     }
 
     #[test]

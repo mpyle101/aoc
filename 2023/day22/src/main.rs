@@ -75,11 +75,11 @@ fn part_two(input: &str) -> u32
     // rand track which bricks support and are
     // supported by others.
     let mut supports = Bricks::new();
-    let mut supported_by = Bricks::new();
+    let mut supported_by = HashMap::new();
     for i in 0..bricks.len() {
         let (brick, v) = fall(&bricks[i], &bricks);
         bricks[i] = brick;
-        supported_by.insert(brick, v.clone());
+        supported_by.insert(brick, v.len() as u32);
 
         v.iter()
             .for_each(|b| {
@@ -135,7 +135,7 @@ fn intersect(a: &Brick, b: &Brick) -> bool
     a[1][1] >= b[0][1]      // a.max& >= b.minY
 }
 
-fn disintegrate(brick: &Brick, supports: &Bricks, supported_by: &Bricks) -> u32
+fn disintegrate(brick: &Brick, supports: &Bricks, supported_by: &HashMap<Brick, u32>) -> u32
 {
     use std::collections::VecDeque;
 
@@ -147,10 +147,9 @@ fn disintegrate(brick: &Brick, supports: &Bricks, supported_by: &Bricks) -> u32
         if let Some(v1) = supports.get(b1) {
             v1.iter()
                 .for_each(|b2| {
-                    let v2 = m.get_mut(b2).unwrap();
-                    let p = v2.iter().position(|b| b == b1).unwrap();
-                    v2.remove(p);
-                    if v2.is_empty() {
+                    let n = m.get_mut(b2).unwrap();
+                    *n -= 1;
+                    if *n == 0 {
                         count += 1;
                         q.push_back(b2);
                     }

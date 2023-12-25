@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::collections::{HashSet, HashMap};
 
 type Tiles = HashSet<i32>;
@@ -27,26 +29,7 @@ fn part_one(input: &str) -> usize
 fn part_two(input: &str) -> usize
 {
     let (nrows, ncols, start, rocks) = load(input);
-    sprint(26_501_365, nrows, ncols, start, &rocks)
-}
-
-#[allow(dead_code)]
-fn print(nrows: i32, ncols: i32, tiles: &Tiles, rocks: &Tiles)
-{
-    println!("{:?}", tiles);
-    for row in 0..nrows {
-        for col in 0..ncols {
-            let pos = row * ncols + col;
-            if rocks.contains(&pos) {
-                print!("#")
-            } else if tiles.contains(&pos) {
-                print!("O")
-            } else {
-                print!(".")
-            }
-        }
-        println!();
-    }
+    teleport(26_501_365, nrows, ncols, start, &rocks)
 }
 
 fn load(input: &str) -> (i32, i32, i32, Tiles)
@@ -69,6 +52,49 @@ fn load(input: &str) -> (i32, i32, i32, Tiles)
         .collect();
 
     (nrows, ncols, start, rocks)
+}
+
+fn teleport(steps: usize, nrows: i32, ncols: i32, start: i32, rocks: &Tiles) -> usize
+{
+    let mut corners = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
+    let mut fill = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
+
+    let mut farm = Farm::from([((0, 0), Tiles::from([start]))]);
+    for i in 1..=391 {
+        farm = stride(nrows, ncols, &farm, rocks);
+        if (66..=260).contains(&i) {
+            corners[0].push(farm.get(&(-1,  0)).unwrap().len());
+            corners[1].push(farm.get(&( 0,  1)).unwrap().len());
+            corners[2].push(farm.get(&( 1,  0)).unwrap().len());
+            corners[3].push(farm.get(&( 0, -1)).unwrap().len());
+        }
+        if (132..=391).contains(&i) {
+            fill[0].push(farm.get(&(-1, -1)).unwrap().len());
+            fill[1].push(farm.get(&(-1,  1)).unwrap().len());
+            fill[2].push(farm.get(&( 1, -1)).unwrap().len());
+            fill[3].push(farm.get(&( 1,  1)).unwrap().len());
+        }
+    }
+
+    let m = (steps - 260) % 131;
+
+    let n1 = (steps - 260) / 131;
+    let n2 = (steps - 66) % 131;
+    let mut s2 = if m % 2 == 0 {
+        (n1 + 2).pow(2) * 7265 + (n1 + 1).pow(2) * 7325
+    } else {
+        (n1 + 2).pow(2) * 7325 + (n1 + 1).pow(2) * 7265
+    };
+    
+    s2 += corners.iter().map(|v| v[n2]).sum::<usize>();
+    if m > 2 {
+        let f1 = m - 3;
+        let f2 = f1 + 131;
+        s2 += fill.iter().map(|v| v[f1] * (n1 + 2)).sum::<usize>();
+        s2 += fill.iter().map(|v| v[f2] * (n1 + 1)).sum::<usize>();
+    }
+
+    s2
 }
 
 fn march(steps: i32, nrows: i32, ncols: i32, start: i32, rocks: &Tiles) -> usize
@@ -98,8 +124,7 @@ fn step(nrows: i32, ncols: i32, tiles: &Tiles, rocks: &Tiles) -> Tiles
 fn sprint(steps: i32, nrows: i32, ncols: i32, start: i32, rocks: &Tiles) -> usize
 {
     let mut farm = Farm::from([((0, 0), Tiles::from([start]))]);
-    for _ in 0..steps { farm = stride(nrows, ncols, &farm, rocks);};
-
+    for _ in 1..steps { farm = stride(nrows, ncols, &farm, rocks); };
     farm.values().map(|v| v.len()).sum()
 }
 
@@ -153,6 +178,7 @@ fn stride(nrows: i32, ncols: i32, farm: &Farm, rocks: &Tiles) -> Farm
 
     acres.iter()
         .map(|(p, tiles)| (*p, tiles - rocks))
+        .filter(|(_, tiles)| !tiles.is_empty())
         .collect()
 }
 
@@ -166,6 +192,13 @@ mod tests {
     {
         let input = include_str!("../input.txt");
         assert_eq!(part_one(input), 3585);
+    }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 597102953699891);
     }
 
     #[test]

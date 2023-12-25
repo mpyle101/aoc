@@ -1,0 +1,67 @@
+67: 1, 3, 6, 10, 15, 21, 27...
+133: 1 per side
+198: corners
+264: 2 per side
+329: corners
+395: 3 per side
+
+66, 65, 66, 65
+
+from 67, 131 steps = corners start, 130 later corners end
+from 133, 131 steps = fill starts, 129 later fill ends
+
+Starts with fill which ends at 129
+
+129: 7265
+
+
+-, - => 1, 2, 3, 4, 7,  8, 15
+-, + => 1, 2, 4, 6, 8, 11, 14
++, - => 1, 2, 4, 4, 8,  7, 13
++, + => 1, 2, 4, 5, 9, 11, 14
+
+at 66 add corners
++ 66 add fill
++ 65 add corners
++ 66 add fill
+
+fill    132 => 390  (258)
+corners  66 => 260  (194)
+
+ 66 corners                1
+197 corners           1, 131
+328 corners      1, 131,
+459 corners 1, 131
+
+n = (i - 66) % 131
+outside n, one in: n + 130
+
+
+
+
+(i - 260) % 131 = 0
+129  -1  7265 =>  1, 7325 =>  0   1, 0
+260   0  7265 =>  4, 7325 =>  1   2, 1
+391   1  7265 =>  9, 7325 =>  4   3, 2
+522   2  7265 => 16, 7325 =>  9   4, 3
+653   3  7265 => 25, 7325 => 16   5, 4
+784   4  7265 => 36, 7325 => 25   6, 5
+915   5  7265 => 49, 7325 => 36   7, 6
+
+x = (i - 260) / 131;
+(7265 * (x + 2)**2) + (7325 * (x + 1)**2)
+
+
+fill => 3620, 3613, 3583, 3592
+corners: 4
+
+x = (i - 260) / 131
+fill * (x + 1)
+
+129 fill: 0, corners[63]
+260 fill: 1
+391 fill: 2
+522 fill: 3
+653 fill: 4
+748 fill: 5
+915 fill: 6

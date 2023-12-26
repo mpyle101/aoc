@@ -31,98 +31,80 @@ fn part_one(input: &str) -> u32
     l * h
 }
 
-fn part_two(_input:& str) -> u128
+fn part_two(input:& str) -> u64
 {
-    // Least common multiple of
-    //   jt => 510 @ 3919 steps
-    //   mh => 510 @ 4051 steps
-    //   pz => 126 @ 3761 steps
-    //   rn => 126 @ 3907 steps
-    // Guessed at LCM they all turn to all 1's together
+    use num::integer::Integer;
 
-    233_283_622_908_263
-}
+    // jt => 510 @ 3918 steps
+    // mh => 510 @ 4050 steps
+    // pz => 126 @ 3760 steps
+    // rn => 126 @ 3906 steps
+    // They all reset on the next step so the assumption
+    // is at some point they are all at the almost highest
+    // value together and the next step would put them all
+    // turned on. So, we get the LCM of that next step cycle.
+    // Thus: 3819, 4051, 3761 & 3907
+    // 233_283_622_908_263
 
-#[allow(dead_code)]
-fn part_two_inspection(input: &str) -> u128
-{
-    use std::fs;
-    use std::io::Write;
-
-    // let d = [192, 64];
-    // let mut ix = 0;
-
-    let (mut modules, _flipflops, _conjunctions) = load(input);
+    let mut i = 1;
+    let mut needed = 4;
+    let mut registers = [0u64;4];
 
     let mut q = VecDeque::new();
 
-    let mut f_rn = fs::OpenOptions::new().write(true).truncate(true).open("rn.txt").unwrap();
-    let mut f_pz = fs::OpenOptions::new().write(true).truncate(true).open("pz.txt").unwrap();
-    let mut f_jt = fs::OpenOptions::new().write(true).truncate(true).open("jt.txt").unwrap();
-    let mut f_mh = fs::OpenOptions::new().write(true).truncate(true).open("mh.txt").unwrap();
-    let mut f_al = fs::OpenOptions::new().write(true).truncate(true).open("al.txt").unwrap();
-
-    // let mut n = 64;
-    for i in 1..=(32 * 1024) {
+    let (mut modules, _, _) = load(input);
+    while needed > 0 {
         press(&mut modules, &mut q);
 
-        // if i % 64 == 0 {
-            // let a = flipflops.iter()
-            //     .enumerate()
-            //     .fold(0u64, |acc, (i, s)| {
-            //         let m = modules.get(s).unwrap();
-            //         acc | m.bit() << i
-            //     });
+        let rn = ["bx", "fx", "nx", "kn", "mv", "fk", "rv"].iter()
+            .enumerate()
+            .fold(0u64, |acc, (i, s)| {
+                let m = modules.get(s).unwrap();
+                acc | m.bit() << i
+            });
+        if rn == 126 {
+            registers[0] = i + 1;
+            needed -= 1;
+         }
+        
+        let pz = ["jp", "dx", "ph", "jc", "ct", "kd", "pp"].iter()
+            .enumerate()
+            .fold(0u64, |acc, (i, s)| {
+                let m = modules.get(s).unwrap();
+                acc | m.bit() << i
+            });
+        if pz == 126 {
+            registers[1] = i + 1;
+            needed -= 1;
+        }
             
-            // let b = conjunctions.iter()
-            //     .enumerate()
-            //     .fold(0u64, |acc, (i, s)| {
-            //         let m = modules.get(s).unwrap();
-            //         acc | m.bit() << i
-            //     });
+        let jt = ["jq", "qt", "lj", "dt", "vp", "jm", "xk", "nk", "vk"].iter()
+            .enumerate()
+            .fold(0u64, |acc, (i, s)| {
+                let m = modules.get(s).unwrap();
+                acc | m.bit() << i
+            });
+        if jt == 510 {
+            registers[2] = i + 1;
+            needed -= 1;
+        }
 
-            let rn = ["bx", "fx", "nx", "kn", "mv", "fk", "rv"].iter()
-                .enumerate()
-                .fold(0u64, |acc, (i, s)| {
-                    let m = modules.get(s).unwrap();
-                    acc | m.bit() << i
-                });
-                
-            let pz = ["jp", "dx", "ph", "jc", "ct", "kd", "pp"].iter()
-                .enumerate()
-                .fold(0u64, |acc, (i, s)| {
-                    let m = modules.get(s).unwrap();
-                    acc | m.bit() << i
-                });
-                
-            let jt = ["jq", "qt", "lj", "dt", "vp", "jm", "xk", "nk", "vk"].iter()
-                .enumerate()
-                .fold(0u64, |acc, (i, s)| {
-                    let m = modules.get(s).unwrap();
-                    acc | m.bit() << i
-                });
-            
-            let mh = ["nv", "th", "jf", "xm", "gv", "nr", "cj", "vh", "jh"].iter()
-                .enumerate()
-                .fold(0u64, |acc, (i, s)| {
-                    let m = modules.get(s).unwrap();
-                    acc | m.bit() << i
-                });
-
-            f_rn.write_all(format!("{i:08}   {rn:07b} ({rn})\n").as_bytes()).unwrap();
-            f_pz.write_all(format!("{i:08}   {pz:07b} ({pz})\n").as_bytes()).unwrap();
-            f_jt.write_all(format!("{i:08}   {jt:09b} ({jt})\n").as_bytes()).unwrap();
-            f_mh.write_all(format!("{i:08}   {mh:09b} ({mh})\n").as_bytes()).unwrap();
-            f_al.write_all(format!("{i:08}   {rn:07b} {jt:09b} {mh:09b} {pz:07b}\n").as_bytes()).unwrap();
-
-//            println!("{i:08}   {rn:07b} {jt:09b} {mh:09b} {pz:07b}");
-
-            // n += d[ix];
-            // ix = (ix + 1) % 2;
-        // }
+        let mh = ["nv", "th", "jf", "xm", "gv", "nr", "cj", "vh", "jh"].iter()
+            .enumerate()
+            .fold(0u64, |acc, (i, s)| {
+                let m = modules.get(s).unwrap();
+                acc | m.bit() << i
+            });
+        if mh == 510 {
+            registers[3] = i + 1;
+            needed -= 1;
+        }
+    
+        i += 1
     }
 
-    0
+    registers.iter().cloned()
+        .reduce(|acc, n| acc.lcm(&n)).unwrap()
 }
 
 fn press<'a>(modules: &mut Modules<'a>, q: &mut Network<'a>)

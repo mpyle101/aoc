@@ -1,0 +1,59 @@
+&gf -> rx
+
+All high to gf
+jt => 510 @ 3918              => 3919
+mh => 510 @ 4050              => 4051
+pz => 126 @ 3760              => 3761
+rn => 126 @ 3906, 126 @ 7813  => 3907
+
+&sp -> gf
+&pg -> gf
+&sv -> gf
+&qs -> gf
+
+&rn -> sp, fn, hr, bx, ff, xc, sk
+&pz -> pg, kt, mb, vr, hp, jp, tx
+&jt -> sv, fb, zb, jq, lp
+&mh -> qs, bc, hx, xb, nv
+
+High to rn
+%bx -> rn, fx
+%nx -> fn, rn
+%mv -> fk, rn
+%fx -> sk, rn
+%rv -> rn
+%fk -> rn, rv
+%kn -> rn, mv
+
+High to pz
+%kd -> pz, pp
+%ph -> mb, pz
+%ct -> kd, pz
+%dx -> pz, ph
+%jc -> pz, kt
+%jp -> pz, vr
+%pp -> pz
+
+High to jt
+%nk -> jt, vk
+%vp -> lp, jt
+%lj -> jt, dt
+%jq -> jt, qt
+%dt -> jt, zb
+%xk -> jt, nk
+%jm -> jt, xk
+%qt -> lj, jt
+%vk -> jt
+
+High to mh
+%nr -> cj, mh
+%jh -> mh
+%th -> mh, hx
+%nv -> mh, th
+%gv -> mh, nr
+%cj -> mh, vh
+%vh -> mh, jh
+%jf -> bc, mh
+%xm -> mh, gv
+
+

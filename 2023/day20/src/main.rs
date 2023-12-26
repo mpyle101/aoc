@@ -1,4 +1,7 @@
-use std::{collections::HashMap, vec};
+use std::collections::{HashMap, VecDeque};
+
+type Modules<'a> = HashMap<&'a str, Module<'a>>;
+type Network<'a> = VecDeque<(&'a str, &'a str, Pulse)>;
 
 fn main()
 {
@@ -9,11 +12,15 @@ fn main()
     let t = Instant::now();
     let result = part_one(input);
     println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> u32
 {
-    let mut modules = load(input);
+    let (mut modules, _, _) = load(input);
     
     let (l, h) = (0..1000)
         .fold((0, 0), |acc, _| {
@@ -24,10 +31,113 @@ fn part_one(input: &str) -> u32
     l * h
 }
 
-fn run(modules: &mut HashMap<&str, Module<'_>>) -> (u32, u32)
+fn part_two(_input:& str) -> u128
 {
-    use std::collections::VecDeque;
+    // Least common multiple of
+    //   jt => 510 @ 3919 steps
+    //   mh => 510 @ 4051 steps
+    //   pz => 126 @ 3761 steps
+    //   rn => 126 @ 3907 steps
+    // Guessed at LCM they all turn to all 1's together
 
+    233_283_622_908_263
+}
+
+#[allow(dead_code)]
+fn part_two_inspection(input: &str) -> u128
+{
+    use std::fs;
+    use std::io::Write;
+
+    // let d = [192, 64];
+    // let mut ix = 0;
+
+    let (mut modules, _flipflops, _conjunctions) = load(input);
+
+    let mut q = VecDeque::new();
+
+    let mut f_rn = fs::OpenOptions::new().write(true).truncate(true).open("rn.txt").unwrap();
+    let mut f_pz = fs::OpenOptions::new().write(true).truncate(true).open("pz.txt").unwrap();
+    let mut f_jt = fs::OpenOptions::new().write(true).truncate(true).open("jt.txt").unwrap();
+    let mut f_mh = fs::OpenOptions::new().write(true).truncate(true).open("mh.txt").unwrap();
+    let mut f_al = fs::OpenOptions::new().write(true).truncate(true).open("al.txt").unwrap();
+
+    // let mut n = 64;
+    for i in 1..=(32 * 1024) {
+        press(&mut modules, &mut q);
+
+        // if i % 64 == 0 {
+            // let a = flipflops.iter()
+            //     .enumerate()
+            //     .fold(0u64, |acc, (i, s)| {
+            //         let m = modules.get(s).unwrap();
+            //         acc | m.bit() << i
+            //     });
+            
+            // let b = conjunctions.iter()
+            //     .enumerate()
+            //     .fold(0u64, |acc, (i, s)| {
+            //         let m = modules.get(s).unwrap();
+            //         acc | m.bit() << i
+            //     });
+
+            let rn = ["bx", "fx", "nx", "kn", "mv", "fk", "rv"].iter()
+                .enumerate()
+                .fold(0u64, |acc, (i, s)| {
+                    let m = modules.get(s).unwrap();
+                    acc | m.bit() << i
+                });
+                
+            let pz = ["jp", "dx", "ph", "jc", "ct", "kd", "pp"].iter()
+                .enumerate()
+                .fold(0u64, |acc, (i, s)| {
+                    let m = modules.get(s).unwrap();
+                    acc | m.bit() << i
+                });
+                
+            let jt = ["jq", "qt", "lj", "dt", "vp", "jm", "xk", "nk", "vk"].iter()
+                .enumerate()
+                .fold(0u64, |acc, (i, s)| {
+                    let m = modules.get(s).unwrap();
+                    acc | m.bit() << i
+                });
+            
+            let mh = ["nv", "th", "jf", "xm", "gv", "nr", "cj", "vh", "jh"].iter()
+                .enumerate()
+                .fold(0u64, |acc, (i, s)| {
+                    let m = modules.get(s).unwrap();
+                    acc | m.bit() << i
+                });
+
+            f_rn.write_all(format!("{i:08}   {rn:07b} ({rn})\n").as_bytes()).unwrap();
+            f_pz.write_all(format!("{i:08}   {pz:07b} ({pz})\n").as_bytes()).unwrap();
+            f_jt.write_all(format!("{i:08}   {jt:09b} ({jt})\n").as_bytes()).unwrap();
+            f_mh.write_all(format!("{i:08}   {mh:09b} ({mh})\n").as_bytes()).unwrap();
+            f_al.write_all(format!("{i:08}   {rn:07b} {jt:09b} {mh:09b} {pz:07b}\n").as_bytes()).unwrap();
+
+//            println!("{i:08}   {rn:07b} {jt:09b} {mh:09b} {pz:07b}");
+
+            // n += d[ix];
+            // ix = (ix + 1) % 2;
+        // }
+    }
+
+    0
+}
+
+fn press<'a>(modules: &mut Modules<'a>, q: &mut Network<'a>)
+{
+    q.push_back(("button", "broadcaster", Pulse::Low));
+    while let Some((src, dst, pulse)) = q.pop_front() {
+        if let Some(module) = modules.get_mut(dst) {
+            module.process(src, pulse).iter()
+                .for_each(|(m, pulse)| q.push_back((dst, m, *pulse)))
+        }
+    }
+}
+
+fn run(modules: &mut Modules) -> (u32, u32)
+{
     // Initial pulse from button.
     let mut low_pulses = 1;
     let mut high_pulses = 0;
@@ -51,9 +161,12 @@ fn run(modules: &mut HashMap<&str, Module<'_>>) -> (u32, u32)
 }
 
 #[allow(clippy::manual_strip)]
-fn load(input: &str) -> HashMap<&str, Module>
+fn load(input: &str) -> (HashMap<&str, Module>, Vec<&str>, Vec<&str>)
 {
     use Module::*;
+
+    let mut flipflops = vec![];
+    let mut conjunctions = vec![];
 
     let mut modules: HashMap<&str, Module> = input.lines()
         .map(|line| {
@@ -64,22 +177,24 @@ fn load(input: &str) -> HashMap<&str, Module>
             if s1 == "broadcaster" {
                 ("broadcaster", Broadcaster { outputs })
             } else if s1.starts_with('%') {
+                flipflops.push(&s1[1..]);
                 (&s1[1..], FlipFlop { outputs, on: false })
             } else {
+                conjunctions.push(&s1[1..]);
                 (&s1[1..], Conjunction { outputs, inputs: HashMap::new() })
             }
         })
         .collect();
 
     for (name, module) in modules.clone().iter() {
-        for o in module.outputs() {
-            if let Some(m) = modules.get_mut(o) {
+        for output in module.outputs() {
+            if let Some(m) = modules.get_mut(output) {
                 m.add_input(name)
             }
         }
     }
 
-    modules
+    (modules, flipflops, conjunctions)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -151,6 +266,20 @@ impl<'a> Module<'a> {
             _ => outputs.iter().map(|&m| (m, pulse)).collect(),
         }
     }
+
+    fn bit(&self) -> u64
+    {
+        use Module::*;
+
+        match self {
+            FlipFlop { on, .. } => *on as u64,
+            Broadcaster { .. } => 1,
+            Conjunction { inputs, .. } => {
+                let on = inputs.values().any(|p| *p == Pulse::Low);
+                on as u64
+            },
+        }
+    }
 }
 
 
@@ -163,6 +292,13 @@ mod tests {
     {
         let input = include_str!("../input.txt");
         assert_eq!(part_one(input), 886347020);
+    }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 233_283_622_908_263);
     }
 
     #[test]

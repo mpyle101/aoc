@@ -68,9 +68,9 @@ fn part_two(input: &str) -> i64
     let res_px = model.eval(&px, true).unwrap();
     let res_py = model.eval(&py, true).unwrap();
     let res_pz = model.eval(&pz, true).unwrap();
-    let x  = res_px.as_i64().unwrap();
-    let y  = res_py.as_i64().unwrap();
-    let z  = res_pz.as_i64().unwrap();
+    let x = res_px.as_i64().unwrap();
+    let y = res_py.as_i64().unwrap();
+    let z = res_pz.as_i64().unwrap();
 
     x + y + z
 }
@@ -92,7 +92,6 @@ fn load(input: &str) -> Vec<Stone>
             let zv = iter.next().unwrap().trim().parse::<i64>().unwrap();
 
             Stone { p: [x, y, z], v: [xv, yv, zv] }
-            
         })
         .collect()
 }

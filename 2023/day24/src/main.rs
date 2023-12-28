@@ -10,7 +10,11 @@ fn main()
 
     let t = Instant::now();
     let result = part_two(input);
-    println!("Part 2: {} ({:?})", result, t.elapsed());
+    println!("Part 2 (mb): {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two_z3(input);
+    println!("Part 2 (z3): {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> u32
@@ -21,6 +25,82 @@ fn part_one(input: &str) -> u32
 }
 
 fn part_two(input: &str) -> i64
+{
+    use std::collections::HashSet;
+
+    let stones = load(input);
+
+    // Find pairs of hail stones whose velocity in a given
+    // axis is the same. These two stones will always have
+    // the same relative position to one another (ie, the 
+    // distance between them remains the same forever). In
+    // order to hit both stones, the rock must be traveling
+    // at a speed intersecting both potential axis positions.
+    // That means the difference between the rock speed and
+    // the stone speed must be a multiple of the difference
+    // between the stone positions. Find a set of values
+    // making this true across a likely range. The intersection
+    // of all potential velocities is the one (or the few but
+    // reelistically the one).
+    let mut vx = HashSet::new();
+    let mut vy = HashSet::new();
+    let mut vz = HashSet::new();
+
+    for (a, i) in stones.iter().zip(1..) {
+        for b in stones.iter().skip(i) {
+            if vx.len() != 1 && a.v[0] == b.v[0] {
+                let dv = (-1000..=1000)
+                    .filter(|v| *v != a.v[0])
+                    .filter(|v| (a.p[0] - b.p[0]) % (v - a.v[0]) == 0)
+                    .collect();
+                vx = if vx.is_empty() { dv } else { &dv & &vx }
+            }
+            if vy.len() != 1 && a.v[1] == b.v[1] {
+                let dv = (-1000..=1000)
+                    .filter(|v| *v != a.v[1])
+                    .filter(|v| (a.p[1] - b.p[1]) % (v - a.v[1]) == 0)
+                    .collect();
+                vy = if vy.is_empty() { dv } else { &dv & &vy }
+            }
+            if vz.len() != 1 && a.v[2] == b.v[2] {
+                let dv = (-1000..=1000)
+                    .filter(|v| *v != a.v[2])
+                    .filter(|v| (a.p[2] - b.p[2]) % (v - a.v[2]) == 0)
+                    .collect();
+                vz = if vz.is_empty() { dv } else { &dv & &vz }
+            }
+        }
+    }
+
+    let rv = [
+        *vx.iter().next().unwrap() as f64,
+        *vy.iter().next().unwrap() as f64,
+        *vz.iter().next().unwrap() as f64
+    ];
+
+    // Get slopes of lines formed by subtracting rock velocity
+    // from stone velocity.
+    let a = stones[0].real();
+    let b = stones[1].real();
+    let ma = (a.1[1] - rv[1]) / (a.1[0] - rv[0]);
+    let mb = (b.1[1] - rv[1]) / (b.1[0] - rv[0]);
+
+    // y = mx + b => b = y - mx
+    let ba = a.0[1] - ma * a.0[0];
+    let bb = b.0[1] - mb * b.0[0];
+
+    // This part I don't quite get.
+    let x = (bb - ba) / (ma - mb);
+    let y = ma * x + ba;
+    let t = (x - a.0[0]) / (a.1[0] - rv[0]);
+    let z = a.0[2] + (a.1[2] - rv[2]) * t;
+
+    x.round() as i64 +
+    y.round() as i64 +
+    z.round() as i64
+}
+
+fn part_two_z3(input: &str) -> i64
 {
     use z3::ast::{Ast, Int};
     use z3::{Config, Context, SatResult, Solver};
@@ -101,6 +181,15 @@ struct Stone {
     p: [i64;3],
     v: [i64;3],
 }
+impl Stone {
+    fn real(&self) -> ([f64;3], [f64;3])
+    {
+        (
+            [self.p[0] as f64, self.p[1] as f64, self.p[2] as f64],
+            [self.v[0] as f64, self.v[1] as f64, self.v[2] as f64],
+        )
+    }
+}
 
 fn crossings(stones: &[Stone], min: f32, max: f32) -> u32
 {
@@ -155,7 +244,7 @@ mod tests {
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_two(input), 669042940632377);
+        assert_eq!(part_two_z3(input), 669042940632377);
     }
 
     #[test]
@@ -170,6 +259,6 @@ mod tests {
     fn example_part_two()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_two(input), 47);
+        assert_eq!(part_two_z3(input), 47);
     }
 }

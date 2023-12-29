@@ -2,7 +2,7 @@
 fn main() {
     use std::time::Instant;
 
-    let input = include_str!("./modules.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     let fuel = part_one(input);
@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let input = include_str!("./modules.txt");
+        let input = include_str!("../input.txt");
 
         let fuel = part_one(input);
         assert_eq!(fuel, 3317970);

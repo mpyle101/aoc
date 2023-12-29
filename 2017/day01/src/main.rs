@@ -1,40 +1,45 @@
-fn main() {
-    use std::{fs, time::Instant};
+fn main()
+{
+    use std::time::Instant;
 
-    let input = load(&fs::read_to_string("./input.txt").unwrap());
-
-    let t = Instant::now();
-    let captcha = part_one(&input);
-    println!("Part 1: {} {:?}", captcha, t.elapsed());
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let captcha = part_two(&input);
-    println!("Part 2: {} {:?}", captcha, t.elapsed());
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} {:?}", result, t.elapsed());
 }
 
-fn load(input: &str) -> Vec<u8> {
-    input.bytes().map(|b| b - b'0').collect()
-}
-
-fn part_one(digits: &[u8]) -> i32 {
-    let captcha = digits.iter().enumerate().skip(1)
-        .filter_map(|(i, &d)| (digits[i-1] == d).then_some(d as i32))
+fn part_one(input: &str) -> i32
+{
+    let captcha: i32 = input.as_bytes()
+        .windows(2)
+        .filter(|w| w[0] == w[1])
+        .map(|w| (w[1] - b'0') as i32)
         .sum();
 
-    if digits.last() == digits.first() {
-        captcha + *digits.last().unwrap() as i32
+    captcha + if input.chars().last() == input.chars().next() {
+        (input.bytes().last().unwrap() - b'0') as i32
     } else {
-        captcha
+        0
     }
 }
 
-fn part_two(digits: &[u8]) -> i32 {
-    let n = digits.len() / 2;
-    digits.iter().enumerate()
-        .filter_map(|(i, &d)| {
-            let ix = (i + n) % digits.len();
-            (digits[ix] == d).then_some(d as i32)
+fn part_two(input: &str) -> i32
+{
+    let n = input.len() / 2;
+
+    let bytes = input.as_bytes();
+    bytes.iter()
+        .enumerate()
+        .filter(|(i, b)| {
+            let ix = (i + n) % input.len();
+            bytes[ix] == **b
         })
+        .map(|(_, b)| (*b - b'0') as i32)
         .sum()
 }
 
@@ -42,16 +47,18 @@ fn part_two(digits: &[u8]) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
 
     #[test]
-    fn it_works() {
-        let input = load(&fs::read_to_string("./input.txt").unwrap());
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1119);
+    }
 
-        let captcha = part_one(&input);
-        assert_eq!(captcha, 1119);
-
-        let captcha = part_two(&input);
-        assert_eq!(captcha, 1420);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1420);
     }
 }

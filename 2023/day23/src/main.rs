@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 type TrailMap = HashMap<i32, (char, Vec<i32>)>;
+type TrailGraph = HashMap<i32, HashSet<(i32, i32)>>;
 
 fn main()
 {
@@ -17,9 +18,23 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
+#[derive(Clone, Eq, PartialEq)]
+struct State {
+    pos: i32,
+    last: i32,
+    steps: i32,
+    tiles: Vec<i32>,
+}
+impl State {
+    fn new(pos: i32) -> Self
+    {
+        State { pos, last: -1, steps: 1, tiles: vec![] }
+    }
+}
+
 fn part_one(input: &str) -> i32
 {
-    let (start, goal, ncols, trail) = load(input, true);
+    let (start, goal, ncols, trail) = load_trail_map(input);
 
     let mut steps = 0;
     let mut q = vec![State::new(start)];
@@ -40,29 +55,49 @@ fn part_one(input: &str) -> i32
     steps - 1
 }
 
+#[derive(Debug)]
+struct Hike {
+    node: i32,
+    steps: i32,
+    visited: Vec<i32>,
+}
+
 fn part_two(input: &str) -> i32
 {
-    use rayon::prelude::*;
+    use std::collections::VecDeque;
 
-    let (start, goal, ncols, trail) = load(input, false);
+    // A key insight is: because the paths are one step
+    // wide and you can't backtrack, what you essentially
+    // have is a graph with the start, end and intersection
+    // positions as vertices and the paths between them as
+    // edges. The weight of the edges is the number of steps
+    // it takes to get there from position to the next. This
+    // gives us a much, much smaller weighted graph to walk
+    // when trying to find the longest simple path.
+    let (start, goal, ncols, trail) = load_trails(input);
+    let graph = build_graph(start, goal, ncols, &trail);
 
     let mut steps = 0;
-    let mut q = vec![State::new(start)];
-    while !q.is_empty() {
-        if let Some(s) = q.par_iter()
-            .filter(|st| st.pos == goal)
-            .map(|st| st.steps)
-            .max() {
-                steps = steps.max(s)
-            }
-
-        q = q.par_iter()
-            .filter(|st| st.pos != goal)
-            .flat_map(|st| step(st, ncols, &trail))
-            .collect();
+    let mut stack = VecDeque::from([
+        Hike { node: start, steps: 0, visited: vec![start] }
+    ]);
+ 
+    while let Some(st) = stack.pop_back() {
+        if st.node == goal {
+            steps = steps.max(st.steps);
+        } else {
+            let nodes = graph.get(&st.node).unwrap();
+            stack.extend(nodes.iter()
+                .filter(|(node, _)| !st.visited.contains(node))
+                .map(|&(node, steps)| {
+                    let mut visited = st.visited.clone();
+                    visited.push(node);
+                    Hike { node, steps: st.steps + steps, visited }
+                }))
+        }
     }
 
-    steps - 1
+    steps
 }
 
 fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>
@@ -97,7 +132,7 @@ fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>
     }
 }
 
-fn load(input: &str, slippery: bool) -> (i32, i32, i32, TrailMap)
+fn load_trail_map(input: &str) -> (i32, i32, i32, TrailMap)
 {
     let mut start = i32::MAX;
     let mut goal = 0;
@@ -112,11 +147,10 @@ fn load(input: &str, slippery: bool) -> (i32, i32, i32, TrailMap)
             line.chars()
                 .zip(0..)
                 .filter(|(c, _)| *c != '#')
-                .for_each(|(ch, col)| {
+                .for_each(|(c, col)| {
                     let pos = row * ncols + col;
                     goal = pos;
                     if start == i32::MAX { start = pos }
-                    let c = if !slippery { '.' } else { ch };
 
                     let mut v = vec![];
                     if let Some(p) = trail.get_mut(&(pos - 1)) {
@@ -142,19 +176,96 @@ fn load(input: &str, slippery: bool) -> (i32, i32, i32, TrailMap)
     (start, goal, ncols, trail)
 }
 
+fn load_trails(input: &str) -> (i32, i32, i32, HashSet<i32>)
+{
+    let mut start = i32::MAX;
+    let mut goal = 0;
 
-#[derive(Clone, Eq, PartialEq)]
-struct State {
+    let mut ncols = 0;
+    let mut trail = HashSet::new();
+
+    input.lines()
+        .zip(0..)
+        .for_each(|(line, row)| {
+            ncols = line.len() as i32;
+            line.chars()
+                .zip(0..)
+                .filter(|(c, _)| *c != '#')
+                .for_each(|(_, col)| {
+                    let pos = row * ncols + col;
+                    goal = pos;
+                    if start == i32::MAX { start = pos }
+                    trail.insert(pos);
+                });
+            });
+
+    (start, goal, ncols, trail)
+}
+
+#[derive(Debug)]
+struct Walk {
     pos: i32,
     last: i32,
+    node: i32,
     steps: i32,
-    tiles: Vec<i32>,
+    visited: HashSet<i32>,
 }
-impl State {
-    fn new(pos: i32) -> Self
-    {
-        State { pos, last: -1, steps: 1, tiles: vec![] }
+
+fn build_graph(
+    start: i32,
+    goal: i32,
+    ncols: i32,
+    trail: &HashSet<i32>
+) -> TrailGraph
+{
+    use std::collections::VecDeque;
+
+    let mut graph = TrailGraph::from([
+        (start, HashSet::new()),
+        (goal, HashSet::new())
+    ]);
+
+    let mut stack = VecDeque::from([
+        Walk { 
+            pos: start,
+            last: start,
+            node: start,
+            steps: 0,
+            visited: HashSet::from([start])
+        }
+    ]);
+    while let Some(mut w) = stack.pop_back() {
+        if w.pos == goal {
+            graph.entry(goal).and_modify(|e| { e.insert((w.node, w.steps)); });
+            graph.entry(w.node).and_modify(|e| { e.insert((goal, w.steps)); });
+        } else {
+            let steps = [w.pos - 1, w.pos + 1, w.pos - ncols, w.pos + ncols].into_iter()
+                .filter(|p| *p != w.last && trail.contains(p))
+                .collect::<Vec<_>>();
+
+            if steps.len() == 1 {
+                let pos = steps[0];
+                if w.visited.insert(pos) {
+                    w.last = w.pos;
+                    w.pos = pos;
+                    w.steps += 1;
+                    stack.push_back(w)
+                }
+            } else if graph.entry(w.pos).or_default().insert((w.node, w.steps)) {
+                graph.entry(w.node).and_modify(|e| { e.insert((w.pos, w.steps)); });
+
+                stack.extend(steps.iter()
+                    .filter(|pos| !w.visited.contains(pos))
+                    .map(|&pos| {
+                        let mut visited = w.visited.clone();
+                        visited.insert(pos);
+                        Walk { pos, last: w.pos, node: w.pos, steps: 1, visited }
+                    }))
+            }
+        }
     }
+
+    graph
 }
 
 

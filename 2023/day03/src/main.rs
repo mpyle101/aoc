@@ -1,3 +1,5 @@
+use std::ops::RangeInclusive;
+
 fn main()
 {
     use std::time::Instant;
@@ -13,55 +15,42 @@ fn main()
     println!("Part 2: {} ({:?})", gears, t.elapsed());
 }
 
-#[derive(Clone, Copy)]
 struct Part {
     v: u32,
-    x: usize,
-    y1: usize,
-    y2: usize,
+    y: usize,
+    x: RangeInclusive<usize>,
 }
 
-#[derive(Clone, Copy)]
 struct Symbol {
-    t: usize,   // top
-    l: usize,   // left
-    b: usize,   // bottom
-    r: usize,   // right
+    x: usize,
+    y: RangeInclusive<usize>,
 }
 
 fn part_one(input: &str) -> u32
 {
+    use regex::Regex;
+
+    let re = Regex::new(r"([^0-9,\.])|([0-9]+)+").unwrap();
+
     let mut parts = vec![];
     let mut symbols = vec![];
 
     input.lines()
         .enumerate()
-        .for_each(|(x, line)| {
-            let mut last = b'.';
-            let mut part = Part { x, v: 0, y1: 0, y2: 0 };
-
-            line.bytes()
-                .enumerate()
-                .for_each(|(y, c)| {
+        .for_each(|(y, line)| {
+            re.captures_iter(line)
+                .flat_map(|c| c.get(0))
+                .map(|m| (m.range(), m.as_str()))
+                .for_each(|(x, s)| {
+                    let c = s.chars().next().unwrap();
                     if c.is_ascii_digit() {
-                        part.y2 = y;
-                        if part.v == 0 { part.y1 = y; }
-                        part.v = part.v * 10 + (c - b'0') as u32;
+                        let v = s.parse::<u32>().unwrap();
+                        let x_min = if x.start == 0 { 0 } else { x.start - 1 };
+                        parts.push(Part { y, v, x: x_min..=x.end });
                     } else {
-                        if last.is_ascii_digit() {
-                            parts.push(part);
-                            part = Part { x, v: 0, y1: 0, y2: 0 };
-                        }
-                        if c != b'.' {
-                            symbols.push(Symbol{ t: x-1, l: y-1, b: x+1, r: y+1 });
-                        }
+                        symbols.push(Symbol{ y: y-1..=y+1, x: x.start });
                     }
-                    last = c;
                 });
-
-            if last.is_ascii_digit() {
-                parts.push(part);
-            }
         });
 
     parts.iter()
@@ -71,37 +60,29 @@ fn part_one(input: &str) -> u32
 
 fn part_two(input: &str) -> u32
 {
+    use regex::Regex;
+
+    let re = Regex::new(r"([^0-9,\.])|([0-9]+)+").unwrap();
+
     let mut parts = vec![];
     let mut gears = vec![];
 
     input.lines()
         .enumerate()
-        .for_each(|(x, line)| {
-            let mut last = b'.';
-            let mut part = Part { x, v: 0, y1: 0, y2: 0 };
-            
-            line.bytes()
-                .enumerate()
-                .for_each(|(y, c)| {
+        .for_each(|(y, line)| {
+            re.captures_iter(line)
+                .flat_map(|c| c.get(0))
+                .map(|m| (m.range(), m.as_str()))
+                .for_each(|(x, s)| {
+                    let c = s.chars().next().unwrap();
                     if c.is_ascii_digit() {
-                        part.y2 = y;
-                        if part.v == 0 { part.y1 = y; }
-                        part.v = part.v * 10 + (c - b'0') as u32;
+                        let v = s.parse::<u32>().unwrap();
+                        let x_min = if x.start == 0 { 0 } else { x.start - 1 };
+                        parts.push(Part { y, v, x: x_min..=x.end });
                     } else {
-                        if last.is_ascii_digit() {
-                            parts.push(part);
-                            part = Part { x, v: 0, y1: 0, y2: 0 };
-                        }
-                        if c == b'*' {
-                            gears.push(Symbol{ t: x-1, l: y-1, b: x+1, r: y+1 });
-                        }
+                        gears.push(Symbol { y: y-1..=y+1, x: x.start });
                     }
-                    last = c;
                 });
-
-            if last.is_ascii_digit() {
-                parts.push(part);
-            }
         });
 
     gears.iter()
@@ -111,9 +92,7 @@ fn part_two(input: &str) -> u32
 
 fn part_value(part: &Part, symbols: &[Symbol]) -> u32
 {
-    if symbols.iter().any(|sym| 
-        part.x >= sym.t && part.x <= sym.b && part.y2 >= sym.l && part.y1 <= sym.r
-    ) {
+    if symbols.iter().any(|sym| sym.y.contains(&part.y) && part.x.contains(&sym.x)) {
         part.v
     } else {
         0
@@ -126,7 +105,7 @@ fn gear_ratio(gear: &Symbol, parts: &[Part]) -> u32
     let mut idx = 0;
 
     for p in parts {
-        if p.x >= gear.t && p.x <= gear.b && p.y2 >= gear.l && p.y1 <= gear.r {
+        if gear.y.contains(&p.y) && p.x.contains(&gear.x) {
             if idx == 2 { return 0; } // too many parts
 
             pn[idx] = p.v;

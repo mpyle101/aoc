@@ -64,7 +64,7 @@ struct Hike {
 
 fn part_two(input: &str) -> i32
 {
-    use std::collections::VecDeque;
+    use rayon::prelude::*;
 
     // A key insight is: because the paths are one step
     // wide and you can't backtrack, what you essentially
@@ -77,27 +77,35 @@ fn part_two(input: &str) -> i32
     let (start, goal, ncols, trail) = load_trails(input);
     let graph = build_graph(start, goal, ncols, &trail);
 
-    let mut steps = 0;
-    let mut stack = VecDeque::from([
+    let mut steps = vec![];
+    let mut stack = vec![
         Hike { node: start, steps: 0, visited: vec![start] }
-    ]);
- 
-    while let Some(st) = stack.pop_back() {
-        if st.node == goal {
-            steps = steps.max(st.steps);
-        } else {
-            let nodes = graph.get(&st.node).unwrap();
-            stack.extend(nodes.iter()
-                .filter(|(node, _)| !st.visited.contains(node))
-                .map(|&(node, steps)| {
-                    let mut visited = st.visited.clone();
-                    visited.push(node);
-                    Hike { node, steps: st.steps + steps, visited }
-                }))
-        }
-    }
+    ];
 
-    steps
+    while !stack.is_empty() {
+        let v = stack.par_iter()
+            .filter(|st| st.node == goal)
+            .map(|st| st.steps)
+            .collect::<Vec<_>>();
+        steps.extend(v);
+
+        stack = stack.into_par_iter()
+            .filter(|st| st.node != goal)
+            .flat_map(|st| {
+                let nodes = graph.get(&st.node).unwrap();
+                nodes.iter()
+                    .filter(|(node, _)| !st.visited.contains(node))
+                    .map(|&(node, steps)| {
+                        let mut visited = st.visited.clone();
+                        visited.push(node);
+                        Hike { node, steps: st.steps + steps, visited }
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+    }
+ 
+    *steps.iter().max().unwrap()
 }
 
 fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>

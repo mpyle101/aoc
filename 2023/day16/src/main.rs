@@ -28,7 +28,8 @@ fn part_two(input: &str) -> usize
     let lcol  = ncols - 1;
     let lrow  = nrows - 1;
 
-    let mut start: Vec<_> = (0..ncols).map(|col| (DN, col)).collect();
+    let mut start = Vec::with_capacity(500);
+    start.extend((0..ncols).map(|col| (DN, col)));
     start.extend((0..ncols).map(|col| (UP, lrow * ncols + col)));
     start.extend((0..nrows).map(|row| (RT, row * ncols)));
     start.extend((0..nrows).map(|row| (LT, row * ncols + lcol)));

@@ -66,7 +66,7 @@ const RT: u8 = 0b10000000;
 fn load(input: &str) -> (usize, Vec<u8>)
 {
     let mut ncols = 0;
-    let tiles: Vec<_> = input.lines()
+    let tiles = input.lines()
         .flat_map(|line| {
             ncols = line.len();
             line.chars()

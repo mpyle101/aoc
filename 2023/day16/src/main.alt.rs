@@ -101,7 +101,7 @@ fn energized(
         }
     }
 
-    tiles.iter().filter(|t| *t & DIR_MASK > 0).count()
+    tiles.iter().filter(|t| *t & DIR_MASK).count()
 }
 
 fn radiate(ncols: usize, tiles: &[u8], ix: usize, dir: u8) -> [Option<(u8, usize)>;2]

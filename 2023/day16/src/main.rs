@@ -106,20 +106,21 @@ fn radiate(ncols: usize, tiles: &[u8], ix: usize, dir: u8) -> [Option<(u8, usize
     let lcol = ncols - 1;
 
     let tile = tiles[ix] & TILE_MASK;
-    if tile == SPLITTER_V && (dir == RT || dir == LT) {
+    let curr = tile | dir;
+    if curr == SPLITTER_V | RT || curr == SPLITTER_V | LT {
         if row > 0 { states[0] = Some((UP, ix - ncols)) }
         if row < lrow { states[1] = Some((DN, ix + ncols ))}
-    } else if tile == SPLITTER_H && (dir == UP || dir == DN) {
+    } else if curr == SPLITTER_H | UP || curr == SPLITTER_H | DN {
         if col > 0 { states[0] = Some((LT, ix - 1)) }
         if col < lcol { states[1] = Some((RT, ix + 1)) }
-    } else if tile == OPEN_SPACE || tile == SPLITTER_H || tile == SPLITTER_V {
+    } else if tile < MIRROR_FWD {
         states[0] = match dir {
             UP if row > 0    => Some((UP, ix - ncols)),
             DN if row < lrow => Some((DN, ix + ncols)),
             LT if col > 0    => Some((LT, ix - 1)),
             RT if col < lcol => Some((RT, ix + 1)),
             _ => None
-        };
+        }
     } else {
         states[0] = match (dir, tile) {
             (RT, MIRROR_FWD) if row > 0    => Some((UP, ix - ncols)),

@@ -28,40 +28,31 @@ fn part_two(input: &str) -> usize
     let lcol  = ncols - 1;
     let lrow  = nrows - 1;
 
-    let tp = (0..ncols).into_par_iter()
-        .map(|col| energized(ncols, tiles.clone(), (DN, col)))
+    let mut start: Vec<_> = (0..ncols).map(|col| (DN, col)).collect();
+    start.extend((0..ncols).map(|col| (UP, lrow * ncols + col)));
+    start.extend((0..nrows).map(|row| (RT, row * ncols)));
+    start.extend((0..nrows).map(|row| (LT, row * ncols + lcol)));
+    start.into_par_iter()
+        .map(|st| energized(ncols, tiles.clone(), st))
         .max()
-        .unwrap();
-    let bt = (0..ncols).into_par_iter()
-        .map(|col| energized(ncols, tiles.clone(), (UP, lrow * ncols + col)))
-        .max()
-        .unwrap();
-    let lt = (0..nrows).into_par_iter()
-        .map(|row| energized(ncols, tiles.clone(), (RT, row * ncols)))
-        .max()
-        .unwrap();
-    let rt = (0..nrows).into_par_iter()
-        .map(|row| energized(ncols, tiles.clone(), (LT, row * ncols + lcol)))
-        .max()
-        .unwrap();
-   
-    tp.max(bt).max(lt).max(rt)
+        .unwrap()
 }
 
 // Type of tile.
-const TILE_MASK:  u8 = 0b00001111;
 const OPEN_SPACE: u8 = 0b00000000;
 const SPLITTER_H: u8 = 0b00000001;
 const SPLITTER_V: u8 = 0b00000010;
 const MIRROR_FWD: u8 = 0b00000100;
 const MIRROR_BWD: u8 = 0b00001000;
+const TILE_MASK:  u8 = 0b00001111;
 
-// Direction a tile has been visited from.
-const DIR_MASK: u8 = 0b11110000;
+// Direction the beam is traveling when it
+// enters the tile.
 const UP: u8 = 0b00010000;
 const DN: u8 = 0b00100000;
 const LT: u8 = 0b01000000;
 const RT: u8 = 0b10000000;
+const DIR_MASK: u8 = 0b11110000;
 
 fn load(input: &str) -> (usize, Vec<u8>)
 {

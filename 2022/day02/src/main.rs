@@ -3,13 +3,15 @@ use std::ops::Index;
 fn main() {
     use std::time::Instant;
 
-    let t = Instant::now();
     let input = include_str!("../input.txt");
-    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
 
     let t = Instant::now();
-    let input = include_str!("../input.txt");
-    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> i32 {

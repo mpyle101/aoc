@@ -1,5 +1,3 @@
-use std::collections::{HashMap, HashSet};
-
 fn main()
 {
     use std::time::Instant;
@@ -15,137 +13,133 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> u32
+fn part_one(input: &str) -> usize
 {
-    let (ncols, nrows, items) = load(input);
-    energized(ncols, nrows, &items, ('>', 0))
+    let (ncols, tiles) = load(input);
+    energized(ncols, tiles, (RT, 0))
 }
 
-fn part_two(input: &str) -> u32
+fn part_two(input: &str) -> usize
 {
     use rayon::prelude::*;
 
-    let (ncols, nrows, items) = load(input);
-    let lrow = nrows - 1;
-    let lcol = ncols - 1;
+    let (ncols, tiles) = load(input);
+    let nrows = tiles.len() / ncols;
+    let lcol  = ncols - 1;
+    let lrow  = nrows - 1;
 
     let tp = (0..ncols).into_par_iter()
-        .map(|col| energized(ncols, nrows, &items, ('v', col)))
+        .map(|col| energized(ncols, tiles.clone(), (DN, col)))
         .max()
         .unwrap();
     let bt = (0..ncols).into_par_iter()
-        .map(|col| energized(ncols, nrows, &items, ('^', lrow * ncols + col)))
+        .map(|col| energized(ncols, tiles.clone(), (UP, lrow * ncols + col)))
         .max()
         .unwrap();
     let lt = (0..nrows).into_par_iter()
-        .map(|row| energized(ncols, nrows, &items, ('>', row * ncols)))
+        .map(|row| energized(ncols, tiles.clone(), (RT, row * ncols)))
         .max()
         .unwrap();
     let rt = (0..nrows).into_par_iter()
-        .map(|row| energized(ncols, nrows, &items, ('<', row * ncols + lcol)))
+        .map(|row| energized(ncols, tiles.clone(), (LT, row * ncols + lcol)))
         .max()
         .unwrap();
    
     tp.max(bt).max(lt).max(rt)
 }
 
-fn load(input: &str) -> (u32, u32, HashMap<u32, char>)
+// Type of tile.
+const TILE_MASK:  u8 = 0b00001111;
+const OPEN_SPACE: u8 = 0b00000000;
+const SPLITTER_H: u8 = 0b00000001;
+const SPLITTER_V: u8 = 0b00000010;
+const MIRROR_FWD: u8 = 0b00000100;
+const MIRROR_BWD: u8 = 0b00001000;
+
+// Direction a tile has been visited from.
+const DIR_MASK: u8 = 0b11110000;
+const UP: u8 = 0b00010000;
+const DN: u8 = 0b00100000;
+const LT: u8 = 0b01000000;
+const RT: u8 = 0b10000000;
+
+fn load(input: &str) -> (usize, Vec<u8>)
 {
-    let mut items = HashMap::new();
-
     let mut ncols = 0;
-    let mut nrows = 0;
-    input.lines()
-        .zip(0..)
-        .for_each(|(line, row)| {
-            nrows += 1;
-            ncols = line.len() as u32;
+    let tiles = input.lines()
+        .flat_map(|line| {
+            ncols = line.len();
             line.chars()
-                .zip(0..)
-                .for_each(|(c, col)| {
-                    let pos = row * ncols + col;
-                    if c != '.' {
-                        items.insert(pos, c);
-                    }
+                .map(|c| match c {
+                    '.'  => OPEN_SPACE,
+                    '-'  => SPLITTER_H,
+                    '|'  => SPLITTER_V,
+                    '/'  => MIRROR_FWD,
+                    '\\' => MIRROR_BWD,
+                    _ => panic!("Unknown tile type: {c}")
                 })
-        });
+        })
+        .collect();
 
-    (ncols, nrows, items)
+    (ncols, tiles)
 }
 
 fn energized(
-    ncols: u32,
-    nrows: u32,
-    items: &HashMap<u32, char>,
-    start: (char, u32)
-) -> u32
+    ncols: usize,
+    mut tiles: Vec<u8>,
+    start: (u8, usize)
+) -> usize
 {
-    use std::collections::VecDeque;
+    let mut beams = vec![start];
 
-    let mut seen  = HashSet::from([start]);
-    let mut tiles = HashSet::from([start.1]);
-    let mut beams = VecDeque::from([start]);
-
-    while let Some(state) = beams.pop_front() {
-        tiles.insert(state.1);
-        calc_next(state, ncols, nrows, start, items).iter()
-            .for_each(|st| if *st != start && !seen.contains(st) {
-                seen.insert(*st);
-                beams.push_back(*st);
-            })
+    while let Some((dir, ix)) = beams.pop() {
+        if tiles[ix] & dir == 0 {
+            tiles[ix] |= dir;
+            beams.extend(
+                radiate(ncols, &tiles, ix, dir).iter().flatten()
+            )
+        }
     }
 
-    tiles.len() as u32
+    tiles.iter().filter(|t| *t & DIR_MASK).count()
 }
 
-
-fn calc_next(
-    (dir, pos): (char, u32),
-    ncols: u32,
-    nrows: u32,
-    start: (char, u32),
-    items: &HashMap<u32, char>,
-) -> [(char, u32);2]
+fn radiate(ncols: usize, tiles: &[u8], ix: usize, dir: u8) -> [Option<(u8, usize)>;2]
 {
-    let row  = pos / ncols;
-    let col  = pos % ncols;
-    let lrow = nrows - 1;
+    let mut states = [None;2];
+
+    let row  = ix / ncols;
+    let col  = ix % ncols;
+    let lrow = (tiles.len() / ncols) - 1;
     let lcol = ncols - 1;
 
-    let mut states = [start;2];
-
-    if let Some(c) = items.get(&pos) {
-        if *c == '|' && (dir == '>' || dir == '<') {
-            if row > 0 { states[0] = ('^', pos - ncols); }
-            if row < lrow { states[1] = ('v', pos + ncols); }
-        } else if *c == '-' && (dir == 'v' || dir == '^') {
-            if col > 0 { states[0] = ('<', pos - 1); }
-            if col < lcol { states[1] = ('>', pos + 1); }
-        } else {
-            states[0] = match (dir, c) {
-                ('>', '-') if col < lcol => ('>', pos + 1),
-                ('>', '/') if row > 0 => ('^', pos - ncols),
-                ('<', '-') if col > 0 => ('<', pos - 1),
-                ('<', '/') if row < lrow => ('v', pos + ncols),
-                ('^', '|') if row > 0 => ('^', pos - ncols),
-                ('^', '/') if col < lcol => ('>', pos + 1),
-                ('v', '|') if row < lrow => ('v', pos + ncols),
-                ('v', '/') if col > 0 => ('<', pos - 1),
-                ('>', '\\') if row < lrow => ('v', pos + ncols),
-                ('<', '\\') if row > 0 => ('^', pos - ncols),
-                ('^', '\\') if col > 0 => ('<', pos - 1),
-                ('v', '\\') if col < lcol => ('>', pos + 1),
-                _ => start
-            }      
-        }
-    } else {
+    let tile = tiles[ix] & TILE_MASK;
+    if tile == SPLITTER_V && (dir == RT || dir == LT) {
+        if row > 0 { states[0] = Some((UP, ix - ncols)) }
+        if row < lrow { states[1] = Some((DN, ix + ncols ))}
+    } else if tile == SPLITTER_H && (dir == UP || dir == DN) {
+        if col > 0 { states[0] = Some((LT, ix - 1)) }
+        if col < lcol { states[1] = Some((RT, ix + 1)) }
+    } else if tile == OPEN_SPACE || tile == SPLITTER_H || tile == SPLITTER_V {
         states[0] = match dir {
-            '<' if col > 0 => ('<', pos - 1),
-            '^' if row > 0 => ('^', pos - ncols),
-            '>' if col < lcol => ('>', pos + 1),
-            'v' if row < lrow => ('v', pos + ncols),
-            _ => start
+            UP if row > 0    => Some((UP, ix - ncols)),
+            DN if row < lrow => Some((DN, ix + ncols)),
+            LT if col > 0    => Some((LT, ix - 1)),
+            RT if col < lcol => Some((RT, ix + 1)),
+            _ => None
         };
+    } else {
+        states[0] = match (dir, tile) {
+            (RT, MIRROR_FWD) if row > 0    => Some((UP, ix - ncols)),
+            (RT, MIRROR_BWD) if row < lrow => Some((DN, ix + ncols)),
+            (LT, MIRROR_FWD) if row < lrow => Some((DN, ix + ncols)),
+            (LT, MIRROR_BWD) if row > 0    => Some((UP, ix - ncols)),
+            (UP, MIRROR_FWD) if col < lcol => Some((RT, ix + 1)),
+            (UP, MIRROR_BWD) if col > 0    => Some((LT, ix - 1)),
+            (DN, MIRROR_FWD) if col > 0    => Some((LT, ix - 1)),
+            (DN, MIRROR_BWD) if col < lcol => Some((RT, ix + 1)),
+            _ => None
+        }
     }
 
     states

@@ -20,16 +20,16 @@ fn part_one(input: &str) -> u32
 {
     use pathfinding::prelude::dijkstra;
 
-    let mat = Matrix::from_rows(input.lines()
+    let m = Matrix::from_rows(input.lines()
         .map(|l| l.chars()
             .map(|c| c.to_digit(10).unwrap())
         )).unwrap();
 
-    let goal   = (mat.rows - 1, mat.columns - 1);
+    let goal   = (m.rows - 1, m.columns - 1);
     let start  = State { pos: (0, 0), dir: '>', moves: 0 };
     let result = dijkstra(
         &start,
-        |state| next_moves(state, 0..3, &mat).into_iter(),
+        |state| next_moves(state, 0..3, &m).into_iter().flatten(),
         |&p| p.pos == goal)
         .unwrap();
 
@@ -40,20 +40,19 @@ fn part_two(input: &str) -> u32
 {
     use pathfinding::prelude::dijkstra;
 
-    let mat = Matrix::from_rows(input.lines()
+    let m = Matrix::from_rows(input.lines()
         .map(|l| l.chars()
             .map(|c| c.to_digit(10).unwrap())
         )).unwrap();
 
-    let goal   = (mat.rows - 1, mat.columns - 1);
+    let goal   = (m.rows - 1, m.columns - 1);
     let start  = State { pos: (0, 0), dir: '>', moves: 0 };
     let result = dijkstra(
         &start,
-        |state| next_moves(state, 4..10, &mat).into_iter(),
+        |state| next_moves(state, 4..10, &m).into_iter().flatten(),
         |&st| st.pos == goal && st.moves >= 4)
         .unwrap();
 
-    //println!("{:?}", result);
     result.1
 }
 
@@ -64,32 +63,41 @@ struct State {
     moves: u8,
 }
 
-fn next_moves(state: &State, valid: Range<u8>, mat: &Matrix<u32>) -> Vec<(State, u32)>
+fn next_moves(state: &State, valid: Range<u8>, m: &Matrix<u32>) -> [Option<(State, u32)>;3]
 {
-    let mut moves = vec![];
+    let mut moves = [None;3];
 
     if state.dir == '>' {
-        moves.push(move_rt(state, &valid, mat.columns));
-        moves.push(turn_up(state, &valid));
-        moves.push(turn_dn(state, &valid, mat.rows));
+        moves[0] = move_rt(state, &valid, m.columns)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
+        moves[1] = turn_up(state, &valid)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
+        moves[2] = turn_dn(state, &valid, m.rows)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
     } else if state.dir == '<' {
-        moves.push(move_lt(state, &valid));
-        moves.push(turn_up(state, &valid));
-        moves.push(turn_dn(state, &valid, mat.rows));
+        moves[0] = move_lt(state, &valid)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
+        moves[1] = turn_up(state, &valid)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
+        moves[2] = turn_dn(state, &valid, m.rows)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
     } else if state.dir == '^' {
-        moves.push(move_up(state, &valid));
-        moves.push(turn_lt(state, &valid));
-        moves.push(turn_rt(state, &valid, mat.columns));
+        moves[0] = move_up(state, &valid)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
+        moves[1] = turn_lt(state, &valid)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
+        moves[2] = turn_rt(state, &valid, m.columns)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
     } else if state.dir == 'v' {
-        moves.push(move_dn(state, &valid, mat.rows));
-        moves.push(turn_lt(state, &valid));
-        moves.push(turn_rt(state, &valid, mat.columns));
+        moves[0] = move_dn(state, &valid, m.rows)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
+        moves[1] = turn_lt(state, &valid)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
+        moves[2] = turn_rt(state, &valid, m.columns)
+            .and_then(|st| m.get(st.pos).map(|n| (st, *n)));
     }
 
-    moves.into_iter()
-        .flatten()
-        .map(|st| (st, *mat.get(st.pos).unwrap()))
-        .collect()
+    moves
 }
 
 fn move_up(state: &State, valid: &Range<u8>) -> Option<State>

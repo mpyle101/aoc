@@ -150,17 +150,15 @@ fn part_one_alt(input: &str) -> u32
         });
 
     let mut idx = start;
-    let mut iter = inst.bytes().cycle();
     let mut steps = 0;
-    while idx != end {
+    for dir in inst.bytes().cycle() {
         steps += 1;
-        let dir = iter.next().unwrap();
-        let (l, r) = nodes[idx];
         idx = match dir {
-            b'L' => l,
-            b'R' => r,
-               _ => panic!("Unknown instruction: {dir}")
+            b'L' => nodes[idx].0,
+            b'R' => nodes[idx].1,
+               _ => panic!("Unknown instruction")
         };
+        if idx == end { break }
     }
 
     steps

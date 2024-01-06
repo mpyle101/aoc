@@ -114,34 +114,36 @@ fn tilt_west(field: &mut [Vec<char>])
 {
     let ncols = field[0].len();
 
-    for row in field.iter_mut() {
-        for col in 1..ncols {
-            if row[col] == 'O' {
-                for c in (0..col).rev() {
-                    if row[c] != '.' { break; }
-                    row[c+1] = '.';
-                    row[c] = 'O'
+    field.iter_mut()
+        .for_each(|row| {
+            for col in 1..ncols {
+                if row[col] == 'O' {
+                    for c in (0..col).rev() {
+                        if row[c] != '.' { break; }
+                        row[c+1] = '.';
+                        row[c] = 'O'
+                    }
                 }
             }
-        }
-    }
+        })
 }
 
 fn tilt_east(field: &mut [Vec<char>])
 {
     let ncols = field[0].len();
 
-    for row in field.iter_mut() {
-        for col in (0..ncols).rev() {
-            if row[col] == 'O' {
-                for c in col+1..ncols {
-                    if row[c] != '.' { break; }
-                    row[c-1] = '.';
-                    row[c] = 'O'
+    field.iter_mut()
+        .for_each(|row| {
+            for col in (0..ncols).rev() {
+                if row[col] == 'O' {
+                    for c in col+1..ncols {
+                        if row[c] != '.' { break; }
+                        row[c-1] = '.';
+                        row[c] = 'O'
+                    }
                 }
             }
-        }
-    }
+        })
 }
 
 #[allow(dead_code)]

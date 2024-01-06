@@ -77,18 +77,16 @@ fn load(input: &str) -> Vec<Vec<char>>
 
 fn tilt_north(field: &mut [Vec<char>])
 {
-    for row in 1..field.len() {
-        let cols: Vec<_> = field[row].iter()
-            .enumerate()
-            .filter(|(_, c)| **c == 'O')
-            .map(|(col, _)| col)
-            .collect();
+    let ncols = field[0].len();
 
-        for c in cols {
-            for r in (0..row).rev() {
-                if field[r][c] != '.' { break; }
-                field[r+1][c] = '.';
-                field[r][c] = 'O'
+    for row in 1..field.len() {
+        for c in 0..ncols {
+            if field[row][c] == 'O' {
+                for r in (0..row).rev() {
+                    if field[r][c] != '.' { break; }
+                    field[r+1][c] = '.';
+                    field[r][c] = 'O'
+                }
             }
         }
     }
@@ -97,19 +95,16 @@ fn tilt_north(field: &mut [Vec<char>])
 fn tilt_south(field: &mut [Vec<char>])
 {
     let nrows = field.len();
+    let ncols = field[0].len();
 
     for row in (0..nrows).rev() {
-        let cols: Vec<_> = field[row].iter()
-            .enumerate()
-            .filter(|(_, c)| **c == 'O')
-            .map(|(col, _)| col)
-            .collect();
-
-        for c in cols {
-            for r in row+1..nrows {
-                if field[r][c] != '.' { break; }
-                field[r-1][c] = '.';
-                field[r][c] = 'O'
+        for c in 0..ncols {
+            if field[row][c] == 'O' {
+                for r in row+1..nrows {
+                    if field[r][c] != '.' { break; }
+                    field[r-1][c] = '.';
+                    field[r][c] = 'O'
+                }
             }
         }
     }

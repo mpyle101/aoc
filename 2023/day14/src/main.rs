@@ -1,7 +1,3 @@
-use std::collections::HashSet;
-
-type Rocks = HashSet<u32>;
-
 fn main()
 {
     use std::time::Instant;
@@ -17,198 +13,153 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> u32
+fn part_one(input: &str) -> usize
 {
-    let (ncols, mut stones, rocks) = load(input);
-    let nrows = rocks.iter().max().unwrap() / ncols + 1;
-    stones = tilt_north(ncols, &stones, &rocks);
-    stones.iter()
-        .map(|p| nrows - p / ncols)
+    let mut field = load(input);
+    tilt_north(&mut field);
+
+    let nrows = field.len();
+    field.into_iter()
+        .enumerate()
+        .map(|(row, v)| v.into_iter()
+            .filter(|c| *c == 'O')
+            .count() * (nrows - row)
+        )
         .sum()
 }
 
-fn part_two(input: &str) -> u32
+fn part_two(input: &str) -> usize
 {
     use std::collections::HashMap;
 
-    let (ncols, mut stones, rocks) = load(input);
-    let nrows = rocks.iter().max().unwrap() / ncols + 1;
+    let mut field = load(input);
 
     let mut left = 0;
     let mut states = HashMap::new();
     for cycle in 1..=1_000_000_000 {
-        stones = tilt_north(ncols, &stones, &rocks);    
-        stones = tilt_west(ncols, &stones, &rocks);
-        stones = tilt_south(ncols, nrows, &stones, &rocks);
-        stones = tilt_east(ncols, &stones, &rocks);
+        tilt_north(&mut field);
+        tilt_west(&mut field);
+        tilt_south(&mut field);
+        tilt_east(&mut field);
     
-        if let Some(n) = states.get(&stones) {
+        if let Some(n) = states.get(&field) {
             let step = cycle - n;
             left = (1_000_000_000 - cycle) % step;
             break;
         } else {
-            states.insert(stones.clone(), cycle);
+            states.insert(field.clone(), cycle);
         }
     }
 
     for _ in 0..left {
-        stones = tilt_north(ncols, &stones, &rocks);    
-        stones = tilt_west(ncols, &stones, &rocks);
-        stones = tilt_south(ncols, nrows, &stones, &rocks);
-        stones = tilt_east(ncols, &stones, &rocks);
+        tilt_north(&mut field);
+        tilt_west(&mut field);
+        tilt_south(&mut field);
+        tilt_east(&mut field);
     }
 
-    stones.iter()
-        .map(|p| nrows - p / ncols)
+    let nrows = field.len();
+    field.into_iter()
+        .enumerate()
+        .map(|(row, v)| v.into_iter()
+            .filter(|c| *c == 'O')
+            .count() * (nrows - row)
+        )
         .sum()
 }
 
-#[allow(dead_code)]
-fn print_field(ncols: u32, nrows: u32, stones: &[u32], rocks: &Rocks)
+fn load(input: &str) -> Vec<Vec<char>>
 {
-    for row in 0..nrows {
-        for col in 0..ncols {
-            let p = row * ncols + col;
-            if stones.contains(&p) {
-                print!("O")
-            } else if rocks.contains(&p) {
-                print!("#")
-            } else {
-                print!(".")
+    input.lines()
+        .map(|line| line.chars().collect())
+        .collect()
+}
+
+fn tilt_north(field: &mut [Vec<char>])
+{
+    for row in 1..field.len() {
+        let cols: Vec<_> = field[row].iter()
+            .enumerate()
+            .filter(|(_, c)| **c == 'O')
+            .map(|(col, _)| col)
+            .collect();
+
+        for c in cols {
+            for r in (0..row).rev() {
+                if field[r][c] != '.' { break; }
+                field[r+1][c] = '.';
+                field[r][c] = 'O'
             }
         }
-        println!();
     }
 }
 
-fn load(input: &str) -> (u32, Vec<u32>, Rocks)
+fn tilt_south(field: &mut [Vec<char>])
 {
-    let mut stones = vec![];
-    let mut rocks = HashSet::new();
+    let nrows = field.len();
 
-    let mut ncols = 0;
-    input.lines()
-        .zip(0..)
-        .for_each(|(line, row)| {
-            ncols = line.len() as u32;
-            line.chars()
-                .zip(0..)
-                .for_each(|(c, col)| {
-                    let pos = row * ncols + col;
-                    if c == 'O' {
-                        stones.push(pos);
-                    } else if c == '#' {
-                        rocks.insert(pos);
-                    }
-                })
-        });
+    for row in (0..nrows).rev() {
+        let cols: Vec<_> = field[row].iter()
+            .enumerate()
+            .filter(|(_, c)| **c == 'O')
+            .map(|(col, _)| col)
+            .collect();
 
-    (ncols, stones, rocks)
-}
-
-fn tilt_north(ncols: u32, stones: &[u32], rocks: &Rocks) -> Vec<u32>
-{
-    let mut v = Vec::with_capacity(stones.len());
-
-    stones.iter()
-        .for_each(|p| {
-            let row = p / ncols;
-            let col = p % ncols;
-
-            let mut row1 = row;
-            for r in (0..row).rev() {
-                let p = r * ncols + col;
-                if v.contains(&p) || rocks.contains(&p) {
-                    break;
-                }
-
-                row1 = r
+        for c in cols {
+            for r in row+1..nrows {
+                if field[r][c] != '.' { break; }
+                field[r-1][c] = '.';
+                field[r][c] = 'O'
             }
-            v.push(row1 * ncols + col);
-        });
-
-    v.sort();
-    v
+        }
+    }
 }
 
-fn tilt_west(ncols: u32, stones: &[u32], rocks: &Rocks) -> Vec<u32>
+fn tilt_west(field: &mut [Vec<char>])
 {
-    let mut v = Vec::with_capacity(stones.len());
+    let ncols = field[0].len();
 
-    stones.iter()
-        .for_each(|p| {
-            let row = p / ncols;
-            let col = p % ncols;
-
-            if col == 0 {
-                v.push(*p)
-            } else {
-                let mut col1 = col;
+    for row in field.iter_mut() {
+        for col in 1..ncols {
+            if row[col] == 'O' {
                 for c in (0..col).rev() {
-                    let p = row * ncols + c;
-                    if v.contains(&p) || rocks.contains(&p) {
-                        break;
-                    }
-    
-                    col1 = c
+                    if row[c] != '.' { break; }
+                    row[c+1] = '.';
+                    row[c] = 'O'
                 }
-                v.push(row * ncols + col1);
             }
-        });
-
-    v.sort();
-    v
+        }
+    }
 }
 
-fn tilt_south(ncols: u32, nrows: u32, stones: &[u32], rocks: &Rocks) -> Vec<u32>
+fn tilt_east(field: &mut [Vec<char>])
 {
-    let mut v = Vec::with_capacity(stones.len());
+    let ncols = field[0].len();
 
-    stones.iter().rev()
-        .for_each(|p| {
-            let row = p / ncols;
-            let col = p % ncols;
-
-            let mut row1 = row;
-            for r in row..nrows {
-                let p = r * ncols + col;
-                if v.contains(&p) || rocks.contains(&p) {
-                    break;
+    for row in field.iter_mut() {
+        for col in (0..ncols).rev() {
+            if row[col] == 'O' {
+                for c in col+1..ncols {
+                    if row[c] != '.' { break; }
+                    row[c-1] = '.';
+                    row[c] = 'O'
                 }
-
-                row1 = r
             }
-            v.push(row1 * ncols + col);
-        });
-
-    v.sort();
-    v
+        }
+    }
 }
 
-fn tilt_east(ncols: u32, stones: &[u32], rocks: &Rocks) -> Vec<u32>
+#[allow(dead_code)]
+fn print_field(field: &[Vec<char>])
 {
-    let mut v = Vec::with_capacity(stones.len());
-
-    stones.iter().rev()
-        .for_each(|p| {
-            let row = p / ncols;
-            let col = p % ncols;
-
-            let mut col1 = col;
-            for c in col+1..ncols {
-                let p = row * ncols + c;
-                if v.contains(&p) || rocks.contains(&p) {
-                    break;
-                }
-
-                col1 = c
-            }
-            v.push(row * ncols + col1);
-        });
-
-    v.sort();
-    v
+    for row in field {
+        for c in row {
+            print!("{c}")
+        }
+        println!()
+    }
 }
+
 
 #[cfg(test)]
 mod tests {

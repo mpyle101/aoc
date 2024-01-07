@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 
 fn main()
 {
@@ -60,17 +61,18 @@ fn parse_record(line: &str) -> (&str, Vec<u32>)
 fn arrangements(springs: &str, groups: &[u32]) -> u64
 {
     let mut cache = HashMap::new();
-    count(springs, groups, &[0], &mut cache)
+    count(springs, groups, &mut vec![0], &mut cache)
 }
 
 fn count<'a>(
     springs: &'a str,
     groups: &[u32],
-    found: &[u32],
-    cache: &mut HashMap<(&'a str, Vec<u32>), u64>
+    found: &mut Vec<u32>,
+    cache: &mut HashMap<(&'a str, u64), u64>
 ) -> u64
 {
-    if let Some(n) = cache.get(&(springs, found.to_vec())) {
+    let h = calculate_hash(found);
+    if let Some(n) = cache.get(&(springs, h)) {
         return *n;
     }
 
@@ -87,33 +89,33 @@ fn count<'a>(
     }
 
     let c = springs.chars().next().unwrap();
-    
     let mut n = 0;
+
     if c == '.' {
         if found[i] == 0 {
             n += count(&springs[1..], groups, found, cache)
         } else {
-            let mut v = found.to_vec(); v.push(0);
-            n += count(&springs[1..], groups, &v, cache)
+            found.push(0);
+            n += count(&springs[1..], groups, found, cache)
         }
     } else if c == '#' {
-        let mut v = found.to_vec(); v[i] += 1;
-        n += count(&springs[1..], groups, &v, cache)
+        found[i] += 1;
+        n += count(&springs[1..], groups, found, cache)
     } else {
         // as '#'
-        let mut v = found.to_vec(); v[i] += 1;
-        n += count(&springs[1..], groups, &v, cache);
+        let mut v = found.clone(); v[i] += 1;
+        n += count(&springs[1..], groups, &mut v, cache);
  
         // as '.'
         if found[i] == 0 {
             n += count(&springs[1..], groups, found, cache)
         } else {
-            let mut v = found.to_vec(); v.push(0);
-            n += count(&springs[1..], groups, &v, cache)
+            found.push(0);
+            n += count(&springs[1..], groups, found, cache)
         }
     }
 
-    cache.insert((springs, found.to_vec()), n);
+    cache.insert((springs, h), n);
 
     n
 }
@@ -131,6 +133,15 @@ fn check(groups: &[u32], found: &[u32]) -> bool
 
     found[..i].iter().zip(groups.iter()).all(|(a, b)| a == b)
 }
+
+fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    
+    let mut hasher = DefaultHasher::new();
+    t.hash(&mut hasher);
+    hasher.finish()
+}
+
 
 #[cfg(test)]
 mod tests {

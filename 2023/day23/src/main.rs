@@ -77,17 +77,17 @@ fn part_two(input: &str) -> i32
     let (start, goal, ncols, trail) = load_trails(input);
     let graph = build_graph(start, goal, ncols, &trail);
 
-    let mut steps = vec![];
     let mut stack = vec![
         Hike { node: start, steps: 0, visited: vec![start] }
     ];
 
+    let mut count = 0;
     while !stack.is_empty() {
         let v = stack.par_iter()
             .filter(|st| st.node == goal)
             .map(|st| st.steps)
             .collect::<Vec<_>>();
-        steps.extend(v);
+        count = count.max(*v.iter().max().unwrap_or(&0));
 
         stack = stack.into_par_iter()
             .filter(|st| st.node != goal)
@@ -105,7 +105,7 @@ fn part_two(input: &str) -> i32
             .collect();
     }
  
-    *steps.iter().max().unwrap()
+    count
 }
 
 fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>

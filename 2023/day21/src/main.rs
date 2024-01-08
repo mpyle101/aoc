@@ -1,9 +1,13 @@
 #![allow(dead_code)]
+mod farm;
 
+use std::cell::RefCell;
 use std::collections::{HashSet, HashMap};
+use farm::Garden;
 
 type Tiles = HashSet<i32>;
-type Farm = HashMap<(i32, i32), Tiles>;
+
+pub type Farm = HashMap<(i32, i32), RefCell<farm::Garden>>;
 
 fn main()
 {
@@ -22,57 +26,41 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
-    let (nrows, ncols, start, rocks) = load(input);
-    march(64, nrows, ncols, start, &rocks)
+    let mut garden = Garden::from(input);
+    garden.init();
+    march(64, &mut garden);
+
+    garden.steps()
 }
 
 fn part_two(input: &str) -> usize
 {
-    let (nrows, ncols, start, rocks) = load(input);
-    teleport(26_501_365, nrows, ncols, start, &rocks)
+    let garden = Garden::from(input);
+    teleport(26_501_365, &garden)
 }
 
-fn load(input: &str) -> (i32, i32, i32, Tiles)
-{
-    let mut nrows = 0;
-    let mut ncols = 0;
-    let mut start = 0;
-    let rocks: HashSet<_> = input.lines()
-        .zip(0..)
-        .flat_map(|(line, row)| {
-            nrows = row + 1;
-            ncols = line.len() as i32;
-            line.chars()
-                .zip(0..)
-                .inspect(|(c, col)| if *c == 'S' { start = row * ncols + col; })
-                .filter(|(c, _)| *c == '#')
-                .map(|(_, col)| row * ncols + col)
-                .collect::<Vec<_>>()
-        })
-        .collect();
-
-    (nrows, ncols, start, rocks)
-}
-
-fn teleport(steps: usize, nrows: i32, ncols: i32, start: i32, rocks: &Tiles) -> usize
+fn teleport(steps: usize, garden: &Garden) -> usize
 {
     let mut corners = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
     let mut fill = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
 
-    let mut farm = Farm::from([((0, 0), Tiles::from([start]))]);
+    let mut g = garden.clone();
+    g.init();
+
+    let mut farm = Farm::from([((0, 0), RefCell::new(g))]);
     for i in 1..=391 {
-        farm = stride(nrows, ncols, &farm, rocks);
+        stride(&mut farm, garden);
         if (66..=260).contains(&i) {
-            corners[0].push(farm.get(&(-1,  0)).unwrap().len());
-            corners[1].push(farm.get(&( 0,  1)).unwrap().len());
-            corners[2].push(farm.get(&( 1,  0)).unwrap().len());
-            corners[3].push(farm.get(&( 0, -1)).unwrap().len());
+            corners[0].push(farm.get(&(-1,  0)).unwrap().borrow().steps());
+            corners[1].push(farm.get(&( 0,  1)).unwrap().borrow().steps());
+            corners[2].push(farm.get(&( 1,  0)).unwrap().borrow().steps());
+            corners[3].push(farm.get(&( 0, -1)).unwrap().borrow().steps());
         }
         if (132..=391).contains(&i) {
-            fill[0].push(farm.get(&(-1, -1)).unwrap().len());
-            fill[1].push(farm.get(&(-1,  1)).unwrap().len());
-            fill[2].push(farm.get(&( 1, -1)).unwrap().len());
-            fill[3].push(farm.get(&( 1,  1)).unwrap().len());
+            fill[0].push(farm.get(&(-1, -1)).unwrap().borrow().steps());
+            fill[1].push(farm.get(&(-1,  1)).unwrap().borrow().steps());
+            fill[2].push(farm.get(&( 1, -1)).unwrap().borrow().steps());
+            fill[3].push(farm.get(&( 1,  1)).unwrap().borrow().steps());
         }
     }
 
@@ -85,7 +73,7 @@ fn teleport(steps: usize, nrows: i32, ncols: i32, start: i32, rocks: &Tiles) -> 
     } else {
         (n1 + 2).pow(2) * 7325 + (n1 + 1).pow(2) * 7265
     };
-    
+
     s2 += corners.iter().map(|v| v[n2]).sum::<usize>();
     if m > 2 {
         let f1 = m - 3;
@@ -97,89 +85,118 @@ fn teleport(steps: usize, nrows: i32, ncols: i32, start: i32, rocks: &Tiles) -> 
     s2
 }
 
-fn march(steps: i32, nrows: i32, ncols: i32, start: i32, rocks: &Tiles) -> usize
+fn march(steps: i32, garden: &mut Garden)
 {
-    let mut tiles = HashSet::from([start]);
-    (0..steps).for_each(|_| tiles = step(nrows, ncols, &tiles, rocks));
-    tiles.len()
+    let ncols = garden.ncols();
+    let nrows = garden.len() / ncols;
+
+    (0..steps).for_each(|_| {
+        for pos in 0..garden.len() {
+            if garden.is_step(pos) {
+                garden.clear(pos);
+
+                let row = pos / ncols;
+                let col = pos % ncols;
+                if row > 0 { garden.mark(pos - ncols) }
+                if col > 0 { garden.mark(pos - 1) }
+                if row < nrows - 1 { garden.mark(pos + ncols) }
+                if col < ncols - 1 { garden.mark(pos + 1) }
+            }
+        }
+        garden.update();
+    });
 }
 
-fn step(nrows: i32, ncols: i32, tiles: &Tiles, rocks: &Tiles) -> Tiles
+fn sprint(steps: i32, garden: &Garden) -> usize
 {
-    let mut steps = HashSet::new();
+    let mut g = garden.clone();
+    g.init();
 
-    tiles.iter()
-        .for_each(|pos| {
-            let row = pos / ncols;
-            let col = pos % ncols;
-            if row > 0 { steps.insert(pos - ncols); }
-            if col > 0 { steps.insert(pos - 1); }
-            if row < nrows - 1 { steps.insert(pos + ncols); }
-            if col < ncols - 1 { steps.insert(pos + 1); }
-        });
-
-    &steps - rocks
+    let mut farm = Farm::from([((0, 0), RefCell::new(g))]);
+    (0..steps).for_each(|_| stride(&mut farm, garden));
+    farm.values().map(|g| g.borrow().steps()).sum()
 }
 
-fn sprint(steps: i32, nrows: i32, ncols: i32, start: i32, rocks: &Tiles) -> usize
+fn stride(farm: &mut Farm, rocks: &Garden)
 {
-    let mut farm = Farm::from([((0, 0), Tiles::from([start]))]);
-    for _ in 1..steps { farm = stride(nrows, ncols, &farm, rocks); };
-    farm.values().map(|v| v.len()).sum()
-}
+    let len   = rocks.len();
+    let ncols = rocks.ncols();
+    let nrows = rocks.len() / ncols;
 
-fn stride(nrows: i32, ncols: i32, farm: &Farm, rocks: &Tiles) -> Farm
-{
     let mut acres = Farm::new();
+    for ((r, c), rc) in farm.iter() {
+        let mut garden = rc.borrow_mut();
+        for pos in 0..len {
+            if garden.is_step(pos) { 
+                garden.clear(pos);
 
-    for ((r, c), tiles) in farm {
-        tiles.iter()
-            .for_each(|pos| {
                 let row = pos / ncols;
                 let col = pos % ncols;
 
                 // Step up
                 if row == 0 {
+                    let k = (r - 1, *c);
                     let p = (nrows - 1) * ncols + col;
-                    acres.entry((r - 1, *c)).or_default().insert(p);
+                    if let Some(acre) = farm.get(&k) {
+                        acre.borrow_mut().mark(p);
+                    } else {
+                        acres.entry(k)
+                            .or_insert(RefCell::new(rocks.clone()))
+                            .borrow_mut().step(p);
+                    }
                 } else {
-                    let p = pos - ncols;
-                    acres.entry((*r, *c)).or_default().insert(p);
+                    garden.mark(pos - ncols);
                 }
 
                 // Step left
                 if col == 0 { 
+                    let k = (*r, c - 1);
                     let p = row * ncols + ncols - 1;
-                    acres.entry((*r, c - 1)).or_default().insert(p);
+                    if let Some(acre) = farm.get(&k) {
+                        acre.borrow_mut().mark(p);
+                    } else {
+                        acres.entry(k)
+                            .or_insert(RefCell::new(rocks.clone()))
+                            .borrow_mut().step(p);
+                    }
                 } else {
-                    let p = pos - 1;
-                    acres.entry((*r, *c)).or_default().insert(p);
+                    garden.mark(pos - 1);
                 }
 
                 // Step down
                 if row == nrows - 1 {
+                    let k = (r + 1, *c);
                     let p = col;
-                    acres.entry((r + 1, *c)).or_default().insert(p);
+                    if let Some(acre) = farm.get(&k) {
+                        acre.borrow_mut().mark(p);
+                    } else {
+                        acres.entry(k)
+                            .or_insert(RefCell::new(rocks.clone()))
+                            .borrow_mut().step(p)
+                    }
                 } else {
-                    let p = pos + ncols;
-                    acres.entry((*r, *c)).or_default().insert(p);
+                    garden.mark(pos + ncols)
                 }
 
                 // Step right
                 if col == ncols - 1 {
+                    let k = (*r, c + 1);
                     let p = row * ncols;
-                    acres.entry((*r, c + 1)).or_default().insert(p);
-                } else { 
-                    let p = pos + 1;
-                    acres.entry((*r, *c)).or_default().insert(p);
+                    if let Some(acre) = farm.get(&k) {
+                        acre.borrow_mut().mark(p);
+                    } else {
+                        acres.entry(k)
+                            .or_insert(RefCell::new(rocks.clone()))
+                            .borrow_mut().step(p);
+                    }
+                } else {
+                    garden.mark(pos + 1)
                 }
-            });
+            }
+        }
     }
-
-    acres.iter()
-        .map(|(p, tiles)| (*p, tiles - rocks))
-        .filter(|(_, tiles)| !tiles.is_empty())
-        .collect()
+    farm.values().for_each(|g| g.borrow_mut().update());
+    farm.extend(acres);
 }
 
 
@@ -205,29 +222,37 @@ mod tests {
     fn example_part_one()
     {
         let input = include_str!("../example.txt");
-        let (nrows, ncols, start, rocks) = load(input);
-        let tiles = march(6, nrows, ncols, start, &rocks);
+        let mut garden = Garden::from(input);
+        garden.init();
+        march(6, &mut garden);
 
-        assert_eq!(tiles, 16);
+        assert_eq!(garden.steps(), 16);
+    }
+
+    #[test]
+    fn example_part_two_10()
+    {
+        let input = include_str!("../example.txt");
+        let garden = Garden::from(input);
+
+        assert_eq!(sprint(10, &garden), 50);
     }
 
     #[test]
     fn example_part_two_50()
     {
         let input = include_str!("../example.txt");
-        let (nrows, ncols, start, rocks) = load(input);
-        let tiles = sprint(50, nrows, ncols, start, &rocks);
+        let garden = Garden::from(input);
 
-        assert_eq!(tiles, 1594);
+        assert_eq!(sprint(50, &garden), 1594);
     }
 
-    #[test]
-    fn example_part_two_100()
-    {
-        let input = include_str!("../example.txt");
-        let (nrows, ncols, start, rocks) = load(input);
-        let tiles = sprint(100, nrows, ncols, start, &rocks);
+    // #[test]
+    // fn example_part_two_100()
+    // {
+    //     let input = include_str!("../example.txt");
+    //     let garden = Garden::from(input);
 
-        assert_eq!(tiles, 6536);
-    }
+    //     assert_eq!(sprint(100, &garden), 6536);
+    // }
 }

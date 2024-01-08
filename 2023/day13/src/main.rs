@@ -173,7 +173,7 @@ mod tests {
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one(input), 33106);
+        assert_eq!(part_two(input), 33106);
     }
 
     #[test]

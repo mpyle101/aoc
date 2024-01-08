@@ -228,10 +228,7 @@ fn build_graph(
 {
     use std::collections::VecDeque;
 
-    let mut graph = TrailGraph::from([
-        (start, HashSet::new()),
-        (goal, HashSet::new())
-    ]);
+    let mut graph = TrailGraph::from([(start, HashSet::new())]);
 
     let mut stack = VecDeque::from([
         Walk { 
@@ -244,8 +241,7 @@ fn build_graph(
     ]);
     while let Some(mut w) = stack.pop_back() {
         if w.pos == goal {
-            graph.entry(goal).and_modify(|e| { e.insert((w.node, w.steps)); });
-            graph.entry(w.node).and_modify(|e| { e.insert((goal, w.steps)); });
+            graph.entry(w.node).or_default().insert((goal, w.steps));
         } else {
             let steps = [w.pos - 1, w.pos + 1, w.pos - ncols, w.pos + ncols].into_iter()
                 .filter(|p| *p != w.last && trail.contains(p))
@@ -259,9 +255,7 @@ fn build_graph(
                     w.steps += 1;
                     stack.push_back(w)
                 }
-            } else if graph.entry(w.pos).or_default().insert((w.node, w.steps)) {
-                graph.entry(w.node).and_modify(|e| { e.insert((w.pos, w.steps)); });
-
+            } else if graph.entry(w.node).or_default().insert((w.pos, w.steps)) {
                 stack.extend(steps.iter()
                     .filter(|pos| !w.visited.contains(pos))
                     .map(|&pos| {

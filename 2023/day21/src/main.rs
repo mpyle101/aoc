@@ -64,25 +64,24 @@ fn teleport(steps: usize, garden: &Garden) -> usize
         }
     }
 
-    let m = (steps - 260) % 131;
-
+    let m  = (steps - 260) % 131;
     let n1 = (steps - 260) / 131;
     let n2 = (steps - 66) % 131;
-    let mut s2 = if m % 2 == 0 {
+
+    let mut count = if m % 2 == 0 {
         (n1 + 2).pow(2) * 7265 + (n1 + 1).pow(2) * 7325
     } else {
         (n1 + 2).pow(2) * 7325 + (n1 + 1).pow(2) * 7265
     };
-
-    s2 += corners.iter().map(|v| v[n2]).sum::<usize>();
+    count += corners.iter().map(|v| v[n2]).sum::<usize>();
     if m > 2 {
         let f1 = m - 3;
         let f2 = f1 + 131;
-        s2 += fill.iter().map(|v| v[f1] * (n1 + 2)).sum::<usize>();
-        s2 += fill.iter().map(|v| v[f2] * (n1 + 1)).sum::<usize>();
+        count += fill.iter().map(|v| v[f1] * (n1 + 2)).sum::<usize>();
+        count += fill.iter().map(|v| v[f2] * (n1 + 1)).sum::<usize>();
     }
 
-    s2
+    count
 }
 
 fn march(steps: i32, garden: &mut Garden)
@@ -137,8 +136,8 @@ fn stride(farm: &mut Farm, rocks: &Garden)
                 if row == 0 {
                     let k = (r - 1, *c);
                     let p = (nrows - 1) * ncols + col;
-                    if let Some(acre) = farm.get(&k) {
-                        acre.borrow_mut().mark(p);
+                    if let Some(g) = farm.get(&k) {
+                        g.borrow_mut().mark(p);
                     } else {
                         acres.entry(k)
                             .or_insert(RefCell::new(rocks.clone()))
@@ -152,8 +151,8 @@ fn stride(farm: &mut Farm, rocks: &Garden)
                 if col == 0 { 
                     let k = (*r, c - 1);
                     let p = row * ncols + ncols - 1;
-                    if let Some(acre) = farm.get(&k) {
-                        acre.borrow_mut().mark(p);
+                    if let Some(g) = farm.get(&k) {
+                        g.borrow_mut().mark(p);
                     } else {
                         acres.entry(k)
                             .or_insert(RefCell::new(rocks.clone()))
@@ -167,8 +166,8 @@ fn stride(farm: &mut Farm, rocks: &Garden)
                 if row == nrows - 1 {
                     let k = (r + 1, *c);
                     let p = col;
-                    if let Some(acre) = farm.get(&k) {
-                        acre.borrow_mut().mark(p);
+                    if let Some(g) = farm.get(&k) {
+                        g.borrow_mut().mark(p);
                     } else {
                         acres.entry(k)
                             .or_insert(RefCell::new(rocks.clone()))
@@ -182,8 +181,8 @@ fn stride(farm: &mut Farm, rocks: &Garden)
                 if col == ncols - 1 {
                     let k = (*r, c + 1);
                     let p = row * ncols;
-                    if let Some(acre) = farm.get(&k) {
-                        acre.borrow_mut().mark(p);
+                    if let Some(g) = farm.get(&k) {
+                        g.borrow_mut().mark(p);
                     } else {
                         acres.entry(k)
                             .or_insert(RefCell::new(rocks.clone()))

@@ -83,11 +83,12 @@ fn part_two(input: &str) -> i32
 
     let mut count = 0;
     while !stack.is_empty() {
-        let v = stack.par_iter()
+        let c = stack.par_iter()
             .filter(|st| st.node == goal)
             .map(|st| st.steps)
-            .collect::<Vec<_>>();
-        count = count.max(*v.iter().max().unwrap_or(&0));
+            .max()
+            .unwrap_or(0);
+        count = count.max(c);
 
         stack = stack.into_par_iter()
             .filter(|st| st.node != goal)
@@ -243,7 +244,12 @@ fn build_graph(
         if w.pos == goal {
             graph.entry(w.node).or_default().insert((goal, w.steps));
         } else {
-            let steps = [w.pos - 1, w.pos + 1, w.pos - ncols, w.pos + ncols].into_iter()
+            let steps = [
+                w.pos - 1,      // left
+                w.pos + 1,      // right
+                w.pos - ncols,  // up
+                w.pos + ncols   // down
+            ].into_iter()
                 .filter(|p| *p != w.last && trail.contains(p))
                 .collect::<Vec<_>>();
 

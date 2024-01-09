@@ -76,10 +76,12 @@ fn longest_path(graph: &TrailGraph, start: i32, goal: i32) -> i32
 {
     let mut seen = HashSet::new();
     let mut count = 0;
-    exdfs(graph, goal, start, 0, &mut seen, &mut count)
+
+    // Exhaustive depth first search.
+    edfs(graph, goal, start, 0, &mut seen, &mut count)
 }
 
-fn exdfs(
+fn edfs(
     graph: &TrailGraph,
     goal: i32,
     node: i32,
@@ -92,10 +94,9 @@ fn exdfs(
     } else if !seen.contains(&node) {
         seen.insert(node);
         for (n, c) in graph.get(&node).unwrap() {
-            exdfs(graph, goal, *n, steps + c, seen, count);
+            edfs(graph, goal, *n, steps + c, seen, count);
         }
-        // Exhaustive depth first search.
-        seen.remove(&node);
+        seen.remove(&node);     // exhaustive
     }
 
     *count

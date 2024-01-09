@@ -69,12 +69,14 @@ fn part_two(input: &str) -> i32
     // when trying to find the longest simple path.
     let (start, goal, ncols, trail) = load_trails(input);
     let graph = build_graph(start, goal, ncols, &trail);
-    
+    longest_path(&graph, start, goal)
+}
+
+fn longest_path(graph: &TrailGraph, start: i32, goal: i32) -> i32
+{
     let mut seen = HashSet::new();
     let mut count = 0;
-    exdfs(&graph, goal, start, 0, &mut seen, &mut count);
- 
-    count
+    exdfs(graph, goal, start, 0, &mut seen, &mut count)
 }
 
 fn exdfs(
@@ -83,7 +85,7 @@ fn exdfs(
     node: i32,
     steps: i32,
     seen: &mut HashSet<i32>,
-    count: &mut i32)
+    count: &mut i32) -> i32
 {
     if node == goal {
         *count = (*count).max(steps)
@@ -92,10 +94,11 @@ fn exdfs(
         for (n, c) in graph.get(&node).unwrap() {
             exdfs(graph, goal, *n, steps + c, seen, count);
         }
-
         // Exhaustive depth first search.
         seen.remove(&node);
     }
+
+    *count
 }
 
 fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>

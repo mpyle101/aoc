@@ -55,16 +55,9 @@ fn part_one(input: &str) -> i32
     steps - 1
 }
 
-#[derive(Debug)]
-struct Hike {
-    node: i32,
-    steps: i32,
-    visited: Vec<i32>,
-}
-
 fn part_two(input: &str) -> i32
 {
-    use rayon::prelude::*;
+//    use rayon::prelude::*;
 
     // A key insight is: because the paths are one step
     // wide and you can't backtrack, what you essentially
@@ -76,37 +69,33 @@ fn part_two(input: &str) -> i32
     // when trying to find the longest simple path.
     let (start, goal, ncols, trail) = load_trails(input);
     let graph = build_graph(start, goal, ncols, &trail);
-
-    let mut stack = vec![
-        Hike { node: start, steps: 0, visited: vec![start] }
-    ];
-
+    
+    let mut seen = HashSet::new();
     let mut count = 0;
-    while !stack.is_empty() {
-        let c = stack.par_iter()
-            .filter(|st| st.node == goal)
-            .map(|st| st.steps)
-            .max()
-            .unwrap_or(0);
-        count = count.max(c);
-
-        stack = stack.into_par_iter()
-            .filter(|st| st.node != goal)
-            .flat_map(|st| {
-                let nodes = graph.get(&st.node).unwrap();
-                nodes.iter()
-                    .filter(|(node, _)| !st.visited.contains(node))
-                    .map(|&(node, steps)| {
-                        let mut visited = st.visited.clone();
-                        visited.push(node);
-                        Hike { node, steps: st.steps + steps, visited }
-                    })
-                    .collect::<Vec<_>>()
-            })
-            .collect();
-    }
+    exdfs(&graph, goal, start, 0, &mut seen, &mut count);
  
     count
+}
+
+fn exdfs(
+    graph: &TrailGraph,
+    goal: i32,
+    node: i32,
+    steps: i32,
+    seen: &mut HashSet<i32>,
+    count: &mut i32)
+{
+    if node == goal {
+        *count = (*count).max(steps)
+    } else if !seen.contains(&node) {
+        seen.insert(node);
+        for (n, c) in graph.get(&node).unwrap() {
+            exdfs(graph, goal, *n, steps + c, seen, count);
+        }
+
+        // Exhaustive depth first search.
+        seen.remove(&node);
+    }
 }
 
 fn step(state: &State, ncols: i32, trail: &TrailMap) -> Vec<State>

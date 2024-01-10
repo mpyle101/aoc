@@ -122,19 +122,12 @@ fn part_two_z3(input: &str) -> i64
     for (n, st) in stones.iter().enumerate() {
         let t = Int::new_const(&ctx, format!("t{n}"));
 
-        let st_px = Int::from_i64(&ctx, st.p[0]);
-        let st_py = Int::from_i64(&ctx, st.p[1]);
-        let st_pz = Int::from_i64(&ctx, st.p[2]);
-        let st_vx = Int::from_i64(&ctx, st.v[0]);
-        let st_vy = Int::from_i64(&ctx, st.v[1]);
-        let st_vz = Int::from_i64(&ctx, st.v[2]);
-
         let x1 = &px + (&vx * &t);
         let y1 = &py + (&vy * &t);
         let z1 = &pz + (&vz * &t);
-        let x2 = st_px + (st_vx * &t);
-        let y2 = st_py + (st_vy * &t);
-        let z2 = st_pz + (st_vz * &t);
+        let x2 = st.p[0] + (st.v[0] * &t);
+        let y2 = st.p[1] + (st.v[1] * &t);
+        let z2 = st.p[2] + (st.v[2] * &t);
 
         solver.assert(&t.ge(&zero));
         solver.assert(&x1._eq(&x2));

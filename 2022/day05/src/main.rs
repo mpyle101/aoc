@@ -50,7 +50,7 @@ fn part_two(input: &str) -> String {
 }
 
 fn load_stacks(input: &str) -> Vec<Vec<char>> {
-    let mut stacks = vec![Vec::with_capacity(50);9];
+    let mut stacks = (0..9).map(|_| Vec::with_capacity(50)).collect::<Vec<_>>();
     input.lines()
         .for_each(|line| {
             let iter = line.chars().skip(1);

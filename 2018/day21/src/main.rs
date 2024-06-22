@@ -105,7 +105,7 @@ fn read_n(it: &mut std::str::Split<char>) -> Reg {
     it.next().map_or(0, |v| v.parse::<u32>().unwrap_or(0)) as Reg
 }
 
-#[allow(non_camel_case_types)]
+#[allow(non_camel_case_types, dead_code)]
 #[derive(Clone, Copy, Debug)]
 enum Opcode {
     ipx(Reg),

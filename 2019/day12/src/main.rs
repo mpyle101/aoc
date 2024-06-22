@@ -185,7 +185,7 @@ mod tests {
         let mut moons = load(data);
 
         step(1, &mut moons);
-        let expected = vec![
+        let expected = [
             Moon { pos: Triplet { x: 2, y: -1, z:  1 }, vel: Triplet { x:  3, y: -1, z: -1 } },
             Moon { pos: Triplet { x: 3, y: -7, z: -4 }, vel: Triplet { x:  1, y:  3, z:  3 } },
             Moon { pos: Triplet { x: 1, y: -7, z:  5 }, vel: Triplet { x: -3, y:  1, z: -3 } },
@@ -197,7 +197,7 @@ mod tests {
         assert_eq!(moons[3], expected[3]);
 
         step(9, &mut moons);
-        let expected = vec![
+        let expected = [
             Moon { pos: Triplet { x: 2, y:  1, z: -3 }, vel: Triplet { x: -3, y: -2, z:  1 } },
             Moon { pos: Triplet { x: 1, y: -8, z:  0 }, vel: Triplet { x: -1, y:  1, z:  3 } },
             Moon { pos: Triplet { x: 3, y: -6, z:  1 }, vel: Triplet { x:  3, y:  2, z: -3 } },
@@ -219,7 +219,7 @@ mod tests {
         let mut moons = load(data);
 
         step(100, &mut moons);
-        let expected = vec![
+        let expected = [
             Moon { pos: Triplet { x:   8, y: -12, z: -9 }, vel: Triplet { x: -7, y:   3, z:  0 } },
             Moon { pos: Triplet { x:  13, y:  16, z: -3 }, vel: Triplet { x:  3, y: -11, z: -5 } },
             Moon { pos: Triplet { x: -29, y: -11, z: -1 }, vel: Triplet { x: -3, y:   7, z:  4 } },

@@ -70,7 +70,7 @@ fn part_two(pattern: &[i32]) -> i32 {
   for _ in 0..100 {
     signal.iter().rev().zip(phase.iter_mut().rev())
       .fold(0, |acc, t| { *t.1 = (acc + t.0) % 10; acc + t.0 });
-    signal = phase.clone();
+    signal.clone_from(&phase);
   }
 
   concat(&phase[0..8])

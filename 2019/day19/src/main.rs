@@ -40,8 +40,8 @@ fn part_two(program: &str) -> i64 {
         // in the beam.
         let mut x1 = x;
         while check_beam(&mut vm, &mut pipes, &(x1, y)) {
-            if points.get(&(x1, y - 99)).is_some() &&
-               points.get(&(x1 - 99, y)).is_some()
+            if points.contains(&(x1, y - 99)) &&
+               points.contains(&(x1 - 99, y))
             {
                 return ((x1 - 99) * 10000) + (y - 99)
             }

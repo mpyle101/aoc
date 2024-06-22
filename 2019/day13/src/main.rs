@@ -65,9 +65,6 @@ fn find_tile(screen: &[i64], id: i64) -> Option<(i64, i64)> {
     Some((tiles[idx][0], tiles[idx][1]))
 }
 
-#[derive(Debug)]
-struct Tile(i64, i64, i64);
-
 #[cfg(test)]
 mod tests {
     use super::*;

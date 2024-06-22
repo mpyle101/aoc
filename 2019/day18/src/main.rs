@@ -67,7 +67,7 @@ fn solver(map: &Map) -> u32 {
     while let Some(st) = heap.pop() {
         if st.keys == 0 {
             return st.steps
-        } else if cache.get(&st).is_none() {
+        } else if !cache.contains_key(&st) {
             cache.insert(st.clone(), st.steps);
             for state in update(&st, &paths) { heap.push(state) }
         }

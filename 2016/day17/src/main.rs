@@ -91,7 +91,7 @@ where
     let mut i = 0;
     let mut longest = 0;
     let mut parents: FxIndexMap<State, usize> = FxIndexMap::default();
-    parents.insert(start.clone(), usize::max_value());
+    parents.insert(start.clone(), usize::MAX);
     while let Some((node, _)) = parents.get_index(i) {
         for st in successors(node) {
             if st.0 == goal {

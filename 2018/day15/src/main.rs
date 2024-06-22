@@ -421,7 +421,7 @@ where
 
     let mut i = 0;
     let mut parents: FxIndexMap<u16, usize> = FxIndexMap::default();
-    parents.insert(start, usize::max_value());
+    parents.insert(start, usize::MAX);
     while let Some((node, _)) = parents.get_index(i) {
         for successor in successors(*node) {
             if success(successor) {

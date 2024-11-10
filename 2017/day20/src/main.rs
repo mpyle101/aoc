@@ -48,7 +48,7 @@ impl Hash for Particle {
         state.write_i64(self.pos[0]);
         state.write_i64(self.pos[1]);
         state.write_i64(self.pos[2]);
-        state.finish();
+        let _ = state.finish();
     }
 }
 

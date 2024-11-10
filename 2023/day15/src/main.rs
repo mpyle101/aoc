@@ -22,14 +22,12 @@ fn part_one(input: &str) -> u32
 
 fn part_two(input: &str) -> u32
 {
-    let mut boxes: Vec<Vec<(&[u8], u8)>> = vec![];
-    (0..256).for_each(|_| boxes.push(Vec::new()));
+    let mut boxes: Vec<Vec<(&[u8], u8)>> = vec![Vec::new(); 256];
 
     input.split(',')
         .for_each(|s| {
-            let mut i = 0;
             let b = s.as_bytes();
-            while b[i] != b'-' && b[i] != b'=' { i += 1 }
+            let i = b.iter().position(|c| *c == b'-' || *c == b'=').unwrap();
             let label = &b[0..i];
             let slot = hash(label) as usize;
 
@@ -60,9 +58,7 @@ fn hash(s: &[u8]) -> u32
     s.iter()
         .fold(0, |mut acc, c| {
             acc += *c as u32;
-            acc *= 17;
-            acc %= 256;
-            acc
+            acc * 17 % 256
         })
 }
 
@@ -82,7 +78,7 @@ mod tests {
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one(input), 215827);
+        assert_eq!(part_two(input), 215827);
     }
 
     #[test]

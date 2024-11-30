@@ -25,15 +25,13 @@ fn part_one(input: &str) -> u32
 {
     input.lines()
         .map(|s| s.as_bytes().iter()
+            .filter(|c| c.is_ascii_digit())
             .fold((0, 0), |acc, &c| {
-                if c.is_ascii_digit() {
-                    if acc.0 == 0 {
-                        return (c - b'0', c - b'0')
-                    } else {
-                        return (acc.0, c - b'0')
-                    }
-                };
-                acc
+                if acc.0 == 0 {
+                    (c - b'0', c - b'0')
+                } else {
+                    (acc.0, c - b'0')
+                }
             }))
         .map(|(d1, d2)| d1 as u32 * 10 + d2 as u32)
         .sum()

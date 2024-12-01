@@ -16,11 +16,11 @@ fn main()
 fn part_one(input: &str) -> u32
 {
     let (mut v1, mut v2) = input.lines()
-        .fold((Vec::new(), Vec::new()), |mut acc, line| {
+        .fold((Vec::new(), Vec::new()), |(mut v1, mut v2), line| {
             let mut it = line.split_whitespace();
-            acc.0.push(it.next().unwrap().parse::<u32>().unwrap());
-            acc.1.push(it.next().unwrap().parse::<u32>().unwrap());
-            acc
+            v1.push(it.next().unwrap().parse::<u32>().unwrap());
+            v2.push(it.next().unwrap().parse::<u32>().unwrap());
+            (v1, v2)
         });
 
     v1.sort_unstable();
@@ -36,17 +36,17 @@ fn part_two(input: &str) -> u32
     use std::collections::HashMap;
 
     let (m1, m2) = input.lines()
-        .fold((HashMap::new(), HashMap::new()), |mut acc, line| {
+        .fold((HashMap::new(), HashMap::new()), |(mut m1, mut m2), line| {
             let mut it = line.split_whitespace();
             let v = it.next().unwrap().parse::<u32>().unwrap();
-            *acc.0.entry(v).or_insert(0) += 1;
+            *m1.entry(v).or_insert(0) += 1;
             let v = it.next().unwrap().parse::<u32>().unwrap();
-            *acc.1.entry(v).or_insert(0) += 1;
-            acc
+            *m2.entry(v).or_insert(0) += 1;
+            (m1, m2)
         });
 
     m1.iter()
-        .map(|(k, v)| m2.get(k).map_or(0, |n| k * v * n))
+        .filter_map(|(k, v)| m2.get(k).map(|n| k * v * n))
         .sum()
 }
 

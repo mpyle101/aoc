@@ -16,7 +16,7 @@ fn main()
 fn part_one(input: &str) -> u32
 {
     let (mut v1, mut v2) = input.lines()
-        .fold((Vec::new(), Vec::new()), |(mut v1, mut v2), line| {
+        .fold((vec![], vec![]), |(mut v1, mut v2), line| {
             let mut it = line.split_whitespace();
             v1.push(it.next().unwrap().parse::<u32>().unwrap());
             v2.push(it.next().unwrap().parse::<u32>().unwrap());

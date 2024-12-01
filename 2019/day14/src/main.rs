@@ -99,6 +99,7 @@ fn calc_fuel_step(available: u64, step: u64, specs: &mut SpecMap) -> Result<u64,
     Ok(phantom.rsrcs[0].count)
 }
 
+#[allow(clippy::manual_div_ceil)]
 fn needed(want: u64, spec: u64) -> u64 {
     // ceiling division
     (want + spec - 1) / spec

@@ -136,7 +136,7 @@ struct Image<'a> {
     tiles: &'a Tiles,
 }
 
-impl<'a> Image<'a> {
+impl Image<'_> {
     fn new(dim: i32, tiles: &Tiles) -> Image {
         Image { dim, tiles, data: HashMap::new() }
     }

@@ -37,7 +37,7 @@ fn part_two(input: &str) -> i32 {
             })
         });
 
-    return res.iter().sum();
+    res.iter().sum()
 }
 
 #[cfg(test)]

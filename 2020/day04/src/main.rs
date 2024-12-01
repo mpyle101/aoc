@@ -67,7 +67,7 @@ impl<'a> Passport<'a> {
     }
 }
 
-fn load<'a>(passports: &'a str, validate: bool) -> Vec<Passport> {
+fn load<'a>(passports: &'a str, validate: bool) -> Vec<Passport<'a>> {
     let to_tuple = |v: Vec<&'a str>| (v[0], v[1]);
     passports.split("\n\n")
         .map(|p| p.split_ascii_whitespace().collect::<Vec<&str>>())

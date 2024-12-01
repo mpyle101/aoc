@@ -98,7 +98,7 @@ enum Action<'a> {
     Literal(i64),
 }
 
-impl<'a> Action<'a> {
+impl Action<'_> {
     fn eval(&self, actions: &HashMap<&str, Action>) -> i64 {
         use Action::*;
 

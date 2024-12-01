@@ -59,7 +59,7 @@ impl<'a> From<&'a str> for RangeIter<'a>
         RangeIter { iter: s.split(' ') }
     }
 }
-impl<'a> Iterator for RangeIter<'a>
+impl Iterator for RangeIter<'_>
 {
     type Item = Range<u64>;
 

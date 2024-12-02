@@ -48,11 +48,10 @@ fn part_two(input: &str) -> usize
 fn is_safe(v: &[i32]) -> bool
 {
     let delta = sign(v[1] - v[0]);
-    v.windows(2)
-        .all(|w| { 
-            let d = w[1] - w[0];
-            sign(d) == delta && d.abs() > 0 && d.abs() < 4
-        })
+    v.windows(2).all(|w| { 
+        let d = w[1] - w[0];
+        sign(d) == delta && d.abs() > 0 && d.abs() < 4
+    })
 }
 
 fn sign(n: i32) -> i8 {

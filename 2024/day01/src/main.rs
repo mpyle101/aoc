@@ -15,12 +15,15 @@ fn main()
 
 fn part_one(input: &str) -> u32
 {
-    let (mut v1, mut v2) = input.lines()
-        .fold((vec![], vec![]), |(mut v1, mut v2), line| {
-            let mut it = line.split_whitespace();
-            v1.push(it.next().unwrap().parse::<u32>().unwrap());
-            v2.push(it.next().unwrap().parse::<u32>().unwrap());
-            (v1, v2)
+    use std::str::FromStr;
+
+    let [mut v1, mut v2] = input.lines()
+        .fold([vec![], vec![]], |mut v, line| {
+            line.split_whitespace()
+                .enumerate()
+                .filter_map(|(i, s)| u32::from_str(s).map(|n| (i, n)).ok())
+                .for_each(|(i, n)| v[i].push(n));
+            v
         });
 
     v1.sort_unstable();
@@ -33,16 +36,16 @@ fn part_one(input: &str) -> u32
 
 fn part_two(input: &str) -> u32
 {
-    use std::collections::HashMap;
+    use utils::map;
+    use std::str::FromStr;
 
-    let (m1, m2) = input.lines()
-        .fold((HashMap::new(), HashMap::new()), |(mut m1, mut m2), line| {
-            let mut it = line.split_whitespace();
-            let v = it.next().unwrap().parse::<u32>().unwrap();
-            *m1.entry(v).or_insert(0) += 1;
-            let v = it.next().unwrap().parse::<u32>().unwrap();
-            *m2.entry(v).or_insert(0) += 1;
-            (m1, m2)
+    let [m1, m2] = input.lines()
+        .fold([map![], map![]], |mut m, line| {
+            line.split_whitespace()
+                .enumerate()
+                .filter_map(|(i, s)| u32::from_str(s).map(|n| (i, n)).ok())
+                .for_each(|(i, n)| *m[i].entry(n).or_insert(0) += 1);
+            m
         });
 
     m1.iter()

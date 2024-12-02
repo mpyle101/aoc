@@ -17,12 +17,13 @@ fn part_one(input: &str) -> usize
 {
     use std::str::FromStr;
 
+    let mut v = [0; 8];
     input.lines()
         .filter_map(|line| {
-            let v = line.split(' ')
+            let len = line.split(' ')
                 .filter_map(|s| i32::from_str(s).ok())
-                .collect::<Vec<_>>();
-            is_safe(&v).then_some(0)
+                .fold(0, |i, n| { v[i] = n; i + 1 });
+            is_safe(&v, len).then_some(0)
         })
         .count()
 }
@@ -31,25 +32,26 @@ fn part_two(input: &str) -> usize
 {
     use std::str::FromStr;
 
+    let mut v = [0; 8];
     input.lines()
         .filter_map(|line| {
-            let v = line.split(' ')
+            let len = line.split(' ')
                 .filter_map(|s| i32::from_str(s).ok())
-                .collect::<Vec<_>>();
-            (is_safe(&v) || (0..v.len()).any(|i| {
-                let mut v1 = v.clone();
+                .fold(0, |i, n| { v[i] = n; i + 1 });
+            (is_safe(&v, len) || (0..len).any(|i| {
+                let mut v1 = v.to_vec();
                 v1.remove(i);
-                is_safe(&v1)
+                is_safe(&v1, len-1)
             })).then_some(0)
         })
         .count()
 }
 
-fn is_safe(v: &[i32]) -> bool
+fn is_safe(v: &[i32], len: usize) -> bool
 {
     let delta = sign(v[1] - v[0]);
-    v.windows(2).all(|w| { 
-        let d = w[1] - w[0];
+    (1..len).all(|i| {
+        let d = v[i] - v[i-1];
         sign(d) == delta && (1..4).contains(&d.abs())
     })
 }

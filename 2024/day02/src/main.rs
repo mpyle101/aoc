@@ -32,16 +32,18 @@ fn part_two(input: &str) -> usize
 {
     use std::str::FromStr;
 
-    let mut v = [0; 8];
+    let mut v = [0;8];
+    let mut w = [0;7];
     input.lines()
         .filter_map(|line| {
             let len = line.split(' ')
                 .filter_map(|s| i32::from_str(s).ok())
                 .fold(0, |i, n| { v[i] = n; i + 1 });
             (is_safe(&v, len) || (0..len).any(|i| {
-                let mut v1 = v.to_vec();
-                v1.remove(i);
-                is_safe(&v1, len-1)
+                let mut ix = 0;
+                (0..i).for_each(|x| { w[ix] = v[x]; ix += 1; });
+                (i+1..len).for_each(|x| { w[ix] = v[x]; ix += 1; });
+                is_safe(&w, len-1)
             })).then_some(0)
         })
         .count()

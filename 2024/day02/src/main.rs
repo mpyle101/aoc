@@ -50,7 +50,7 @@ fn is_safe(v: &[i32]) -> bool
     let delta = sign(v[1] - v[0]);
     v.windows(2).all(|w| { 
         let d = w[1] - w[0];
-        sign(d) == delta && d.abs() > 0 && d.abs() < 4
+        sign(d) == delta && (1..4).contains(&d.abs())
     })
 }
 
@@ -61,6 +61,7 @@ fn sign(n: i32) -> i8 {
         _ => -1
     }
 }
+
 
 #[cfg(test)]
 mod tests {

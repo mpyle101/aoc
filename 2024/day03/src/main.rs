@@ -42,12 +42,12 @@ fn part_one_a(input: &str) -> u32
     use std::iter::from_fn;
 
     input.lines()
-        .map(|line| {
+        .fold(0, |mut acc, line| {
             let mut i = 0;
-            let mut sum = 0;
             while let Some(ix) = line[i..].find("mul(") {
                 i += ix + 4;
                 let mut chars = line[i..].chars().peekable();
+
                 let v1 = from_fn(|| chars.next_if(|c| c.is_ascii_digit()))
                     .fold(0, |acc, c| { i += 1; acc * 10 + c.to_digit(10).unwrap() });
                 if v1 > 0 && chars.peek() == Some(&',') {
@@ -59,13 +59,12 @@ fn part_one_a(input: &str) -> u32
                     if v2 > 0 && chars.peek() == Some(&')') {
                         chars.next();
                         i += 1;
-                        sum += v1 * v2;
+                        acc += v1 * v2;
                     }
                 }
             }
-            sum
+            acc
         })
-        .sum()
 }
 
 fn part_two(input: &str) -> i32

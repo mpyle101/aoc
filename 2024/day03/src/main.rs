@@ -46,13 +46,14 @@ fn part_two(input: &str) -> i32
             re.captures_iter(line)
                 .map(|c| {
                     match &c[0] {
-                        "do()"    => { enabled = true; 0},
-                        "don't()" => { enabled = false; 0 },
-                        _ => if enabled {
+                        "do()"       => { enabled = true; 0 },
+                        "don't()"    => { enabled = false; 0 },
+                        _ if enabled => {
                                 let v1 = i32::from_str(&c[1]).unwrap();
                                 let v2 = i32::from_str(&c[2]).unwrap();
                                 v1 * v2
-                            } else { 0 }
+                            },
+                        _ => 0
                     }
                 })
                 .sum::<i32>()

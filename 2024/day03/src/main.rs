@@ -44,7 +44,7 @@ fn part_two(input: &str) -> i32
     input.lines()
         .map(|line| {
             re.captures_iter(line)
-                .map(|c| {
+                .map(|c|
                     match &c[0] {
                         "do()"       => { enabled = true; 0 },
                         "don't()"    => { enabled = false; 0 },
@@ -55,7 +55,7 @@ fn part_two(input: &str) -> i32
                             },
                         _ => 0
                     }
-                })
+                )
                 .sum::<i32>()
         })
         .sum()

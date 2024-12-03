@@ -6,11 +6,15 @@ fn main()
 
     let t = Instant::now();
     let result = part_one(input);
-    println!("Part 1: {} ({:?})", result, t.elapsed());
+    println!("Part 1:  {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_one_a(input);
+    println!("Part 1a: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
     let result = part_two(input);
-    println!("Part 2: {} ({:?})", result, t.elapsed());
+    println!("Part 2:  {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> i32
@@ -29,6 +33,40 @@ fn part_one(input: &str) -> i32
                    v1 * v2
                 })
                 .sum::<i32>()
+        })
+        .sum()
+}
+
+#[allow(clippy::to_digit_is_some)]
+fn part_one_a(input: &str) -> i32
+{
+    use std::iter::from_fn;
+
+    input.lines()
+        .map(|line| {
+            let mut i = 0;
+            let mut sum = 0;
+            while let Some(ix) = line[i..].find("mul(") {
+                i += ix + 4;
+                let mut chars = line[i..].chars().peekable();
+                let s1: String = from_fn(|| chars.next_if(|c| c.to_digit(10).is_some())).collect();
+                i += s1.len();
+                if !s1.is_empty() && chars.peek() == Some(&',') {
+                    chars.next();
+                    i += 1;
+
+                    let s2: String = from_fn(|| chars.next_if(|c| c.to_digit(10).is_some())).collect();
+                    i += s2.len();
+                    if !s2.is_empty() && chars.peek() == Some(&')') {
+                        chars.next();
+                        i += 1;
+                        let v1 = s1.parse::<i32>().unwrap();
+                        let v2 = s2.parse::<i32>().unwrap();
+                        sum += v1 * v2;
+                    }
+                }
+            }
+            sum
         })
         .sum()
 }

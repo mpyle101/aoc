@@ -37,7 +37,6 @@ fn part_one(input: &str) -> i32
         .sum()
 }
 
-#[allow(clippy::to_digit_is_some)]
 fn part_one_a(input: &str) -> i32
 {
     use std::iter::from_fn;
@@ -49,13 +48,13 @@ fn part_one_a(input: &str) -> i32
             while let Some(ix) = line[i..].find("mul(") {
                 i += ix + 4;
                 let mut chars = line[i..].chars().peekable();
-                let s1: String = from_fn(|| chars.next_if(|c| c.to_digit(10).is_some())).collect();
+                let s1: String = from_fn(|| chars.next_if(|c| c.is_ascii_digit())).collect();
                 i += s1.len();
                 if !s1.is_empty() && chars.peek() == Some(&',') {
                     chars.next();
                     i += 1;
 
-                    let s2: String = from_fn(|| chars.next_if(|c| c.to_digit(10).is_some())).collect();
+                    let s2: String = from_fn(|| chars.next_if(|c| c.is_ascii_digit())).collect();
                     i += s2.len();
                     if !s2.is_empty() && chars.peek() == Some(&')') {
                         chars.next();

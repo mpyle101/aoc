@@ -37,7 +37,7 @@ fn part_one(input: &str) -> i32
         .sum()
 }
 
-fn part_one_a(input: &str) -> i32
+fn part_one_a(input: &str) -> u32
 {
     use std::iter::from_fn;
 
@@ -48,19 +48,17 @@ fn part_one_a(input: &str) -> i32
             while let Some(ix) = line[i..].find("mul(") {
                 i += ix + 4;
                 let mut chars = line[i..].chars().peekable();
-                let s1: String = from_fn(|| chars.next_if(|c| c.is_ascii_digit())).collect();
-                i += s1.len();
-                if !s1.is_empty() && chars.peek() == Some(&',') {
+                let v1 = from_fn(|| chars.next_if(|c| c.is_ascii_digit()))
+                    .fold(0, |acc, c| { i += 1; acc * 10 + c.to_digit(10).unwrap() });
+                if v1 > 0 && chars.peek() == Some(&',') {
                     chars.next();
                     i += 1;
 
-                    let s2: String = from_fn(|| chars.next_if(|c| c.is_ascii_digit())).collect();
-                    i += s2.len();
-                    if !s2.is_empty() && chars.peek() == Some(&')') {
+                    let v2 = from_fn(|| chars.next_if(|c| c.is_ascii_digit()))
+                        .fold(0, |acc, c| { i += 1; acc * 10 + c.to_digit(10).unwrap() });
+                    if v2 > 0 && chars.peek() == Some(&')') {
                         chars.next();
                         i += 1;
-                        let v1 = s1.parse::<i32>().unwrap();
-                        let v2 = s2.parse::<i32>().unwrap();
                         sum += v1 * v2;
                     }
                 }

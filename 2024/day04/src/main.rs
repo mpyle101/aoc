@@ -10,7 +10,7 @@ fn main()
 
     let t = Instant::now();
     let result = part_two(input);
-    println!("Part 1: {} ({:?})", result, t.elapsed());
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> u32

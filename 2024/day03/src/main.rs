@@ -5,19 +5,16 @@ fn main()
     let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let result = part_one(input);
-    println!("Part 1:  {} ({:?})", result, t.elapsed());
+    let result = part_one_parsing(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
-    let result = part_one_a(input);
-    println!("Part 1a: {} ({:?})", result, t.elapsed());
-
-    let t = Instant::now();
-    let result = part_two(input);
-    println!("Part 2:  {} ({:?})", result, t.elapsed());
+    let result = part_two_matches(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> i32
+#[allow(dead_code)]
+fn part_one_captures(input: &str) -> i32
 {
     use std::str::FromStr;
     use regex::Regex;
@@ -28,16 +25,16 @@ fn part_one(input: &str) -> i32
         .map(|line| {
             re.captures_iter(line)
                 .map(|c| {
-                   let v1 = i32::from_str(&c[1]).unwrap();
-                   let v2 = i32::from_str(&c[2]).unwrap();
-                   v1 * v2
+                    let v1 = i32::from_str(&c[1]).unwrap();
+                    let v2 = i32::from_str(&c[2]).unwrap();
+                    v1 * v2
                 })
                 .sum::<i32>()
         })
         .sum()
 }
 
-fn part_one_a(input: &str) -> u32
+fn part_one_parsing(input: &str) -> u32
 {
     use std::iter::from_fn;
 
@@ -67,7 +64,30 @@ fn part_one_a(input: &str) -> u32
         })
 }
 
-fn part_two(input: &str) -> i32
+#[allow(dead_code)]
+fn part_one_matches(input: &str) -> i32
+{
+    use std::str::FromStr;
+    use regex::Regex;
+
+    let re = Regex::new(r"mul\(\d+,\d+\)").unwrap();
+
+    input.lines()
+        .map(|line| {
+            re.find_iter(line)
+                .map(|m| {
+                    let (s1, s2) = m.as_str().split_once(',').unwrap();
+                    let v1 = i32::from_str(&s1[4..]).unwrap();
+                    let v2 = i32::from_str(&s2[..s2.len() - 1]).unwrap();
+                    v1 * v2
+                })
+                .sum::<i32>()
+        })
+        .sum()
+}
+
+#[allow(dead_code)]
+fn part_two_captures(input: &str) -> i32
 {
     use std::str::FromStr;
     use regex::Regex;
@@ -95,6 +115,35 @@ fn part_two(input: &str) -> i32
         .sum()
 }
 
+fn part_two_matches(input: &str) -> i32
+{
+    use std::str::FromStr;
+    use regex::Regex;
+
+    let re = Regex::new(r"mul\(\d+,\d+\)|do\(\)|don't\(\)").unwrap();
+
+    let mut enabled = true;
+    input.lines()
+        .map(|line| {
+            re.find_iter(line)
+                .map(|m| {
+                    match m.as_str() {
+                        "do()"       => { enabled = true; 0 },
+                        "don't()"    => { enabled = false; 0 },
+                        _ if enabled => {
+                                let (s1, s2) = m.as_str().split_once(',').unwrap();
+                                let v1 = i32::from_str(&s1[4..]).unwrap();
+                                let v2 = i32::from_str(&s2[..s2.len() - 1]).unwrap();
+                                v1 * v2
+                            },
+                        _ => 0
+                    }
+                })
+                .sum::<i32>()
+        })
+        .sum()
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -104,27 +153,27 @@ mod tests {
     fn input_part_one()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one(input), 182780583);
+        assert_eq!(part_one_parsing(input), 182780583);
     }
 
     #[test]
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_two(input), 90772405);
+        assert_eq!(part_two_matches(input), 90772405);
     }
 
     #[test]
     fn example_part_one()
     {
         let input = include_str!("../example1.txt");
-        assert_eq!(part_one(input), 161);
+        assert_eq!(part_one_parsing(input), 161);
     }
 
     #[test]
     fn example_part_two()
     {
         let input = include_str!("../example2.txt");
-        assert_eq!(part_two(input), 48);
+        assert_eq!(part_two_matches(input), 48);
     }
 }

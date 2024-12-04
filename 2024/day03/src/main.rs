@@ -9,29 +9,8 @@ fn main()
     println!("Part 1: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
-    let result = part_two_matches(input);
+    let result = part_two_matching(input);
     println!("Part 2: {} ({:?})", result, t.elapsed());
-}
-
-#[allow(dead_code)]
-fn part_one_captures(input: &str) -> i32
-{
-    use std::str::FromStr;
-    use regex::Regex;
-
-    let re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
-
-    input.lines()
-        .map(|line| {
-            re.captures_iter(line)
-                .map(|c| {
-                    let v1 = i32::from_str(&c[1]).unwrap();
-                    let v2 = i32::from_str(&c[2]).unwrap();
-                    v1 * v2
-                })
-                .sum::<i32>()
-        })
-        .sum()
 }
 
 fn part_one_parsing(input: &str) -> u32
@@ -65,7 +44,7 @@ fn part_one_parsing(input: &str) -> u32
 }
 
 #[allow(dead_code)]
-fn part_one_matches(input: &str) -> i32
+fn part_one_matching(input: &str) -> i32
 {
     use std::str::FromStr;
     use regex::Regex;
@@ -87,35 +66,27 @@ fn part_one_matches(input: &str) -> i32
 }
 
 #[allow(dead_code)]
-fn part_two_captures(input: &str) -> i32
+fn part_one_capturing(input: &str) -> i32
 {
     use std::str::FromStr;
     use regex::Regex;
 
-    let re = Regex::new(r"mul\((\d+),(\d+)\)|do\(\)|don't\(\)").unwrap();
+    let re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
 
-    let mut enabled = true;
     input.lines()
         .map(|line| {
             re.captures_iter(line)
-                .map(|c|
-                    match &c[0] {
-                        "do()"       => { enabled = true; 0 },
-                        "don't()"    => { enabled = false; 0 },
-                        _ if enabled => {
-                                let v1 = i32::from_str(&c[1]).unwrap();
-                                let v2 = i32::from_str(&c[2]).unwrap();
-                                v1 * v2
-                            },
-                        _ => 0
-                    }
-                )
+                .map(|c| {
+                    let v1 = i32::from_str(&c[1]).unwrap();
+                    let v2 = i32::from_str(&c[2]).unwrap();
+                    v1 * v2
+                })
                 .sum::<i32>()
         })
         .sum()
 }
 
-fn part_two_matches(input: &str) -> i32
+fn part_two_matching(input: &str) -> i32
 {
     use std::str::FromStr;
     use regex::Regex;
@@ -144,36 +115,106 @@ fn part_two_matches(input: &str) -> i32
         .sum()
 }
 
+#[allow(dead_code)]
+fn part_two_capturing(input: &str) -> i32
+{
+    use std::str::FromStr;
+    use regex::Regex;
+
+    let re = Regex::new(r"mul\((\d+),(\d+)\)|do\(\)|don't\(\)").unwrap();
+
+    let mut enabled = true;
+    input.lines()
+        .map(|line| {
+            re.captures_iter(line)
+                .map(|c|
+                    match &c[0] {
+                        "do()"       => { enabled = true; 0 },
+                        "don't()"    => { enabled = false; 0 },
+                        _ if enabled => {
+                                let v1 = i32::from_str(&c[1]).unwrap();
+                                let v2 = i32::from_str(&c[2]).unwrap();
+                                v1 * v2
+                            },
+                        _ => 0
+                    }
+                )
+                .sum::<i32>()
+        })
+        .sum()
+}
+
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn input_part_one()
+    fn input_part_one_parsing()
     {
         let input = include_str!("../input.txt");
         assert_eq!(part_one_parsing(input), 182780583);
     }
-
     #[test]
-    fn input_part_two()
+    fn input_part_one_matching()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_two_matches(input), 90772405);
+        assert_eq!(part_one_matching(input), 182780583);
     }
 
     #[test]
-    fn example_part_one()
+    fn input_part_one_capturing()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one_capturing(input), 182780583);
+    }
+
+    #[test]
+    fn input_part_two_matching()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two_matching(input), 90772405);
+    }
+
+    #[test]
+    fn input_part_two_capturing()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two_capturing(input), 90772405);
+    }
+
+    #[test]
+    fn example_part_one_parsing()
     {
         let input = include_str!("../example1.txt");
         assert_eq!(part_one_parsing(input), 161);
     }
 
     #[test]
-    fn example_part_two()
+    fn example_part_one_matching()
+    {
+        let input = include_str!("../example1.txt");
+        assert_eq!(part_one_matching(input), 161);
+    }
+
+    #[test]
+    fn example_part_one_capturing()
+    {
+        let input = include_str!("../example1.txt");
+        assert_eq!(part_one_capturing(input), 161);
+    }
+
+    #[test]
+    fn example_part_two_matching()
     {
         let input = include_str!("../example2.txt");
-        assert_eq!(part_two_matches(input), 48);
+        assert_eq!(part_two_matching(input), 48);
+    }
+
+    #[test]
+    fn example_part_two_capturing()
+    {
+        let input = include_str!("../example2.txt");
+        assert_eq!(part_two_capturing(input), 48);
     }
 }

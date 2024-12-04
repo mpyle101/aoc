@@ -16,29 +16,29 @@ fn main()
 fn part_one(input: &str) -> u32
 {
     let mut ncols = 0;
-    let m = input.lines()
+    let puzzle = input.lines()
         .fold(Vec::with_capacity(140*140), |mut v, line| {
             ncols = line.len();
             v.extend(line.bytes());
             v
         });
 
-    let nrows = m.len() / ncols;
-    m.iter()
+    let nrows = puzzle.len() / ncols;
+    puzzle.iter()
         .enumerate()
         .filter(|(_, c)| **c == b'X')
         .map(|(i, _)| {
             let col = i % ncols;
             let row = i / ncols;
 
-            lt(&m, i, col) +
-            rt(&m, i, col, ncols) +
-            up(&m, i, row, ncols) +
-            dn(&m, i, row, nrows, ncols) +
-            up_lt(&m, i, row, col, ncols) +
-            up_rt(&m, i, row, col, ncols) +
-            dn_lt(&m, i, row, col, nrows, ncols) +
-            dn_rt(&m, i, row, col, nrows, ncols)
+            lt(&puzzle, i, col) +
+            rt(&puzzle, i, col, ncols) +
+            up(&puzzle, i, row, ncols) +
+            dn(&puzzle, i, row, nrows, ncols) +
+            up_lt(&puzzle, i, row, col, ncols) +
+            up_rt(&puzzle, i, row, col, ncols) +
+            dn_lt(&puzzle, i, row, col, nrows, ncols) +
+            dn_rt(&puzzle, i, row, col, nrows, ncols)
         })
         .sum()
 }
@@ -46,124 +46,117 @@ fn part_one(input: &str) -> u32
 fn part_two(input: &str) -> usize
 {
     let mut ncols = 0;
-    let m = input.lines()
+    let puzzle = input.lines()
         .fold(Vec::with_capacity(140*140), |mut v, line| {
             ncols = line.len();
             v.extend(line.bytes());
             v
         });
 
-    let nrows = m.len() / ncols;
-    m.iter()
+    let nrows = puzzle.len() / ncols;
+    puzzle.iter()
         .enumerate()
-        .filter(|(i, c)| **c == b'A' && x_mas(&m, *i, nrows, ncols))
+        .filter(|(i, c)| **c == b'A' && x_mas(&puzzle, *i, nrows, ncols))
         .count()
 }
 
-fn lt(m: &[u8], pos: usize, col: usize) -> u32
+fn lt(v: &[u8], i: usize, col: usize) -> u32
 {
     (
         col > 2 &&
-        m[pos - 1] == b'M' &&
-        m[pos - 2] == b'A' &&
-        m[pos - 3] == b'S'
+        v[i - 1] == b'M' &&
+        v[i - 2] == b'A' &&
+        v[i - 3] == b'S'
     ) as u32
 }
 
-fn rt(m: &[u8], pos: usize, col: usize, ncols: usize) -> u32
+fn rt(v: &[u8], i: usize, col: usize, ncols: usize) -> u32
 {
     (
         col < ncols - 3 &&
-        m[pos + 1] == b'M' &&
-        m[pos + 2] == b'A' &&
-        m[pos + 3] == b'S'
+        v[i + 1] == b'M' &&
+        v[i + 2] == b'A' &&
+        v[i + 3] == b'S'
     ) as u32
 }
 
-fn up(m: &[u8], pos: usize, row: usize, ncols: usize) -> u32
+fn up(v: &[u8], i: usize, row: usize, ncols: usize) -> u32
 {
-    let offset = ncols;
     (
         row > 2 &&
-        m[pos - offset] == b'M' &&
-        m[pos - 2 * offset] == b'A' &&
-        m[pos - 3 * offset] == b'S'
+        v[i - ncols]     == b'M' &&
+        v[i - 2 * ncols] == b'A' &&
+        v[i - 3 * ncols] == b'S'
     ) as u32
 }
 
-fn dn(m: &[u8], pos: usize, row: usize, nrows: usize, ncols: usize) -> u32
+fn dn(v: &[u8], i: usize, row: usize, nrows: usize, ncols: usize) -> u32
 {
-    let offset = ncols;
     (
         row < nrows - 3 &&
-        m[pos + offset] == b'M' &&
-        m[pos + 2 * offset] == b'A' &&
-        m[pos + 3 * offset] == b'S'
+        v[i + ncols]     == b'M' &&
+        v[i + 2 * ncols] == b'A' &&
+        v[i + 3 * ncols] == b'S'
     ) as u32
 }
 
-fn up_lt(m: &[u8], pos: usize, row: usize, col: usize, ncols: usize) -> u32
+fn up_lt(v: &[u8], i: usize, row: usize, col: usize, ncols: usize) -> u32
 {
     let offset = ncols + 1;
     (
-        col > 2 && 
-        row > 2 &&
-        m[pos - offset] == b'M' &&
-        m[pos - 2 * offset] == b'A' &&
-        m[pos - 3 * offset] == b'S'
+        col > 2 && row > 2 &&
+        v[i - offset]     == b'M' &&
+        v[i - 2 * offset] == b'A' &&
+        v[i - 3 * offset] == b'S'
     ) as u32
 }
 
-fn up_rt(m: &[u8], pos: usize, row: usize, col: usize, ncols: usize) -> u32
+fn up_rt(v: &[u8], i: usize, row: usize, col: usize, ncols: usize) -> u32
 {
     let offset = ncols - 1;
     (
-        col < ncols - 3 &&
-        row > 2 &&
-        m[pos - offset] == b'M' &&
-        m[pos - 2 * offset] == b'A' &&
-        m[pos - 3 * offset] == b'S'
+        col < ncols - 3 && row > 2 &&
+        v[i - offset]     == b'M' &&
+        v[i - 2 * offset] == b'A' &&
+        v[i - 3 * offset] == b'S'
     ) as u32
 }
 
-fn dn_lt(m: &[u8], pos: usize, row: usize, col: usize, nrows: usize, ncols: usize) -> u32
+fn dn_lt(v: &[u8], i: usize, row: usize, col: usize, nrows: usize, ncols: usize) -> u32
 {
     let offset = ncols - 1;
     (
-        col > 2 &&
-        row < nrows - 3 &&
-        m[pos + offset] == b'M' &&
-        m[pos + 2 * offset] == b'A' &&
-        m[pos + 3 * offset] == b'S'
+        col > 2 && row < nrows - 3 &&
+        v[i + offset]     == b'M' &&
+        v[i + 2 * offset] == b'A' &&
+        v[i + 3 * offset] == b'S'
     ) as u32
 }
 
-fn dn_rt(m: &[u8], pos: usize, row: usize, col: usize, nrows: usize, ncols: usize) -> u32
+fn dn_rt(v: &[u8], i: usize, row: usize, col: usize, nrows: usize, ncols: usize) -> u32
 {
     let offset = ncols + 1;
     (
-        col < ncols - 3 &&
-        row < nrows - 3 &&
-        m[pos + offset] == b'M' &&
-        m[pos + 2 * offset] == b'A' &&
-        m[pos + 3 * offset] == b'S'
+        col < ncols - 3 && row < nrows - 3 &&
+        v[i + offset]     == b'M' &&
+        v[i + 2 * offset] == b'A' &&
+        v[i + 3 * offset] == b'S'
     ) as u32
 }
 
-fn x_mas(m: &[u8], pos: usize, nrows: usize, ncols: usize) -> bool
+fn x_mas(v: &[u8], i: usize, nrows: usize, ncols: usize) -> bool
 {
-    let col = pos % ncols;
-    let row = pos / ncols;
+    let col = i % ncols;
+    let row = i / ncols;
 
-    col > 0 &&
-    row > 0 &&
+    col > 0 && row > 0 &&
     col < ncols - 1 &&
     row < nrows - 1 && (
-        (m[pos - ncols - 1] == b'M' && m[pos + ncols + 1] == b'S') ||
-        (m[pos - ncols - 1] == b'S' && m[pos + ncols + 1] == b'M')
+        (v[i - ncols - 1] == b'M' && v[i + ncols + 1] == b'S') ||
+        (v[i - ncols - 1] == b'S' && v[i + ncols + 1] == b'M')
     ) && (
-        (m[pos - ncols + 1] == b'M' && m[pos + ncols - 1] == b'S') ||
-        (m[pos - ncols + 1] == b'S' && m[pos + ncols - 1] == b'M')
+        (v[i - ncols + 1] == b'M' && v[i + ncols - 1] == b'S') ||
+        (v[i - ncols + 1] == b'S' && v[i + ncols - 1] == b'M')
     )
 }
 

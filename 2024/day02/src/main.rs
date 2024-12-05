@@ -15,13 +15,11 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
-    use std::str::FromStr;
-
     let mut v = [0; 8];
     input.lines()
         .filter_map(|line| {
             let len = line.split(' ')
-                .filter_map(|s| i32::from_str(s).ok())
+                .filter_map(|s| s.parse().ok())
                 .fold(0, |i, n| { v[i] = n; i + 1 });
             is_safe(&v, len).then_some(0)
         })
@@ -30,14 +28,12 @@ fn part_one(input: &str) -> usize
 
 fn part_two(input: &str) -> usize
 {
-    use std::str::FromStr;
-
     let mut v = [0;8];
     let mut w = [0;7];
     input.lines()
         .filter_map(|line| {
             let len = line.split(' ')
-                .filter_map(|s| i32::from_str(s).ok())
+                .filter_map(|s| s.parse().ok())
                 .fold(0, |i, n| { v[i] = n; i + 1 });
             (is_safe(&v, len) || (0..len).any(|i| {
                 let mut ix = 0;

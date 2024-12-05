@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-type Rules<'a> = HashMap<&'a str, Vec<&'a str>>;
+type Rules = HashMap<u32, Vec<u32>>;
 
 fn main()
 {
@@ -25,15 +25,18 @@ fn part_one(input: &str) -> u32
     let rules = s1.lines()
         .filter_map(|line| line.split_once('|'))
         .fold(Rules::new(), |mut m, (a, b)| {
-            m.entry(a).or_default().push(b);
+            let a1 = u32::from_str(a).unwrap();
+            let b1 = u32::from_str(b).unwrap();
+            m.entry(a1).or_default().push(b1);
             m
         });
 
     s2.lines()
-        .map(|line| line.split(',').collect::<Vec<_>>())
+        .map(|line| line.split(',')
+            .filter_map(|s| u32::from_str(s).ok())
+            .collect::<Vec<_>>())
         .filter(|v| is_ordered(&rules, v))
         .map(|v| v[v.len() / 2])
-        .filter_map(|s| u32::from_str(s).ok())
         .sum()
 }
 
@@ -45,23 +48,26 @@ fn part_two(input: &str) -> u32
     let rules = s1.lines()
         .filter_map(|line| line.split_once('|'))
         .fold(Rules::new(), |mut m, (a, b)| {
-            m.entry(a).or_default().push(b);
+            let a1 = u32::from_str(a).unwrap();
+            let b1 = u32::from_str(b).unwrap();
+            m.entry(a1).or_default().push(b1);
             m
         });
 
     s2.lines()
-        .map(|line| line.split(',').collect::<Vec<_>>())
+        .map(|line| line.split(',')
+            .filter_map(|s| u32::from_str(s).ok())
+            .collect::<Vec<_>>())
         .filter_map(|mut v| is_reordered(&rules, &mut v).then_some(v) )
         .map(|v| v[v.len() / 2])
-        .filter_map(|s| u32::from_str(s).ok())
         .sum()
 }
 
-fn is_ordered(rules: &Rules, v: &[&str]) -> bool
+fn is_ordered(rules: &Rules, v: &[u32]) -> bool
 {
     for i in 0..v.len()-1 {
         for j in i+1..v.len() {
-            if let Some(r) = rules.get(v[j]) {
+            if let Some(r) = rules.get(&v[j]) {
                 if r.contains(&v[i]) {
                     return false
                 }
@@ -72,13 +78,13 @@ fn is_ordered(rules: &Rules, v: &[&str]) -> bool
     true
 }
 
-fn is_reordered(rules: &Rules, v: &mut [&str]) -> bool
+fn is_reordered(rules: &Rules, v: &mut [u32]) -> bool
 {
     let mut reordered = false;
 
     for i in 0..v.len()-1 {
         for j in i+1..v.len() {
-            if let Some(r) = rules.get(v[j]) {
+            if let Some(r) = rules.get(&v[j]) {
                 if r.contains(&v[i]) {
                     v.swap(i, j);
                     reordered = true;

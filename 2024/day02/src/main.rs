@@ -51,19 +51,11 @@ fn part_two(input: &str) -> usize
 
 fn is_safe(v: &[i32], len: usize) -> bool
 {
-    let delta = sign(v[1] - v[0]);
+    let dir = (v[1] - v[0]).signum();
     (1..len).all(|i| {
         let d = v[i] - v[i-1];
-        sign(d) == delta && (1..4).contains(&d.abs())
+        d.signum() == dir && (1..4).contains(&d.abs())
     })
-}
-
-fn sign(n: i32) -> i8 {
-    match n {
-        n if n > 0 => 1,
-        0 => 0,
-        _ => -1
-    }
 }
 
 

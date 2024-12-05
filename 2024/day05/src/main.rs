@@ -19,19 +19,19 @@ fn main()
 
 fn part_one(input: &str) -> u32
 {
-    let (s_rules, s_pages) = input.split_once("\n\n").unwrap();
-    let mut rules = s_rules.lines()
+    let (rules, pages) = input.split_once("\n\n").unwrap();
+    let mut rules = rules.lines()
         .filter_map(|line| line.split_once('|'))
-        .fold(Rules::new(), |mut m, (sa, sb)| {
-            let a = sa.parse().unwrap();
-            let b = sb.parse().unwrap();
+        .fold(Rules::new(), |mut m, (a, b)| {
+            let a = a.parse().unwrap();
+            let b = b.parse().unwrap();
             m.entry(a).or_default().push(b);
             m
         });
     rules.iter_mut()
         .for_each(|(_, v)| v.sort_unstable());
 
-    s_pages.lines()
+    pages.lines()
         .map(|line| line.split(',')
             .filter_map(|s| s.parse().ok())
             .collect::<Vec<_>>())
@@ -42,19 +42,19 @@ fn part_one(input: &str) -> u32
 
 fn part_two(input: &str) -> u32
 {
-    let (s_rules, s_pages) = input.split_once("\n\n").unwrap();
-    let mut rules = s_rules.lines()
+    let (rules, pages) = input.split_once("\n\n").unwrap();
+    let mut rules = rules.lines()
         .filter_map(|line| line.split_once('|'))
-        .fold(Rules::new(), |mut m, (sa, sb)| {
-            let a = sa.parse().unwrap();
-            let b = sb.parse().unwrap();
+        .fold(Rules::new(), |mut m, (a, b)| {
+            let a = a.parse().unwrap();
+            let b = b.parse().unwrap();
             m.entry(a).or_default().push(b);
             m
         });
     rules.iter_mut()
         .for_each(|(_, v)| v.sort_unstable());
 
-    s_pages.lines()
+    pages.lines()
         .map(|line| line.split(',')
             .filter_map(|s| s.parse().ok())
             .collect::<Vec<_>>())

@@ -19,8 +19,8 @@ fn main()
 
 fn part_one(input: &str) -> u32
 {
-    let (s1, s2) = input.split_once("\n\n").unwrap();
-    let mut rules = s1.lines()
+    let (s_rules, s_pages) = input.split_once("\n\n").unwrap();
+    let mut rules = s_rules.lines()
         .filter_map(|line| line.split_once('|'))
         .fold(Rules::new(), |mut m, (sa, sb)| {
             let a = sa.parse().unwrap();
@@ -31,7 +31,7 @@ fn part_one(input: &str) -> u32
     rules.iter_mut()
         .for_each(|(_, v)| v.sort_unstable());
 
-    s2.lines()
+    s_pages.lines()
         .map(|line| line.split(',')
             .filter_map(|s| s.parse().ok())
             .collect::<Vec<_>>())
@@ -42,8 +42,8 @@ fn part_one(input: &str) -> u32
 
 fn part_two(input: &str) -> u32
 {
-    let (s1, s2) = input.split_once("\n\n").unwrap();
-    let mut rules = s1.lines()
+    let (s_rules, s_pages) = input.split_once("\n\n").unwrap();
+    let mut rules = s_rules.lines()
         .filter_map(|line| line.split_once('|'))
         .fold(Rules::new(), |mut m, (sa, sb)| {
             let a = sa.parse().unwrap();
@@ -54,7 +54,7 @@ fn part_two(input: &str) -> u32
     rules.iter_mut()
         .for_each(|(_, v)| v.sort_unstable());
 
-    s2.lines()
+    s_pages.lines()
         .map(|line| line.split(',')
             .filter_map(|s| s.parse().ok())
             .collect::<Vec<_>>())

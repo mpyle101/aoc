@@ -22,7 +22,7 @@ fn part_one(input: &str) -> u32
     use std::str::FromStr;
 
     let (s1, s2) = input.split_once("\n\n").unwrap();
-    let rules = s1.lines()
+    let mut rules = s1.lines()
         .filter_map(|line| line.split_once('|'))
         .fold(Rules::new(), |mut m, (a, b)| {
             let a1 = u32::from_str(a).unwrap();
@@ -30,6 +30,8 @@ fn part_one(input: &str) -> u32
             m.entry(a1).or_default().push(b1);
             m
         });
+    rules.iter_mut()
+        .for_each(|(_, v)| v.sort_unstable());
 
     s2.lines()
         .map(|line| line.split(',')
@@ -45,7 +47,7 @@ fn part_two(input: &str) -> u32
     use std::str::FromStr;
 
     let (s1, s2) = input.split_once("\n\n").unwrap();
-    let rules = s1.lines()
+    let mut rules = s1.lines()
         .filter_map(|line| line.split_once('|'))
         .fold(Rules::new(), |mut m, (a, b)| {
             let a1 = u32::from_str(a).unwrap();
@@ -53,6 +55,8 @@ fn part_two(input: &str) -> u32
             m.entry(a1).or_default().push(b1);
             m
         });
+    rules.iter_mut()
+        .for_each(|(_, v)| v.sort_unstable());
 
     s2.lines()
         .map(|line| line.split(',')
@@ -68,7 +72,7 @@ fn is_ordered(rules: &Rules, v: &[u32]) -> bool
     for i in 0..v.len()-1 {
         for j in i+1..v.len() {
             if let Some(r) = rules.get(&v[j]) {
-                if r.contains(&v[i]) {
+                if r.binary_search(&v[i]).is_ok() {
                     return false
                 }
             }
@@ -85,7 +89,7 @@ fn is_reordered(rules: &Rules, v: &mut [u32]) -> bool
     for i in 0..v.len()-1 {
         for j in i+1..v.len() {
             if let Some(r) = rules.get(&v[j]) {
-                if r.contains(&v[i]) {
+                if r.binary_search(&v[i]).is_ok() {
                     v.swap(i, j);
                     reordered = true;
                 }

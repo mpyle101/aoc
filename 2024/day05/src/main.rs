@@ -19,15 +19,13 @@ fn main()
 
 fn part_one(input: &str) -> u32
 {
-    use std::str::FromStr;
-
     let (s1, s2) = input.split_once("\n\n").unwrap();
     let mut rules = s1.lines()
         .filter_map(|line| line.split_once('|'))
-        .fold(Rules::new(), |mut m, (a, b)| {
-            let a1 = u32::from_str(a).unwrap();
-            let b1 = u32::from_str(b).unwrap();
-            m.entry(a1).or_default().push(b1);
+        .fold(Rules::new(), |mut m, (sa, sb)| {
+            let a = sa.parse().unwrap();
+            let b = sb.parse().unwrap();
+            m.entry(a).or_default().push(b);
             m
         });
     rules.iter_mut()
@@ -35,7 +33,7 @@ fn part_one(input: &str) -> u32
 
     s2.lines()
         .map(|line| line.split(',')
-            .filter_map(|s| u32::from_str(s).ok())
+            .filter_map(|s| s.parse().ok())
             .collect::<Vec<_>>())
         .filter(|v| is_ordered(&rules, v))
         .map(|v| v[v.len() / 2])
@@ -44,15 +42,13 @@ fn part_one(input: &str) -> u32
 
 fn part_two(input: &str) -> u32
 {
-    use std::str::FromStr;
-
     let (s1, s2) = input.split_once("\n\n").unwrap();
     let mut rules = s1.lines()
         .filter_map(|line| line.split_once('|'))
-        .fold(Rules::new(), |mut m, (a, b)| {
-            let a1 = u32::from_str(a).unwrap();
-            let b1 = u32::from_str(b).unwrap();
-            m.entry(a1).or_default().push(b1);
+        .fold(Rules::new(), |mut m, (sa, sb)| {
+            let a = sa.parse().unwrap();
+            let b = sb.parse().unwrap();
+            m.entry(a).or_default().push(b);
             m
         });
     rules.iter_mut()
@@ -60,7 +56,7 @@ fn part_two(input: &str) -> u32
 
     s2.lines()
         .map(|line| line.split(',')
-            .filter_map(|s| u32::from_str(s).ok())
+            .filter_map(|s| s.parse().ok())
             .collect::<Vec<_>>())
         .filter_map(|mut v| is_reordered(&rules, &mut v).then_some(v) )
         .map(|v| v[v.len() / 2])

@@ -51,8 +51,7 @@ fn part_two(input: &str) -> u32
 
     s2.lines()
         .map(|line| line.split(',').collect::<Vec<_>>())
-        .filter(|v| !is_ordered(&rules, v))
-        .map(|mut v| { reorder(&rules, &mut v); v })
+        .filter_map(|mut v| is_reordered(&rules, &mut v).then_some(v) )
         .map(|v| v[v.len() / 2])
         .filter_map(|s| u32::from_str(s).ok())
         .sum()
@@ -73,17 +72,22 @@ fn is_ordered(rules: &Rules, v: &[&str]) -> bool
     true
 }
 
-fn reorder(rules: &Rules, v: &mut [&str])
+fn is_reordered(rules: &Rules, v: &mut [&str]) -> bool
 {
+    let mut reordered = false;
+
     for i in 0..v.len()-1 {
         for j in i+1..v.len() {
             if let Some(r) = rules.get(v[j]) {
                 if r.contains(&v[i]) {
                     v.swap(i, j);
+                    reordered = true;
                 }
             }
         }
     }
+
+    reordered
 }
 
 

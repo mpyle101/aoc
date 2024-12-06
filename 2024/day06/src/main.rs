@@ -120,7 +120,7 @@ fn is_inbounds((row, col): (i32, i32), nrows: i32, ncols: i32) -> bool
 
 fn step((row, col): (i32, i32), dir: char, obstacles: &Obstacles) -> ((i32, i32), char)
 {
-    let mut pos = match dir {
+    let next = match dir {
         '^' => (row - 1, col),
         'v' => (row + 1, col),
         '<' => (row, col - 1),
@@ -128,19 +128,18 @@ fn step((row, col): (i32, i32), dir: char, obstacles: &Obstacles) -> ((i32, i32)
          _  => unreachable!()
     };
 
-    let mut d = dir;
-    if obstacles.contains(&pos) {
-        d = match dir {
+    if obstacles.contains(&next) {
+        let d = match dir {
             '^' => '>',
             'v' => '<',
             '<' => '^',
             '>' => 'v',
              _  => unreachable!()
         };
-        pos = (row, col);
+        ((row, col), d)
+    } else {
+        (next, dir)
     }
-
-    (pos, d)
 }
 
 

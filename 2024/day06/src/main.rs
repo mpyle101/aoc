@@ -75,6 +75,9 @@ fn part_two(input: &str) -> usize
             nrows += 1;
         });
 
+    // We only only need to add obstacles along the path the
+    // guard actually takes so regenerate that and use it get
+    // the answer.
     let start = guard;
     let mut dir = '^';
     let mut steps = HashSet::new();

@@ -49,7 +49,7 @@ fn part_one(input: &str) -> usize
     steps.len()
 }
 
-fn part_two(input: &str) -> i32
+fn part_two(input: &str) -> usize
 {
     use rayon::prelude::*;
 
@@ -76,29 +76,32 @@ fn part_two(input: &str) -> i32
         });
 
     let start = guard;
-    (0..nrows).into_par_iter()
-        .map(|r| (0..ncols).into_par_iter()
-            .filter(|c| {
-                if (r, *c) != start {
-                    let mut obs = obstacles.clone();
-                    if obs.insert((r, *c)) {
-                        let mut dir = '^';
-                        let mut guard = start;
-                        let mut steps = HashSet::new();
-                        while is_inbounds(guard, nrows, ncols) {
-                            if !steps.insert((guard, dir)) {
-                                return true;
-                            } else {
-                                (guard, dir) = step(guard, dir, &obs);
-                            }
-                        }
+    let mut dir = '^';
+    let mut steps = HashSet::new();
+    while is_inbounds(guard, nrows, ncols) {
+        steps.insert(guard);
+        (guard, dir) = step(guard, dir, &obstacles);
+    }
+
+    steps.into_par_iter()
+        .filter(|pos| pos != &start)
+        .filter(|(r, c)| {
+            let mut obs = obstacles.clone();
+            if obs.insert((*r, *c)) {
+                let mut dir = '^';
+                let mut guard = start;
+                let mut steps = HashSet::new();
+                while is_inbounds(guard, nrows, ncols) {
+                    if !steps.insert((guard, dir)) {
+                        return true;
+                    } else {
+                        (guard, dir) = step(guard, dir, &obs);
                     }
                 }
-                false
-            })
-            .count() as i32
-        )
-        .sum()
+            }
+            false
+        })
+        .count()
 }
 
 fn is_inbounds((row, col): (i32, i32), nrows: i32, ncols: i32) -> bool

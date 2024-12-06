@@ -2,7 +2,7 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../input.txt");
+    let input = include_bytes!("../input.txt");
 
     let t = Instant::now();
     let result = part_one(input);
@@ -13,13 +13,13 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> u32
+fn part_one(input: &[u8]) -> u32
 {
     let mut ncols = 0;
-    let puzzle = input.lines()
+    let puzzle = input.split(|b| b == &b'\n')
         .fold(Vec::with_capacity(140*140), |mut v, line| {
             ncols = line.len();
-            v.extend(line.bytes());
+            v.extend(line);
             v
         });
 
@@ -43,13 +43,13 @@ fn part_one(input: &str) -> u32
         .sum()
 }
 
-fn part_two(input: &str) -> usize
+fn part_two(input: &[u8]) -> usize
 {
     let mut ncols = 0;
-    let puzzle = input.lines()
+    let puzzle = input.split(|b| b == &b'\n')
         .fold(Vec::with_capacity(140*140), |mut v, line| {
             ncols = line.len();
-            v.extend(line.bytes());
+            v.extend(line);
             v
         });
 
@@ -168,28 +168,28 @@ mod tests {
     #[test]
     fn input_part_one()
     {
-        let input = include_str!("../input.txt");
+        let input = include_bytes!("../input.txt");
         assert_eq!(part_one(input), 2613);
     }
 
     #[test]
     fn input_part_two()
     {
-        let input = include_str!("../input.txt");
+        let input = include_bytes!("../input.txt");
         assert_eq!(part_two(input), 1905);
     }
 
     #[test]
     fn example_part_one()
     {
-        let input = include_str!("../example.txt");
+        let input = include_bytes!("../example.txt");
         assert_eq!(part_one(input), 18);
     }
 
     #[test]
     fn example_part_two()
     {
-        let input = include_str!("../example.txt");
+        let input = include_bytes!("../example.txt");
         assert_eq!(part_two(input), 9);
     }
 }

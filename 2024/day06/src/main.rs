@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+type Obstacles = HashSet<(i32, i32)>;
+
 fn main()
 {
     use std::time::Instant;
@@ -20,7 +22,7 @@ fn part_one(input: &str) -> usize
     let mut ncols = 0;
     let mut nrows = 0;
     let mut guard = (0, 0);
-    let mut obstacles = HashSet::new();
+    let mut obstacles = Obstacles::new();
 
     input.lines()
         .enumerate()
@@ -56,7 +58,7 @@ fn part_two(input: &str) -> usize
     let mut ncols = 0;
     let mut nrows = 0;
     let mut guard = (0, 0);
-    let mut obstacles = HashSet::new();
+    let mut obstacles = Obstacles::new();
 
     input.lines()
         .enumerate()
@@ -76,16 +78,20 @@ fn part_two(input: &str) -> usize
         });
 
     // We only only need to add obstacles along the path the
-    // guard actually takes so regenerate that and use it get
-    // the answer.
+    // guard actually takes, which is a lot fewer than the
+    // total number of open positions. The loop is slightly
+    // different because if we placed an obstacle where the
+    // guard is standing, she would see us.
     let start = guard;
     let mut dir = '^';
     let mut steps = HashSet::new();
-    while is_inbounds(guard, nrows, ncols) {
-        steps.insert(guard);
+    loop {
         (guard, dir) = step(guard, dir, &obstacles);
+        if !is_inbounds(guard, nrows, ncols) {
+            break;
+        }
+        steps.insert(guard);
     }
-    steps.remove(&start);
 
     steps.into_par_iter()
         .filter(|(r, c)| {
@@ -112,7 +118,7 @@ fn is_inbounds((row, col): (i32, i32), nrows: i32, ncols: i32) -> bool
     row > -1 && col > -1 && row < nrows && col < ncols
 }
 
-fn step((row, col): (i32, i32), dir: char, obstacles: &HashSet<(i32, i32)>) -> ((i32, i32), char)
+fn step((row, col): (i32, i32), dir: char, obstacles: &Obstacles) -> ((i32, i32), char)
 {
     let mut pos = match dir {
         '^' => (row - 1, col),

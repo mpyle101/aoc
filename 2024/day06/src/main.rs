@@ -26,7 +26,7 @@ fn part_one(input: &str) -> usize
     let obstacles = input.lines()
         .zip(0..)
         .fold(Obstacles::new(), |mut m, (line, row)| {
-            nrows += 1;
+            nrows = row + 1;
             ncols = line.len() as i32;
             line.chars()
                 .zip(0..)
@@ -62,7 +62,7 @@ fn part_two(input: &str) -> usize
     let obstacles = input.lines()
         .zip(0..)
         .fold(Obstacles::new(), |mut m, (line, row)| {
-            nrows += 1;
+            nrows = row + 1;
             ncols = line.len() as i32;
             line.chars()
                 .zip(0..)

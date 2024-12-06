@@ -84,28 +84,28 @@ fn part_two(input: &str) -> usize
     // guard is standing, she would see us.
     let start = guard;
     let mut dir = '^';
-    let mut steps = HashSet::new();
-    loop {
+    let steps = std::iter::from_fn(|| {
         (guard, dir) = step(guard, dir, &obstacles);
         if !is_inbounds(guard, nrows, ncols) {
-            break;
+            None
+        } else {
+            Some(guard)
         }
-        steps.insert(guard);
-    }
+    })
+    .collect::<HashSet<_>>();
 
     steps.into_par_iter()
-        .filter(|(r, c)| {
-            let mut obs = obstacles.clone();
-            if obs.insert((*r, *c)) {
-                let mut dir = '^';
-                let mut guard = start;
-                let mut steps = HashSet::new();
-                while is_inbounds(guard, nrows, ncols) {
-                    if !steps.insert((guard, dir)) {
-                        return true;
-                    } else {
-                        (guard, dir) = step(guard, dir, &obs);
-                    }
+        .map(|p| (p, obstacles.clone()))
+        .filter_map(|(p, mut obs)| obs.insert(p).then_some(obs))
+        .filter(|obs| {
+            let mut dir = '^';
+            let mut guard = start;
+            let mut steps = HashSet::new();
+            while is_inbounds(guard, nrows, ncols) {
+                if !steps.insert((guard, dir)) {
+                    return true;
+                } else {
+                    (guard, dir) = step(guard, dir, obs);
                 }
             }
             false
@@ -120,23 +120,16 @@ fn is_inbounds((row, col): (i32, i32), nrows: i32, ncols: i32) -> bool
 
 fn step((row, col): (i32, i32), dir: char, obstacles: &Obstacles) -> ((i32, i32), char)
 {
-    let next = match dir {
-        '^' => (row - 1, col),
-        'v' => (row + 1, col),
-        '<' => (row, col - 1),
-        '>' => (row, col + 1),
+    let (next, turn) = match dir {
+        '^' => ((row - 1, col), '>'),
+        'v' => ((row + 1, col), '<'),
+        '<' => ((row, col - 1), '^'),
+        '>' => ((row, col + 1), 'v'),
          _  => unreachable!()
     };
 
     if obstacles.contains(&next) {
-        let d = match dir {
-            '^' => '>',
-            'v' => '<',
-            '<' => '^',
-            '>' => 'v',
-             _  => unreachable!()
-        };
-        ((row, col), d)
+        ((row, col), turn)
     } else {
         (next, dir)
     }

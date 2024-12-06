@@ -28,7 +28,7 @@ fn part_one(input: &str) -> usize
             ncols = line.len() as i32;
             line.chars()
                 .enumerate()
-                .filter(|(_, c)| *c == '#' || *c == '^')
+                .filter(|(_, c)| *c != '.')
                 .for_each(|(col, c)| {
                     if c == '#' {
                         obstacles.insert((row as i32, col as i32));
@@ -40,13 +40,13 @@ fn part_one(input: &str) -> usize
         });
 
     let mut dir = '^';
-    let mut positions = HashSet::new();
+    let mut steps = HashSet::new();
     while is_inbounds(guard, nrows, ncols) {
-        positions.insert(guard);
+        steps.insert(guard);
         (guard, dir) = step(guard, dir, &obstacles);
     }
 
-    positions.len()
+    steps.len()
 }
 
 fn part_two(input: &str) -> usize
@@ -62,7 +62,7 @@ fn part_two(input: &str) -> usize
             ncols = line.len() as i32;
             line.chars()
                 .enumerate()
-                .filter(|(_, c)| *c == '#' || *c == '^')
+                .filter(|(_, c)| *c != '.')
                 .for_each(|(col, c)| {
                     if c == '#' {
                         obstacles.insert((row as i32, col as i32));
@@ -77,12 +77,12 @@ fn part_two(input: &str) -> usize
     let mut cycles = 0;
     for r in 0..nrows {
         for c in 0..ncols {
-            if obstacles.insert((r, c)) {
-                let mut dir = '^';
-                let mut positions = HashSet::new();
+            if (r, c) != start && obstacles.insert((r, c)) {
                 guard = start;
+                let mut dir = '^';
+                let mut steps = HashSet::new();
                 while is_inbounds(guard, nrows, ncols) {
-                    if !positions.insert((guard, dir)) {
+                    if !steps.insert((guard, dir)) {
                         cycles += 1;
                         break;
                     } else {

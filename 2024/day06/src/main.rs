@@ -22,23 +22,23 @@ fn part_one(input: &str) -> usize
     let mut ncols = 0;
     let mut nrows = 0;
     let mut guard = (0, 0);
-    let mut obstacles = Obstacles::new();
 
-    input.lines()
-        .enumerate()
-        .for_each(|(row, line)| {
+    let obstacles = input.lines()
+        .zip(0..)
+        .fold(Obstacles::new(), |mut m, (line, row)| {
+            nrows += 1;
             ncols = line.len() as i32;
             line.chars()
-                .enumerate()
-                .filter(|(_, c)| *c != '.')
-                .for_each(|(col, c)| {
+                .zip(0..)
+                .filter(|(c, _)| *c != '.')
+                .for_each(|(c, col)| {
                     if c == '#' {
-                        obstacles.insert((row as i32, col as i32));
+                        m.insert((row, col));
                     } else {
-                        guard = (row as i32, col as i32);
+                        guard = (row, col);
                     }
                 });
-            nrows += 1;
+            m
         });
 
     let mut dir = '^';
@@ -58,23 +58,23 @@ fn part_two(input: &str) -> usize
     let mut ncols = 0;
     let mut nrows = 0;
     let mut guard = (0, 0);
-    let mut obstacles = Obstacles::new();
 
-    input.lines()
-        .enumerate()
-        .for_each(|(row, line)| {
+    let obstacles = input.lines()
+        .zip(0..)
+        .fold(Obstacles::new(), |mut m, (line, row)| {
+            nrows += 1;
             ncols = line.len() as i32;
             line.chars()
-                .enumerate()
-                .filter(|(_, c)| *c != '.')
-                .for_each(|(col, c)| {
+                .zip(0..)
+                .filter(|(c, _)| *c != '.')
+                .for_each(|(c, col)| {
                     if c == '#' {
-                        obstacles.insert((row as i32, col as i32));
+                        m.insert((row, col));
                     } else {
-                        guard = (row as i32, col as i32);
+                        guard = (row, col);
                     }
                 });
-            nrows += 1;
+            m
         });
 
     // We only only need to add obstacles along the path the

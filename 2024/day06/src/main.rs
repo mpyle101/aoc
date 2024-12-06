@@ -85,9 +85,9 @@ fn part_two(input: &str) -> usize
         steps.insert(guard);
         (guard, dir) = step(guard, dir, &obstacles);
     }
+    steps.remove(&start);
 
     steps.into_par_iter()
-        .filter(|pos| pos != &start)
         .filter(|(r, c)| {
             let mut obs = obstacles.clone();
             if obs.insert((*r, *c)) {

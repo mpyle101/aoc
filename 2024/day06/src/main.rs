@@ -96,8 +96,10 @@ fn part_two(input: &str) -> usize
     .collect();
 
     steps.into_par_iter()
-        .map(|p| (p, obstacles.clone()))
-        .filter_map(|(p, mut obs)| obs.insert(p).then_some(obs))
+        .map(|p| {
+            let mut obs = obstacles.clone();
+            obs.insert(p); obs
+        })
         .filter(|obs| {
             let mut dir = '^';
             let mut guard = start;

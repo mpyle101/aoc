@@ -15,6 +15,11 @@ fn main()
 
 fn part_one(input: &str) -> u64
 {
+    let ops = [
+        |a: u64, b: u64| a + b,
+        |a: u64, b: u64| a * b
+    ];
+    
     input.lines()
         .filter_map(|line| line.split_once(": "))
         .filter_map(|(s1, s2)| {
@@ -22,7 +27,7 @@ fn part_one(input: &str) -> u64
             let formula = s2.split(' ')
                 .map(|s| s.parse::<u64>().unwrap())
                 .collect::<Vec<_>>();
-            valid(value, formula[0], &formula[1..])
+            valid(value, formula[0], &formula[1..], &ops)
                 .then_some(value)
         })
         .sum()
@@ -30,6 +35,12 @@ fn part_one(input: &str) -> u64
 
 fn part_two(input: &str) -> u64
 {
+    let ops = [
+        |a: u64, b: u64| a + b,
+        |a: u64, b: u64| a * b,
+        |a: u64, b: u64| a * 10u64.pow(b.ilog10() + 1) + b
+    ];
+
     input.lines()
         .filter_map(|line| line.split_once(": "))
         .filter_map(|(s1, s2)| {
@@ -37,45 +48,21 @@ fn part_two(input: &str) -> u64
             let formula = s2.split(' ')
                 .map(|s| s.parse::<u64>().unwrap())
                 .collect::<Vec<_>>();
-            valid2(value, formula[0], &formula[1..])
+            valid(value, formula[0], &formula[1..], &ops)
                 .then_some(value)
         })
         .sum()
 }
 
-fn valid(val: u64, partial: u64, v: &[u64]) -> bool
+fn valid(val: u64, partial: u64, v: &[u64], ops: &[fn(u64, u64) -> u64]) -> bool
 {
-    let n = v[0];
     if partial > val {
         false
-    } else if v.len() == 1 {
-        partial * n == val ||
-        partial + n == val
+    } else if v.is_empty() {
+        partial == val
     } else {
-        valid(val, partial + n, &v[1..]) ||
-        valid(val, partial * n, &v[1..])
+        ops.iter().any(|f| valid(val, f(partial, v[0]), &v[1..], ops))
     }
-}
-
-fn valid2(val: u64, partial: u64, v: &[u64]) -> bool
-{
-    let n = v[0];
-    if partial > val {
-        false
-    } else if v.len() == 1 {
-        partial * n == val ||
-        partial + n == val ||
-        concat(partial, n) == val
-    } else {
-        valid2(val, partial + n, &v[1..]) ||
-        valid2(val, partial * n, &v[1..]) ||
-        valid2(val, concat(partial, n), &v[1..])
-    }
-}
-
-fn concat(a: u64, b: u64) -> u64
-{
-    a * 10u64.pow(b.ilog10() + 1) + b
 }
 
 

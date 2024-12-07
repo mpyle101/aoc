@@ -19,16 +19,16 @@ fn part_one(input: &str) -> u64
         |a: u64, b: u64| a + b,
         |a: u64, b: u64| a * b
     ];
-    
+
     input.lines()
         .filter_map(|line| line.split_once(": "))
         .filter_map(|(s1, s2)| {
-            let value = s1.parse::<u64>().unwrap();
+            let target  = s1.parse::<u64>().unwrap();
             let formula = s2.split(' ')
                 .map(|s| s.parse::<u64>().unwrap())
                 .collect::<Vec<_>>();
-            valid(value, formula[0], &formula[1..], &ops)
-                .then_some(value)
+            valid(target, formula[0], &formula[1..], &ops)
+                .then_some(target)
         })
         .sum()
 }
@@ -44,24 +44,24 @@ fn part_two(input: &str) -> u64
     input.lines()
         .filter_map(|line| line.split_once(": "))
         .filter_map(|(s1, s2)| {
-            let value = s1.parse::<u64>().unwrap();
+            let target  = s1.parse::<u64>().unwrap();
             let formula = s2.split(' ')
                 .map(|s| s.parse::<u64>().unwrap())
                 .collect::<Vec<_>>();
-            valid(value, formula[0], &formula[1..], &ops)
-                .then_some(value)
+            valid(target, formula[0], &formula[1..], &ops)
+                .then_some(target)
         })
         .sum()
 }
 
-fn valid(val: u64, partial: u64, v: &[u64], ops: &[fn(u64, u64) -> u64]) -> bool
+fn valid(target: u64, partial: u64, v: &[u64], ops: &[fn(u64, u64) -> u64]) -> bool
 {
-    if partial > val {
+    if partial > target {
         false
     } else if v.is_empty() {
-        partial == val
+        partial == target
     } else {
-        ops.iter().any(|f| valid(val, f(partial, v[0]), &v[1..], ops))
+        ops.iter().any(|f| valid(target, f(partial, v[0]), &v[1..], ops))
     }
 }
 

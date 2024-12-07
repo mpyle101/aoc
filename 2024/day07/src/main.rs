@@ -22,7 +22,8 @@ fn part_one(input: &str) -> u64
             let formula = s2.split(' ')
                 .map(|s| s.parse::<u64>().unwrap())
                 .collect::<Vec<_>>();
-            valid(value, formula[0], &formula[1..]).then_some(value)
+            valid(value, formula[0], &formula[1..])
+                .then_some(value)
         })
         .sum()
 }
@@ -36,7 +37,8 @@ fn part_two(input: &str) -> u64
             let formula = s2.split(' ')
                 .map(|s| s.parse::<u64>().unwrap())
                 .collect::<Vec<_>>();
-            valid2(value, formula[0], &formula[1..]).then_some(value)
+            valid2(value, formula[0], &formula[1..])
+                .then_some(value)
         })
         .sum()
 }

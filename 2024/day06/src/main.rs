@@ -84,9 +84,9 @@ fn part_two(input: &str) -> usize
 
     // We only only need to add obstacles along the path the
     // guard actually takes, which is a lot fewer than the
-    // total number of open positions. The loop is slightly
-    // different because if we placed an obstacle where the
-    // guard is standing, she would see us.
+    // total number of open positions. Don't worry about the
+    // guard's starting location because if we placed an
+    // obstacle there, she would see us.
     let mut dir = '^';
     let mut guard = start;
     let steps: HashSet<_> = from_fn(|| {

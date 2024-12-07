@@ -47,7 +47,8 @@ fn valid(val: u64, partial: u64, v: &[u64]) -> bool
     if partial > val {
         false
     } else if v.len() == 1 {
-        partial * n == val || partial + n == val
+        partial * n == val ||
+        partial + n == val
     } else {
         valid(val, partial + n, &v[1..]) ||
         valid(val, partial * n, &v[1..])

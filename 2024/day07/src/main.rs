@@ -23,11 +23,11 @@ fn part_one(input: &str) -> u64
     input.lines()
         .filter_map(|line| line.split_once(": "))
         .filter_map(|(s1, s2)| {
-            let target  = s1.parse::<u64>().unwrap();
-            let formula = s2.split(' ')
-                .map(|s| s.parse::<u64>().unwrap())
+            let target = s1.parse::<u64>().unwrap();
+            let values = s2.split(' ')
+                .filter_map(|s| s.parse::<u64>().ok())
                 .collect::<Vec<_>>();
-            valid(target, formula[0], &formula[1..], &ops)
+            valid(target, values[0], &values[1..], &ops)
                 .then_some(target)
         })
         .sum()
@@ -44,11 +44,11 @@ fn part_two(input: &str) -> u64
     input.lines()
         .filter_map(|line| line.split_once(": "))
         .filter_map(|(s1, s2)| {
-            let target  = s1.parse::<u64>().unwrap();
-            let formula = s2.split(' ')
-                .map(|s| s.parse::<u64>().unwrap())
+            let target = s1.parse::<u64>().unwrap();
+            let values = s2.split(' ')
+                .filter_map(|s| s.parse::<u64>().ok())
                 .collect::<Vec<_>>();
-            valid(target, formula[0], &formula[1..], &ops)
+            valid(target, values[0], &values[1..], &ops)
                 .then_some(target)
         })
         .sum()

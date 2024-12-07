@@ -19,9 +19,11 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
+    use std::iter::from_fn;
+
     let mut ncols = 0;
     let mut nrows = 0;
-    let mut guard = (0, 0);
+    let mut start = (-1, -1);
 
     let obstacles = input.lines()
         .zip(0..)
@@ -35,29 +37,32 @@ fn part_one(input: &str) -> usize
                     if c == '#' {
                         m.insert((row, col));
                     } else {
-                        guard = (row, col);
+                        start = (row, col);
                     }
                 });
             m
         });
 
     let mut dir = '^';
-    let mut steps = HashSet::new();
-    while is_inbounds(guard, nrows, ncols) {
-        steps.insert(guard);
+    let mut guard = start;
+    let steps = from_fn(|| {
         (guard, dir) = step(guard, dir, &obstacles);
-    }
+        is_inbounds(guard, nrows, ncols).then_some(guard)
+    })
+    .collect::<HashSet<_>>();
 
-    steps.len()
+    // If the starting location isn't in the set add 1
+    steps.len() + !steps.contains(&start) as usize
 }
 
 fn part_two(input: &str) -> usize
 {
+    use std::iter::from_fn;
     use rayon::prelude::*;
 
     let mut ncols = 0;
     let mut nrows = 0;
-    let mut guard = (0, 0);
+    let mut start = (-1, -1);
 
     let obstacles = input.lines()
         .zip(0..)
@@ -71,7 +76,7 @@ fn part_two(input: &str) -> usize
                     if c == '#' {
                         m.insert((row, col));
                     } else {
-                        guard = (row, col);
+                        start = (row, col);
                     }
                 });
             m
@@ -82,17 +87,13 @@ fn part_two(input: &str) -> usize
     // total number of open positions. The loop is slightly
     // different because if we placed an obstacle where the
     // guard is standing, she would see us.
-    let start = guard;
     let mut dir = '^';
-    let steps = std::iter::from_fn(|| {
+    let mut guard = start;
+    let steps: HashSet<_> = from_fn(|| {
         (guard, dir) = step(guard, dir, &obstacles);
-        if !is_inbounds(guard, nrows, ncols) {
-            None
-        } else {
-            Some(guard)
-        }
+        is_inbounds(guard, nrows, ncols).then_some(guard)
     })
-    .collect::<HashSet<_>>();
+    .collect();
 
     steps.into_par_iter()
         .map(|p| (p, obstacles.clone()))

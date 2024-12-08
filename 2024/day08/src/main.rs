@@ -19,6 +19,7 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
+    use utils::ix;
     use std::collections::HashSet;
 
     let mut nrows = 0;
@@ -41,19 +42,17 @@ fn part_one(input: &str) -> usize
 
     let locations = antennas.values()
         .fold(HashSet::new(), |mut acc, v| {
-            for i in 0..v.len()-1 {
-                for j in i+1..v.len() {
-                    let dr = v[i].0 - v[j].0;
-                    let dc = v[i].1 - v[j].1;
+            for (i, j) in ix::from(v.len()) {
+                let dr = v[i].0 - v[j].0;
+                let dc = v[i].1 - v[j].1;
 
-                    let p = (v[i].0 + dr, v[i].1 + dc);
-                    if is_inbounds(p, nrows, ncols) {
-                        acc.insert(p);
-                    }
-                    let p = (v[j].0 - dr, v[j].1 - dc);
-                    if is_inbounds(p, nrows, ncols) {
-                        acc.insert(p);
-                    }
+                let p = (v[i].0 + dr, v[i].1 + dc);
+                if is_inbounds(p, nrows, ncols) {
+                    acc.insert(p);
+                }
+                let p = (v[j].0 - dr, v[j].1 - dc);
+                if is_inbounds(p, nrows, ncols) {
+                    acc.insert(p);
                 }
             }
             acc
@@ -64,6 +63,7 @@ fn part_one(input: &str) -> usize
 
 fn part_two(input: &str) -> usize
 {
+    use utils::ix;
     use std::collections::HashSet;
 
     let mut nrows = 0;
@@ -86,25 +86,20 @@ fn part_two(input: &str) -> usize
 
     let locations = antennas.values()
         .fold(HashSet::new(), |mut acc, v| {
-            if v.len() > 1 {
-                v.iter().for_each(|p| { acc.insert(*p); })
-            }
-            for i in 0..v.len()-1 {
-                for j in i+1..v.len() {
-                    let dr = v[i].0 - v[j].0;
-                    let dc = v[i].1 - v[j].1;
+            for (i, j) in ix::from(v.len()) {
+                let dr = v[i].0 - v[j].0;
+                let dc = v[i].1 - v[j].1;
 
-                    let mut p = (v[i].0 + dr, v[i].1 + dc);
-                    while is_inbounds(p, nrows, ncols) {
-                        acc.insert(p);
-                        p = (p.0 + dr, p.1 + dc)
-                    }
+                let mut p = (v[i].0 - dr, v[i].1 - dc);
+                while is_inbounds(p, nrows, ncols) {
+                    acc.insert(p);
+                    p = (p.0 + dr, p.1 + dc)
+                }
 
-                    let mut p = (v[j].0 - dr, v[j].1 - dc);
-                    while is_inbounds(p, nrows, ncols) {
-                        acc.insert(p);
-                        p = (p.0 - dr, p.1 - dc)
-                    }
+                let mut p = (v[j].0 + dr, v[j].1 + dc);
+                while is_inbounds(p, nrows, ncols) {
+                    acc.insert(p);
+                    p = (p.0 - dr, p.1 - dc)
                 }
             }
             acc

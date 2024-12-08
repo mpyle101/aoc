@@ -65,12 +65,12 @@ fn part_two(input: &str) -> u32
 
 fn is_ordered(rules: &Rules, v: &[u32]) -> bool
 {
-    for i in 0..v.len()-1 {
-        for j in i+1..v.len() {
-            if let Some(r) = rules.get(&v[j]) {
-                if r.binary_search(&v[i]).is_ok() {
-                    return false
-                }
+    use utils::ix;
+
+    for (i, j) in ix::from(v.len()) {
+        if let Some(r) = rules.get(&v[j]) {
+            if r.binary_search(&v[i]).is_ok() {
+                return false
             }
         }
     }
@@ -80,15 +80,15 @@ fn is_ordered(rules: &Rules, v: &[u32]) -> bool
 
 fn is_reordered(rules: &Rules, v: &mut [u32]) -> bool
 {
+    use utils::ix;
+
     let mut reordered = false;
 
-    for i in 0..v.len()-1 {
-        for j in i+1..v.len() {
-            if let Some(r) = rules.get(&v[j]) {
-                if r.binary_search(&v[i]).is_ok() {
-                    v.swap(i, j);
-                    reordered = true;
-                }
+    for (i, j) in ix::from(v.len()) {
+        if let Some(r) = rules.get(&v[j]) {
+            if r.binary_search(&v[i]).is_ok() {
+                v.swap(i, j);
+                reordered = true;
             }
         }
     }

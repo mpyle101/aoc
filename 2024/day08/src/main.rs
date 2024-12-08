@@ -113,7 +113,6 @@ fn part_two(input: &str) -> usize
     locations.len()
 }
 
-
 fn is_inbounds((row, col): (i32, i32), nrows: i32, ncols: i32) -> bool
 {
     row > -1 && col > -1 && row < nrows && col < ncols

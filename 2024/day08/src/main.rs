@@ -19,8 +19,8 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
-    use utils::ix;
     use std::collections::HashSet;
+    use utils::ix;
 
     let mut nrows = 0;
     let mut ncols = 0;
@@ -63,8 +63,8 @@ fn part_one(input: &str) -> usize
 
 fn part_two(input: &str) -> usize
 {
-    use utils::ix;
     use std::collections::HashSet;
+    use utils::ix;
 
     let mut nrows = 0;
     let mut ncols = 0;

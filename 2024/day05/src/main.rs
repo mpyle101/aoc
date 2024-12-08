@@ -67,7 +67,7 @@ fn is_ordered(rules: &Rules, v: &[u32]) -> bool
 {
     use utils::ix;
 
-    for (i, j) in ix::new(v.len()) {
+    for (i, j) in ix::from(v) {
         if let Some(r) = rules.get(&v[j]) {
             if r.binary_search(&v[i]).is_ok() {
                 return false
@@ -84,7 +84,7 @@ fn is_reordered(rules: &Rules, v: &mut [u32]) -> bool
 
     let mut reordered = false;
 
-    for (i, j) in ix::new(v.len()) {
+    for (i, j) in ix::from(v) {
         if let Some(r) = rules.get(&v[j]) {
             if r.binary_search(&v[i]).is_ok() {
                 v.swap(i, j);

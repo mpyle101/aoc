@@ -42,7 +42,7 @@ fn part_one(input: &str) -> usize
 
     let locations = antennas.values()
         .fold(HashSet::new(), |mut acc, v| {
-            for (i, j) in ix::from(v.len()) {
+            for (i, j) in ix::from(v) {
                 let dr = v[i].0 - v[j].0;
                 let dc = v[i].1 - v[j].1;
 
@@ -86,7 +86,7 @@ fn part_two(input: &str) -> usize
 
     let locations = antennas.values()
         .fold(HashSet::new(), |mut acc, v| {
-            for (i, j) in ix::from(v.len()) {
+            for (i, j) in ix::from(v) {
                 let dr = v[i].0 - v[j].0;
                 let dc = v[i].1 - v[j].1;
 

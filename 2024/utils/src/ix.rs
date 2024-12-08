@@ -1,11 +1,16 @@
 use std::ops::Range;
 
-pub fn from(len: usize) -> IndexCombinations
+pub fn new(len: usize) -> IndexCombinations
 {
     let outer = 0..len - 1;
     let inner = 0..0;
 
     IndexCombinations { curr: 0, outer, inner, len }
+}
+
+pub fn from<T>(v: &[T]) -> IndexCombinations
+{
+    new(v.len())
 }
 
 pub struct IndexCombinations {

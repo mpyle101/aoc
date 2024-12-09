@@ -56,7 +56,7 @@ fn part_two(input: &str) -> i64
     let mut v = input.bytes()
         .enumerate()
         .fold(vec![], |mut v, (i, c)| {
-            let count = c - b'0';
+            let count = (c - b'0') as usize;
             if i % 2 == 0 {
                 v.push((count, id));
                 id += 1;
@@ -92,21 +92,22 @@ fn part_two(input: &str) -> i64
         }
     }
 
-    let mut ix = 0;
-    v.iter()
-        .map(|(c, n)| {
-            (0..*c)
-                .map(|_| {
-                    let val = if *n == -1 { 0 } else { n * ix };
-                    ix += 1;
-                    val
-                })
-                .sum::<i64>()
-        })
-        .sum()
+    let (res, _) = v.iter()
+        .fold((0, 0), |(acc, ix), (c, n)| {
+            let res = if *n != -1 {
+                (ix..ix + *c)
+                    .map(|i| n * i as i64)
+                    .sum::<i64>()
+            } else {
+                0
+            };
+            (acc + res, ix + *c)
+        });
+
+    res
 }
 
-fn find_free(j: usize, v: &[(u8, i64)], blocks: u8) -> Option<usize>
+fn find_free(j: usize, v: &[(usize, i64)], blocks: usize) -> Option<usize>
 {
     v[0..j].iter()
         .position(|(c, n)| *n == -1 && *c >= blocks)

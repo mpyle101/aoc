@@ -16,13 +16,11 @@ fn main()
 
 fn part_one(input: &str) -> i64
 {
-    let mut id = 0;
     let mut v = input.bytes()
-        .enumerate()
-        .fold(vec![], |mut v, (i, c)| {
+        .zip(0..)
+        .fold(vec![], |mut v, (c, i)| {
             if i % 2 == 0 {
-                v.extend((0..c - b'0').map(|_| id));
-                id += 1;
+                v.extend((0..c - b'0').map(|_| i/2));
             } else {
                 v.extend((0..c - b'0').map(|_| -1));
             }
@@ -55,16 +53,14 @@ fn part_one(input: &str) -> i64
 
 fn part_two(input: &str) -> i64
 {
-    let mut id = 0;
     let mut v = input.bytes()
-        .enumerate()
-        .fold(vec![], |mut v, (i, c)| {
-            let count = (c - b'0') as usize;
+        .zip(0..)
+        .fold(vec![], |mut v, (c, i)| {
+            let n = (c - b'0') as usize;
             if i % 2 == 0 {
-                v.push((count, id));
-                id += 1;
-            } else if count > 0 {
-                v.push((count, -1))
+                v.push((n, i/2));
+            } else if n > 0 {
+                v.push((n, -1))
             }
             v
         });

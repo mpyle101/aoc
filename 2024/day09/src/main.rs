@@ -35,7 +35,7 @@ fn part_one(input: &str) -> i64
         v.swap(i, j);
         i += 1; j -= 1;
         // look for the next empty block
-        while i < j && v[i] != -1 {
+        while i < j && v[i] > -1 {
             i += 1
         }
         // and the next file block
@@ -72,7 +72,6 @@ fn part_two(input: &str) -> i64
         if j > 0 {
             id = v[j].1;
             let blocks = v[j].0;
-            
             if let Some(i) = find_free(j, &v, blocks) {
                 j = move_file(i, j, &mut v, blocks, id);
             } else {

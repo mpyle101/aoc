@@ -46,8 +46,8 @@ fn part_one(input: &str) -> i64
 
     v.iter()
         .take_while(|n| **n != -1)
-        .enumerate()
-        .map(|(i, n)| i as i64 * n)
+        .zip(0..)
+        .map(|(n, i)| i * n)
         .sum()
 }
 

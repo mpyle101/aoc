@@ -21,10 +21,10 @@ fn part_one(input: &str) -> i64
         .enumerate()
         .fold(vec![], |mut v, (i, c)| {
             if i % 2 == 0 {
-                (0..c - b'0').for_each(|_| v.push(id));
+                v.extend((0..c - b'0').map(|_| id));
                 id += 1;
             } else {
-                (0..c - b'0').for_each(|_| v.push(-1))
+                v.extend((0..c - b'0').map(|_| -1));
             }
             v
         });
@@ -91,7 +91,8 @@ fn part_two(input: &str) -> i64
                     j += 1  // because we added a new free block
                 }
             } else {
-                // Couldn't find a fit, look for the next file block
+                // Couldn't find a fit so look for the next set of
+                // file blocks
                 j -= 1;
             }
         }

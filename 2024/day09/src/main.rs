@@ -45,7 +45,7 @@ fn part_one(input: &str) -> i64
     }
 
     v.iter()
-        .take_while(|n| **n != -1)
+        .take_while(|&&n| n != -1)
         .zip(0..)
         .map(|(n, i)| i * n)
         .sum()
@@ -82,15 +82,15 @@ fn part_two(input: &str) -> i64
     }
 
     let (res, _) = v.iter()
-        .fold((0, 0), |(acc, ix), (c, n)| {
-            let res = if *n == -1 {
+        .fold((0, 0), |(acc, ix), &(c, n)| {
+            let res = if n == -1 {
                 0
             } else {
-                (ix..ix + *c)
+                (ix..ix + c)
                     .map(|i| n * i as i64)
                     .sum::<i64>()
             };
-            (acc + res, ix + *c)
+            (acc + res, ix + c)
         });
 
     res

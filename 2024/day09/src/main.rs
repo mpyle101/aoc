@@ -65,30 +65,17 @@ fn part_two(input: &str) -> i64
             v
         });
 
-    let mut n = i64::MAX;
+    let mut id = i64::MAX;
     let mut j = v.len() - 1;
     while j > 0 {
-        // Make sure the id of any file blocks found is less than
-        // the last one so we don't pickup previously moved files.
-        while j > 0 && (v[j].1 == -1 || v[j].1 > n) {
-            j -= 1;
-        }
+        j = find_file(j, &v, id);
         if j > 0 {
-            n = v[j].1;
+            id = v[j].1;
             let blocks = v[j].0;
+            
             if let Some(i) = find_free(j, &v, blocks) {
-                let (free, _) = v[i];
-                if free == blocks {
-                    v.swap(i, j);
-                } else {
-                    v[j].1 = -1;
-                    v[i] = (blocks, n);
-                    v.insert(i+1, (free - blocks, -1));
-                    j += 1  // because we added a new free block
-                }
+                j = move_file(i, j, &mut v, blocks, id);
             } else {
-                // Couldn't find a fit so look for the next set of
-                // file blocks
                 j -= 1;
             }
         }
@@ -109,10 +96,34 @@ fn part_two(input: &str) -> i64
     res
 }
 
+fn find_file(mut j: usize, v: &[(usize, i64)], id: i64) -> usize
+{
+    // Make sure the id of any file blocks found is less than
+    // the last one so we don't pickup previously moved files.
+    while j > 0 && (v[j].1 == -1 || v[j].1 > id) {
+        j -= 1;
+    }
+
+    j
+}
+
 fn find_free(j: usize, v: &[(usize, i64)], blocks: usize) -> Option<usize>
 {
-    v[0..j].iter()
-        .position(|(c, n)| *n == -1 && *c >= blocks)
+    v[0..j].iter().position(|(c, n)| *n == -1 && *c >= blocks)
+}
+
+fn move_file(i: usize, j: usize, v: &mut Vec<(usize, i64)>, blocks: usize, id: i64) -> usize
+{
+    let (free, _) = v[i];
+    if free == blocks {
+        v.swap(i, j);
+        j
+    } else {
+        v[j].1 = -1;
+        v[i] = (blocks, id);
+        v.insert(i+1, (free - blocks, -1));
+        j + 1  // because we added a new free block
+    }
 }
 
 

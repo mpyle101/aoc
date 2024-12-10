@@ -62,14 +62,14 @@ fn part_two(input: &str) -> i64
         });
 
     let mut id = i64::MAX;
-    let mut end = v.len() - 1;
-    while let Some(j) = find_file(end, &v, id) {
+    let mut fp = v.len() - 1;
+    while let Some(j) = find_file(fp, &v, id) {
         id = v[j].1;
         let blocks = v[j].0;
         if let Some(i) = find_free(j, &v, blocks) {
-            end = move_file(i, j, &mut v, blocks, id);
+            fp = move_file(i, j, &mut v, blocks, id);
         } else {
-            end = j - 1;
+            fp = j - 1;
         }
     }
 

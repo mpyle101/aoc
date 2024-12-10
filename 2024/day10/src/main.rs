@@ -17,26 +17,7 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
-    let mut ncols = 0;
-    let mut nrows = 0;
-    let mut start = vec![];
-    let map = input.lines()
-        .enumerate()
-        .fold(vec![], |mut v, (row, line)| {
-            nrows = row + 1;
-            ncols = line.len();
-
-            v.extend(line.bytes()
-                .enumerate()
-                .map(|(col, c)| {
-                    let height = c - b'0';
-                    if height == 0 {
-                        start.push(row * ncols + col);
-                    }
-                    height
-                }));
-            v
-        });
+    let (start, map, nrows, ncols) = load(input);
 
     start.iter()
         .map(|pos| score(*pos, &map, nrows, ncols, &mut HashSet::new()))
@@ -44,6 +25,15 @@ fn part_one(input: &str) -> usize
 }
 
 fn part_two(input: &str) -> usize
+{
+    let (start, map, nrows, ncols) = load(input);
+
+    start.iter()
+        .map(|pos| rating(*pos, &map, nrows, ncols))
+        .sum()
+}
+
+fn load(input: &str) -> (Vec<usize>, Vec<u8>, usize, usize)
 {
     let mut ncols = 0;
     let mut nrows = 0;
@@ -66,9 +56,7 @@ fn part_two(input: &str) -> usize
             v
         });
 
-    start.iter()
-        .map(|pos| rating(*pos, &map, nrows, ncols))
-        .sum()
+    (start, map, nrows, ncols)
 }
 
 fn score(pos: usize, map: &[u8], nrows: usize, ncols: usize, visited: &mut HashSet<usize>) -> usize
@@ -143,7 +131,7 @@ mod tests {
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one(input), 1541);
+        assert_eq!(part_two(input), 1541);
     }
 
     #[test]

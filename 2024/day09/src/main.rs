@@ -56,12 +56,8 @@ fn part_two(input: &str) -> i64
     let mut v = input.bytes()
         .zip(0..)
         .fold(vec![], |mut v, (c, i)| {
-            let n = (c - b'0') as usize;
-            if i % 2 == 0 {
-                v.push((n, i/2));
-            } else if n > 0 {
-                v.push((n, -1))
-            }
+            let n  = (c - b'0') as usize;
+            v.push((n, if i % 2 == 0 { i / 2 } else { -1 }));
             v
         });
 
@@ -98,7 +94,7 @@ fn part_two(input: &str) -> i64
 fn find_file(mut j: usize, v: &[(usize, i64)], id: i64) -> usize
 {
     // Make sure the id of any file blocks found is less than
-    // the last one so we don't pickup previously moved files.
+    // the last one so we don't pick up previously moved files.
     while j > 0 && (v[j].1 == -1 || v[j].1 > id) {
         j -= 1;
     }

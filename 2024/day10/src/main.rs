@@ -93,7 +93,7 @@ fn rating(pos: usize, map: &[u8], nrows: usize, ncols: usize) -> usize
 
 fn moves(pos: usize, map: &[u8], nrows: usize, ncols: usize) -> Vec<usize>
 {
-    let mut v = vec![];
+    let mut v = Vec::with_capacity(4);
 
     let n = map[pos] + 1;
     let row = pos / ncols;

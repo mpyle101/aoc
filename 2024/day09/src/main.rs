@@ -62,17 +62,14 @@ fn part_two(input: &str) -> i64
         });
 
     let mut id = i64::MAX;
-    let mut j = v.len() - 1;
-    while j > 0 {
-        j = find_file(j, &v, id);
-        if j > 0 {
-            id = v[j].1;
-            let blocks = v[j].0;
-            if let Some(i) = find_free(j, &v, blocks) {
-                j = move_file(i, j, &mut v, blocks, id);
-            } else {
-                j -= 1;
-            }
+    let mut end = v.len() - 1;
+    while let Some(j) = find_file(end, &v, id) {
+        id = v[j].1;
+        let blocks = v[j].0;
+        if let Some(i) = find_free(j, &v, blocks) {
+            end = move_file(i, j, &mut v, blocks, id);
+        } else {
+            end = j - 1;
         }
     }
 
@@ -91,7 +88,7 @@ fn part_two(input: &str) -> i64
     res
 }
 
-fn find_file(mut j: usize, v: &[(usize, i64)], id: i64) -> usize
+fn find_file(mut j: usize, v: &[(usize, i64)], id: i64) -> Option<usize>
 {
     // Make sure the id of any file blocks found is less than
     // the last one so we don't pick up previously moved files.
@@ -99,7 +96,7 @@ fn find_file(mut j: usize, v: &[(usize, i64)], id: i64) -> usize
         j -= 1;
     }
 
-    j
+    if j > 0 { Some(j) } else { None }
 }
 
 fn find_free(j: usize, v: &[(usize, i64)], blocks: usize) -> Option<usize>

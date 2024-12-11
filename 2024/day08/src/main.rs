@@ -32,11 +32,8 @@ fn part_one(input: &str) -> usize
             ncols = line.len() as i32;
             line.chars()
                 .zip(0..)
-                .for_each(|(c, col)| {
-                    if c != '.' {
-                        m.entry(c).or_default().push((row, col))
-                    }
-                });
+                .filter(|(c, _)| *c != '.')
+                .for_each(|(c, col)| m.entry(c).or_default().push((row, col)));
             m
         });
 
@@ -76,11 +73,8 @@ fn part_two(input: &str) -> usize
             ncols = line.len() as i32;
             line.chars()
                 .zip(0..)
-                .for_each(|(c, col)| {
-                    if c != '.' {
-                        m.entry(c).or_default().push((row, col))
-                    }
-                });
+                .filter(|(c, _)| *c != '.')
+                .for_each(|(c, col)| m.entry(c).or_default().push((row, col)));
             m
         });
 

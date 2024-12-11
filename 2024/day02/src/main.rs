@@ -17,11 +17,11 @@ fn part_one(input: &str) -> usize
 {
     let mut v = [0; 8];
     input.lines()
-        .filter_map(|line| {
+        .filter(|line| {
             let len = line.split(' ')
                 .filter_map(|s| s.parse().ok())
                 .fold(0, |i, n| { v[i] = n; i + 1 });
-            is_safe(&v, len).then_some(0)
+            is_safe(&v, len)
         })
         .count()
 }
@@ -31,16 +31,17 @@ fn part_two(input: &str) -> usize
     let mut v = [0;8];
     let mut w = [0;7];
     input.lines()
-        .filter_map(|line| {
+        .filter(|line| {
             let len = line.split(' ')
                 .filter_map(|s| s.parse().ok())
                 .fold(0, |i, n| { v[i] = n; i + 1 });
-            (is_safe(&v, len) || (0..len).any(|i| {
+            is_safe(&v, len) ||
+            (0..len).any(|i| {
                 let mut ix = 0;
                 (0..i).for_each(|x| { w[ix] = v[x]; ix += 1; });
                 (i+1..len).for_each(|x| { w[ix] = v[x]; ix += 1; });
                 is_safe(&w, len-1)
-            })).then_some(0)
+            })
         })
         .count()
 }

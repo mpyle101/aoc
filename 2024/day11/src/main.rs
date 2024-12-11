@@ -30,13 +30,11 @@ fn part_one(input: &str) -> usize
 
 fn part_two(input: &str, blinks: usize) -> usize
 {
-    let stones = input.split(' ')
-        .filter_map(|s| s.parse::<u64>().ok())
-        .collect::<Vec<_>>();
-
     let mut memos = Memos::new();
-    stones.iter()
-        .map(|&n| expand(n, blinks, &mut memos))
+    
+    input.split(' ')
+        .filter_map(|s| s.parse::<u64>().ok())
+        .map(|n| expand(n, blinks, &mut memos))
         .sum()
 }
 
@@ -44,11 +42,11 @@ fn blink(stones: &mut [u64]) -> Vec<u64>
 {
     stones.iter()
         .fold(vec![], |mut v, &n| {
-            if n == 0 {
-                v.push(1);
-            } else if let Some((lt, rt)) = split(n) {
+            if let Some((lt, rt)) = split(n) {
                 v.push(lt);
                 v.push(rt);
+            } else if n == 0 {
+                v.push(1);
             } else {
                 v.push(n * 2024);
             }
@@ -63,23 +61,18 @@ fn expand(n: u64, blinks: usize, m: &mut Memos) -> usize
     }
 
     if blinks == 1 {
-        return if n == 0 {
-            1
-        } else if split(n).is_some() { 
-            2
-        } else {
-            1
-        };
+        return if split(n).is_some() { 2 } else { 1 }
     }
 
-    let count = if n == 0 {
-        expand(1, blinks - 1, m)
-    } else if let Some((lt, rt)) = split(n) {
+    let count = if let Some((lt, rt)) = split(n) {
         expand(lt, blinks - 1, m) +
         expand(rt, blinks - 1, m)
+    } else if n == 0 {
+        expand(1, blinks - 1, m)
     } else {
         expand(n * 2024, blinks - 1, m)
     };
+
     m.insert((n, blinks), count);
 
     count
@@ -87,14 +80,17 @@ fn expand(n: u64, blinks: usize, m: &mut Memos) -> usize
 
 fn split(n: u64) -> Option<(u64, u64)>
 {
-    let digits = n.ilog10() + 1;
-    if digits % 2 == 0 {
-        let lt = n / 10_u64.pow(digits / 2);
-        let rt = n - lt * 10_u64.pow(digits / 2);
-        Some((lt, rt))
-    } else {
-        None
+    // integer logarithm must be positive
+    if n > 0 {
+        let digits = n.ilog10() + 1;
+        if digits % 2 == 0 {
+            let lt = n / 10_u64.pow(digits / 2);
+            let rt = n - lt * 10_u64.pow(digits / 2);
+            return Some((lt, rt))
+        }
     }
+
+    None
 }
 
 

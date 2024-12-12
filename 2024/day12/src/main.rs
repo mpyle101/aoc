@@ -91,6 +91,16 @@ fn find_fences(pos: usize, nrows: usize, ncols: usize, garden: &[char], open: &m
     let mut plots = 0;
     let mut fences = HashSet::new();
 
+    // Each plot can be thought of as a set of unit vectors going around
+    // the outside in one direction or another (we chose counter clockwise).
+    // As new plots are considered, if a fence exists which is the exact
+    // opposite of an existing fence, they cancel each other out so remove
+    // the existing one and don't insert the new one. Otherwise, add the
+    // new section to the list.
+    // When finished, the resulting union of fences will be a set of unit
+    // vectors making up the sections the external and internal sides. To
+    // find the actual number of sides we then coalesce those sections into
+    // a minimal set of larger vectors.
     let mut q = VecDeque::from([pos]);
     while let Some(pos) = q.pop_front() {
         if open[pos] {
@@ -144,6 +154,10 @@ fn perimeter(nrows: usize, ncols: usize, mut region: HashMap<(usize, usize), usi
 
 fn coalesce(mut fences: Fences) -> usize
 {
+    // While there are fence sections left, grab the next one
+    // and attempt to grow it as much as possible in both directions
+    // When we're out of sections, we'll have the number of
+    // contiguous sides.
     let mut sides = 0;
     while let Some((mut v1, d1)) = fences.pop() {
         sides += 1;
@@ -166,7 +180,6 @@ fn coalesce(mut fences: Fences) -> usize
                 v1 = (v1.0, v2.1);
                 growing = true;
             }
-            //println!("{growing} {:?} {:?}", v1, fences.len());
 
             if !growing { break; }
         }

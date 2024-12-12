@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-type Fence = ((usize, usize), (usize, usize));
-type Fences = Vec<(Fence, (i32, i32))>;
+type Fence = ((i32, i32), (i32, i32));
+type Fences = HashSet<(Fence, (i32, i32))>;
 
 fn main()
 {
@@ -18,49 +18,49 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> usize
+fn part_one(input: &str) -> i32
 {
     let mut ncols = 0;
     let mut nrows = 0;
 
     let garden = input.lines()
-        .enumerate()
-        .fold(vec![], |mut v, (row, line)| {
+        .zip(0..)
+        .fold(vec![], |mut v, (line, row)| {
             nrows = row + 1;
-            ncols = line.len();
+            ncols = line.len() as i32;
             v.extend(line.chars());
             v
         });
     let mut open = vec![true; garden.len()];
 
     (0..garden.len())
-        .filter_map(|i| open[i].then_some(find_region(i, nrows, ncols, &garden, &mut open)))
-        .map(|region| region.len() * perimeter(nrows, ncols, region))
+        .filter_map(|i| open[i].then_some(find_region(i as i32, nrows, ncols, &garden, &mut open)))
+        .map(|region| region.len() as i32 * perimeter(nrows, ncols, region))
         .sum()
 }
 
-fn part_two(input: &str) -> usize
+fn part_two(input: &str) -> i32
 {
     let mut ncols = 0;
     let mut nrows = 0;
 
     let garden = input.lines()
-        .enumerate()
-        .fold(vec![], |mut v, (row, line)| {
+        .zip(0..)
+        .fold(vec![], |mut v, (line, row)| {
             nrows = row + 1;
-            ncols = line.len();
+            ncols = line.len() as i32;
             v.extend(line.chars());
             v
         });
     let mut open = vec![true; garden.len()];
 
     (0..garden.len())
-        .filter_map(|i| open[i].then_some(find_fences(i, nrows, ncols, &garden, &mut open)))
+        .filter_map(|i| open[i].then_some(find_fences(i as i32, nrows, ncols, &garden, &mut open)))
         .map(|(plots, fences)| plots * coalesce(fences))
         .sum()
 }
 
-fn find_region(pos: usize, nrows: usize, ncols: usize, garden: &[char], open: &mut [bool]) -> HashMap<(usize, usize), usize>
+fn find_region(pos: i32, nrows: i32, ncols: i32, garden: &[char], open: &mut [bool]) -> HashMap<(i32, i32), i32>
 {
     use std::collections::VecDeque;
 
@@ -68,23 +68,24 @@ fn find_region(pos: usize, nrows: usize, ncols: usize, garden: &[char], open: &m
 
     let mut q = VecDeque::from([pos]);
     while let Some(pos) = q.pop_front() {
-        if open[pos] {
-            open[pos] = false;
+        let i = pos as usize;
+        if open[i] {
+            open[i] = false;
             let row = pos / ncols;
             let col = pos % ncols;
 
             region.insert((row, col), 4);
-            let plant = garden[pos];
+            let plant = garden[i];
             q.extend(neighbors((row, col), nrows, ncols).iter()
                 .map(|(row, col)| row * ncols + col)
-                .filter(|&p| garden[p] == plant && open[p]))
+                .filter(|&p| garden[p as usize] == plant && open[p as usize]))
         }
     }
 
     region
 }
 
-fn find_fences(pos: usize, nrows: usize, ncols: usize, garden: &[char], open: &mut [bool]) -> (usize, Fences)
+fn find_fences(pos: i32, nrows: i32, ncols: i32, garden: &[char], open: &mut [bool]) -> (i32, Fences)
 {
     use std::collections::{HashSet, VecDeque};
 
@@ -103,9 +104,10 @@ fn find_fences(pos: usize, nrows: usize, ncols: usize, garden: &[char], open: &m
     // a minimal set of larger vectors.
     let mut q = VecDeque::from([pos]);
     while let Some(pos) = q.pop_front() {
-        if open[pos] {
+        let i = pos as usize;
+        if open[i] {
             plots += 1;
-            open[pos] = false;
+            open[i] = false;
             let row = pos / ncols;
             let col = pos % ncols;
             [
@@ -122,16 +124,16 @@ fn find_fences(pos: usize, nrows: usize, ncols: usize, garden: &[char], open: &m
                     }
                 );
 
-            let plant = garden[pos];
+            let plant = garden[i];
             q.extend(neighbors((row, col), nrows, ncols).iter()
                 .map(|(row, col)| row * ncols + col)
-                .filter(|&p| garden[p] == plant && open[p]))
+                .filter(|&p| garden[p as usize] == plant && open[p as usize]))
         }
     }
     let fences = fences.iter()
         .map(|p| {
-            let dr = p.0.0 as i32 - p.1.0 as i32;
-            let dc = p.0.1 as i32 - p.1.1 as i32;
+            let dr = p.1.0 - p.0.0;
+            let dc = p.1.1 - p.0.1;
             (*p, (dr.signum(), dc.signum()))
         })
         .collect();
@@ -139,56 +141,50 @@ fn find_fences(pos: usize, nrows: usize, ncols: usize, garden: &[char], open: &m
     (plots, fences)
 }
 
-fn perimeter(nrows: usize, ncols: usize, mut region: HashMap<(usize, usize), usize>) -> usize
+fn perimeter(nrows: i32, ncols: i32, mut region: HashMap<(i32, i32), i32>) -> i32
 {
     let keys: Vec<_> = region.keys().cloned().collect();
     for pos in keys {
         let count = neighbors(pos, nrows, ncols).iter()
             .filter(|p| region.contains_key(p))
-            .count();
+            .count() as i32;
         region.entry(pos).and_modify(|n| *n -= count);
     }
 
     region.values().sum()
 }
 
-fn coalesce(mut fences: Fences) -> usize
+fn coalesce(mut fences: Fences) -> i32
 {
     // While there are fence sections left, grab the next one
     // and attempt to grow it as much as possible in both directions
     // When we're out of sections, we'll have the number of
     // contiguous sides.
     let mut sides = 0;
-    while let Some((mut v1, d1)) = fences.pop() {
+    while let Some((mut v, d)) = fences.iter().next().cloned() {
+        fences.remove(&(v, d));
         sides += 1;
 
-        let mut growing: bool;
-        loop {
-            if let Some(i) = fences.iter()
-                .position(|&(v2, d2)| d2 == d1 && v2.1 == v1.0)
-            {
-                let (v2, _) = fences.remove(i);
-                v1 = (v2.0, v1.1);
-                growing = true;
-            } else {
-                growing = false;
-            }
-            if let Some(i) = fences.iter()
-                .position(|&(v2, d2)| d2 == d1 && v1.1 == v2.0)
-            {
-                let (v2, _) = fences.remove(i);
-                v1 = (v1.0, v2.1);
-                growing = true;
-            }
+        let mut growing = true;
+        while growing {
+            let v1 = ((v.0.0 - d.0, v.0.1 - d.1), v.0);
+            growing = fences.remove(&(v1, d));
+            if growing {
+                v = (v1.0, v.1)
+            } 
 
-            if !growing { break; }
+            let v1 = (v.1, (v.1.0 + d.0, v.1.1 + d.1));
+            if fences.remove(&(v1, d)) {
+                v = (v.0, v1.1);
+                growing = true;
+            }
         }
     }
 
     sides
 }
 
-fn neighbors((row, col): (usize, usize), nrows: usize, ncols: usize) -> Vec<(usize, usize)>
+fn neighbors((row, col): (i32, i32), nrows: i32, ncols: i32) -> Vec<(i32, i32)>
 {
     let mut v = vec![];
     if col < ncols - 1 {

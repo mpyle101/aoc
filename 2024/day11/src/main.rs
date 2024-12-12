@@ -52,23 +52,23 @@ fn blink(stones: &[u64]) -> Vec<u64>
         })
 }
 
-fn expand(n: u64, blinks: usize, m: &mut Memos) -> usize
+fn expand(n: u64, blinks: usize, memos: &mut Memos) -> usize
 {
-    if let Some(count) = m.get(&(n, blinks)) {
+    if let Some(count) = memos.get(&(n, blinks)) {
         *count
     } else if blinks == 1 {
         if split(n).is_some() { 2 } else { 1 }
     } else {
         let count = if let Some((lt, rt)) = split(n) {
-            expand(lt, blinks - 1, m) +
-            expand(rt, blinks - 1, m)
+            expand(lt, blinks - 1, memos) +
+            expand(rt, blinks - 1, memos)
         } else if n == 0 {
-            expand(1, blinks - 1, m)
+            expand(1, blinks - 1, memos)
         } else {
-            expand(n * 2024, blinks - 1, m)
+            expand(n * 2024, blinks - 1, memos)
         };
     
-        m.insert((n, blinks), count);
+        memos.insert((n, blinks), count);
     
         count
     }

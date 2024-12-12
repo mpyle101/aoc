@@ -19,13 +19,11 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
-    let mut stones = input.split(' ')
+    let stones = input.split(' ')
         .filter_map(|s| s.parse::<u64>().ok())
         .collect::<Vec<_>>();
 
-    (0..25).for_each(|_| stones = blink(&mut stones));
-
-    stones.len()
+    (0..25).fold(stones, |acc, _| blink(&acc)).len()
 }
 
 fn part_two(input: &str, blinks: usize) -> usize
@@ -38,7 +36,7 @@ fn part_two(input: &str, blinks: usize) -> usize
         .sum()
 }
 
-fn blink(stones: &mut [u64]) -> Vec<u64>
+fn blink(stones: &[u64]) -> Vec<u64>
 {
     stones.iter()
         .fold(vec![], |mut v, &n| {

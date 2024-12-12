@@ -1,7 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 
 type Fence = ((i32, i32), (i32, i32));
-type Fences = HashSet<(Fence, (i32, i32))>;
+type Fences = BTreeSet<(Fence, (i32, i32))>;
 
 fn main()
 {
@@ -161,8 +161,7 @@ fn coalesce(mut fences: Fences) -> i32
     // When we're out of sections, we'll have the number of
     // contiguous sides.
     let mut sides = 0;
-    while let Some((mut v, d)) = fences.iter().next().cloned() {
-        fences.remove(&(v, d));
+    while let Some((mut v, d)) = fences.pop_first() {
         sides += 1;
 
         let mut growing = true;

@@ -76,7 +76,8 @@ fn find_region(pos: i32, nrows: i32, ncols: i32, garden: &[char], open: &mut [bo
 
             region.insert((row, col), 4);
             let plant = garden[i];
-            q.extend(neighbors((row, col), nrows, ncols).iter()
+            q.extend(neighbors((row, col)).iter()
+                .filter(|p| is_inbounds(p, nrows, ncols))
                 .map(|(row, col)| row * ncols + col)
                 .filter(|&p| garden[p as usize] == plant && open[p as usize]))
         }
@@ -110,31 +111,27 @@ fn find_fences(pos: i32, nrows: i32, ncols: i32, garden: &[char], open: &mut [bo
             open[i] = false;
             let row = pos / ncols;
             let col = pos % ncols;
-            [
-                ((row, col), (row + 1, col)),
-                ((row + 1, col), (row + 1, col + 1)),
-                ((row + 1, col + 1), (row, col + 1)),
-                ((row, col + 1), (row, col)),
-            ].iter()
-                .for_each(|&(p1, p2)| 
-                    if fences.contains(&(p2, p1)) {
-                        fences.remove(&(p2, p1));
-                    } else {
-                        fences.insert((p1, p2));
-                    }
-                );
+            for (p1, p2) in sections(row, col) {
+                if fences.contains(&(p2, p1)) {
+                    fences.remove(&(p2, p1));
+                } else {
+                    fences.insert((p1, p2));
+                }
+            }
 
             let plant = garden[i];
-            q.extend(neighbors((row, col), nrows, ncols).iter()
+            q.extend(neighbors((row, col)).iter()
+                .filter(|p| is_inbounds(p, nrows, ncols))
                 .map(|(row, col)| row * ncols + col)
                 .filter(|&p| garden[p as usize] == plant && open[p as usize]))
         }
     }
     let fences = fences.iter()
+        .cloned()
         .map(|p| {
             let dr = p.1.0 - p.0.0;
             let dc = p.1.1 - p.0.1;
-            (*p, (dr.signum(), dc.signum()))
+            (p, (dr.signum(), dc.signum()))
         })
         .collect();
 
@@ -145,7 +142,8 @@ fn perimeter(nrows: i32, ncols: i32, mut region: HashMap<(i32, i32), i32>) -> i3
 {
     let keys: Vec<_> = region.keys().cloned().collect();
     for pos in keys {
-        let count = neighbors(pos, nrows, ncols).iter()
+        let count = neighbors(pos).iter()
+            .filter(|p| is_inbounds(p, nrows, ncols))
             .filter(|p| region.contains_key(p))
             .count() as i32;
         region.entry(pos).and_modify(|n| *n -= count);
@@ -183,23 +181,24 @@ fn coalesce(mut fences: Fences) -> i32
     sides
 }
 
-fn neighbors((row, col): (i32, i32), nrows: i32, ncols: i32) -> Vec<(i32, i32)>
+fn is_inbounds((row, col): &(i32, i32), nrows: i32, ncols: i32) -> bool
 {
-    let mut v = vec![];
-    if col < ncols - 1 {
-        v.push((row, col + 1));
-    }
-    if row < nrows - 1 {
-        v.push((row + 1, col))
-    }
-    if row > 0 {
-        v.push((row - 1, col));
-    }
-    if col > 0 {
-        v.push((row, col - 1));
-    }
+    *row >= 0 && *col >= 0 && *row < nrows && *col < ncols
+}
 
-    v
+fn neighbors((row, col): (i32, i32)) -> [(i32, i32);4]
+{
+    [(row, col + 1), (row + 1, col), (row - 1, col), (row, col - 1)]
+}
+
+fn sections(row: i32, col: i32) -> [Fence; 4]
+{
+    [
+        ((row, col), (row + 1, col)),
+        ((row + 1, col), (row + 1, col + 1)),
+        ((row + 1, col + 1), (row, col + 1)),
+        ((row, col + 1), (row, col)),
+    ]
 }
 
 

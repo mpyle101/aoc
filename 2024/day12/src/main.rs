@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashMap};
 
 type Fence = ((i32, i32), (i32, i32));
-type Fences = BTreeSet<(Fence, (i32, i32))>;
+type Fences = BTreeSet<Fence>;
 
 fn main()
 {
@@ -88,10 +88,10 @@ fn find_region(pos: i32, nrows: i32, ncols: i32, garden: &[char], open: &mut [bo
 
 fn find_fences(pos: i32, nrows: i32, ncols: i32, garden: &[char], open: &mut [bool]) -> (i32, Fences)
 {
-    use std::collections::{HashSet, VecDeque};
+    use std::collections::VecDeque;
 
     let mut plots = 0;
-    let mut fences = HashSet::new();
+    let mut fences = Fences::new();
 
     // Each plot can be thought of as a set of unit vectors going around
     // the outside in one direction or another (we chose counter clockwise).
@@ -112,9 +112,7 @@ fn find_fences(pos: i32, nrows: i32, ncols: i32, garden: &[char], open: &mut [bo
             let row = pos / ncols;
             let col = pos % ncols;
             for (p1, p2) in sections(row, col) {
-                if fences.contains(&(p2, p1)) {
-                    fences.remove(&(p2, p1));
-                } else {
+                if !fences.remove(&(p2, p1)) {
                     fences.insert((p1, p2));
                 }
             }
@@ -126,14 +124,6 @@ fn find_fences(pos: i32, nrows: i32, ncols: i32, garden: &[char], open: &mut [bo
                 .filter(|&p| garden[p as usize] == plant && open[p as usize]))
         }
     }
-    let fences = fences.iter()
-        .cloned()
-        .map(|p| {
-            let dr = p.1.0 - p.0.0;
-            let dc = p.1.1 - p.0.1;
-            (p, (dr.signum(), dc.signum()))
-        })
-        .collect();
 
     (plots, fences)
 }
@@ -159,19 +149,21 @@ fn coalesce(mut fences: Fences) -> i32
     // When we're out of sections, we'll have the number of
     // contiguous sides.
     let mut sides = 0;
-    while let Some((mut v, d)) = fences.pop_first() {
+    while let Some(mut v) = fences.pop_first() {
         sides += 1;
+        let dr = v.1.0 - v.0.0;
+        let dc = v.1.1 - v.0.1;
 
         let mut growing = true;
         while growing {
-            let v1 = ((v.0.0 - d.0, v.0.1 - d.1), v.0);
-            growing = fences.remove(&(v1, d));
+            let v1 = ((v.0.0 - dr, v.0.1 - dc), v.0);
+            growing = fences.remove(&v1);
             if growing {
                 v = (v1.0, v.1)
             } 
 
-            let v1 = (v.1, (v.1.0 + d.0, v.1.1 + d.1));
-            if fences.remove(&(v1, d)) {
+            let v1 = (v.1, (v.1.0 + dr, v.1.1 + dc));
+            if fences.remove(&v1) {
                 v = (v.0, v1.1);
                 growing = true;
             }

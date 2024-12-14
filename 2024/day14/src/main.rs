@@ -112,17 +112,16 @@ fn load(input: &str) -> Vec<Robot>
 {
     input.lines()
         .map(|line| {
-            let (p, v) = line.split_once(' ').unwrap();
-            
-            let (x, y) = p[2..].split_once(',').unwrap();
-            let x = x.parse::<i32>().unwrap();
-            let y = y.parse::<i32>().unwrap();
-
+            let (p, v)   = line.split_once(' ').unwrap();
+            let (x, y)   = p[2..].split_once(',').unwrap();
             let (dx, dy) = v[2..].split_once(',').unwrap();
-            let dx = dx.parse::<i32>().unwrap();
-            let dy = dy.parse::<i32>().unwrap();
 
-            Robot { x, y, dx, dy }
+            Robot {
+                x:   x.parse::<i32>().unwrap(),
+                y:   y.parse::<i32>().unwrap(),
+                dx: dx.parse::<i32>().unwrap(),
+                dy: dy.parse::<i32>().unwrap(),
+            }
         })
         .collect()
 }

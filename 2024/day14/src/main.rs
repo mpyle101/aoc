@@ -25,7 +25,7 @@ fn main()
 
 fn part_one(input: &str, nrows: i32, ncols: i32) -> usize
 {
-    let mut robots = load(input);
+    let mut robots = load(input).unwrap();
     (0..100).for_each(|_| 
         robots.iter_mut()
             .for_each(|robot| { *robot = move_robot(*robot, nrows, ncols); })
@@ -56,7 +56,7 @@ fn part_two(input: &str, nrows: i32, ncols: i32) -> usize
         (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2)
     ];
 
-    let mut robots = load(input);
+    let mut robots = load(input).unwrap();
     let mut hashes = HashSet::new();
 
     let mut steps = 1;
@@ -108,20 +108,20 @@ fn move_robot(robot: Robot, nrows: i32, ncols: i32) -> Robot
     Robot { x, y, ..robot }
 }
 
-fn load(input: &str) -> Vec<Robot>
+fn load(input: &str) -> Option<Vec<Robot>>
 {
     input.lines()
         .map(|line| {
-            let (p, v)   = line.split_once(' ').unwrap();
-            let (x, y)   = p[2..].split_once(',').unwrap();
-            let (dx, dy) = v[2..].split_once(',').unwrap();
+            let (p, v)   = line.split_once(' ')?;
+            let (x, y)   = p[2..].split_once(',')?;
+            let (dx, dy) = v[2..].split_once(',')?;
 
-            Robot {
-                x:   x.parse::<i32>().unwrap(),
-                y:   y.parse::<i32>().unwrap(),
-                dx: dx.parse::<i32>().unwrap(),
-                dy: dy.parse::<i32>().unwrap(),
-            }
+            Some(Robot {
+                x:   x.parse::<i32>().ok()?,
+                y:   y.parse::<i32>().ok()?,
+                dx: dx.parse::<i32>().ok()?,
+                dy: dy.parse::<i32>().ok()?
+            })
         })
         .collect()
 }

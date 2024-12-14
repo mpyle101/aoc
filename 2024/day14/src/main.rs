@@ -88,13 +88,13 @@ fn part_two(input: &str, nrows: i32, ncols: i32) -> usize
 fn move_robot(robot: Robot, nrows: i32, ncols: i32) -> Robot
 {
     let x = match robot.x + robot.dx {
-        col if col < 0      => ncols + col,
         col if col >= ncols => col - ncols,
+        col if col < 0      => ncols + col,
         col => col
     };
     let y = match robot.y + robot.dy {
-        row if row < 0      => nrows + row,
         row if row >= nrows => row - nrows,
+        row if row < 0      => nrows + row,
         row => row
     };
 

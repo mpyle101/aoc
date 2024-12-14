@@ -30,7 +30,7 @@ fn part_one(input: &str, nrows: i32, ncols: i32) -> usize
         robots.iter_mut()
             .for_each(|robot| { *robot = move_robot(*robot, nrows, ncols); })
     );
-    
+
     let quadrants = [
         (0..ncols / 2, 0..nrows / 2),
         (ncols / 2 + 1..ncols, 0..nrows / 2),
@@ -113,13 +113,14 @@ fn load(input: &str) -> Vec<Robot>
     input.lines()
         .map(|line| {
             let (p, v) = line.split_once(' ').unwrap();
-            let (sx, sy) = p[2..].split_once(',').unwrap();
-            let x = sx.parse::<i32>().unwrap();
-            let y = sy.parse::<i32>().unwrap();
+            
+            let (x, y) = p[2..].split_once(',').unwrap();
+            let x = x.parse::<i32>().unwrap();
+            let y = y.parse::<i32>().unwrap();
 
-            let (sx, sy) = v[2..].split_once(',').unwrap();
-            let dx = sx.parse::<i32>().unwrap();
-            let dy = sy.parse::<i32>().unwrap();
+            let (dx, dy) = v[2..].split_once(',').unwrap();
+            let dx = dx.parse::<i32>().unwrap();
+            let dy = dy.parse::<i32>().unwrap();
 
             Robot { x, y, dx, dy }
         })

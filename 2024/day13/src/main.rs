@@ -58,7 +58,8 @@ fn replay(m: &Machine) -> Option<i64>
 {
     // Solve two equations with two unknowns using elimination and then
     // check to see the solution is an integer value (it's fractional part
-    // is 0.0).
+    // is 0.0). Note, we're guessing there is, in fact, just one solution.
+    //
     // We have two equations;
     // x * a.x + y * b.x = prize.x
     // x * a.y + y * b.y = prize.y

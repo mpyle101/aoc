@@ -54,6 +54,7 @@ fn play(m: &Machine) -> Option<i64>
     None
 }
 
+#[allow(non_snake_case)]
 fn replay(m: &Machine) -> Option<i64>
 {
     // Solve two equations with two unknowns using elimination and then
@@ -61,13 +62,13 @@ fn replay(m: &Machine) -> Option<i64>
     // is 0.0). Note, we're guessing there is, in fact, just one solution.
     //
     // We have two equations;
-    // x * a.x + y * b.x = prize.x
-    // x * a.y + y * b.y = prize.y
+    // a * a.x + b * b.x = prize.x
+    // a * a.y + b * b.y = prize.y
     //
     // We can scale them up to remove either b or a and get an equation with
-    // a single unknown. For instance, to remove y we can scale by multiply
+    // a single unknown. For instance, to remove b we can scale by multiplying
     // each equation by the b value of the other and then subtracting the equations.
-    // We then divide by the x multplier and that'll give us the A presses.
+    // We then divide by the a multplier and that'll give us the A presses.
     // If we know A, then we can calculate B.
     //
     // a*26 + b*67 = 10000000012748   a*x1 + b*y1 = c     a*a.0 + b*b.0 = p.0
@@ -77,18 +78,18 @@ fn replay(m: &Machine) -> Option<i64>
     //
     // (x1*y2) - (x2*y1) = (c*y2) - (d*y1) =>
     //    (a.0*b.1) - (a.1*b.0) = (p.0*b.1) - (p.1*b.0)
-    // a = (c*y2) - (d*y1) / (x1*y2) - (x2*y1)
-    // a = (p.0*b.1) - (p.1*b.0) / (a.0*b.1) - (a.1*b.0)
+    // a = ((c*y2) - (d*y1)) / ((x1*y2) - (x2*y1))
+    // a = ((p.0*b.1) - (p.1*b.0)) / ((a.0*b.1) - (a.1*b.0))
     //
     // a * 546  = 210000000267708
     // a * 4422 = 670000000815792
     // a * 3876 = 460000000548084
     // a = 118679050709
 
-    let a = (m.p.0 * m.b.1 - m.p.1 * m.b.0) as f64 / (m.a.0 * m.b.1 - m.a.1 * m.b.0) as f64;
-    if a.fract() == 0.0 {
-        let b = (m.p.0 as f64 - a * m.a.0 as f64) / m.b.0 as f64;
-        (b.fract() == 0.0).then_some(a as i64 * 3 + b as i64)
+    let A = (m.p.0 * m.b.1 - m.p.1 * m.b.0) as f64 / (m.a.0 * m.b.1 - m.a.1 * m.b.0) as f64;
+    if A.fract() == 0.0 {
+        let B = (m.p.0 as f64 - A * m.a.0 as f64) / m.b.0 as f64;
+        (B.fract() == 0.0).then_some(A as i64 * 3 + B as i64)
     } else {
         None
     }

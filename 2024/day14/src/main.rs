@@ -1,13 +1,11 @@
-use std::fs::File;
 use std::{collections::HashSet, hash::Hash};
-
-type Position = (i32, i32);
-type Velocity = (i32, i32);
 
 #[derive(Eq, Clone, Copy, Debug, Hash, PartialEq)]
 struct Robot {
-    p: Position,
-    v: Velocity,
+    x: i32,
+    y: i32,
+    dx: i32,
+    dy: i32,
 }
 
 fn main()
@@ -32,14 +30,16 @@ fn part_one(input: &str, nrows: i32, ncols: i32) -> usize
         robots.iter_mut()
             .for_each(|robot| { *robot = move_robot(*robot, nrows, ncols); })
     );
-    [
+    
+    let quadrants = [
         (0..ncols / 2, 0..nrows / 2),
         (ncols / 2 + 1..ncols, 0..nrows / 2),
         (0..ncols / 2, nrows / 2 + 1..nrows),
         (ncols / 2 + 1..ncols, nrows / 2 + 1..nrows)
-    ].iter()
+    ];
+    quadrants.iter()
         .map(|(x, y)| robots.iter()
-            .filter(|r| x.contains(&r.p.0) && y.contains(&r.p.1))
+            .filter(|r| x.contains(&r.x) && y.contains(&r.y))
             .count())
         .product()
 }
@@ -48,6 +48,14 @@ fn part_two(input: &str, nrows: i32, ncols: i32) -> usize
 {
     use std::hash::{DefaultHasher, Hasher};
 
+    // For looking for the top of a tree anywhere in the data.
+    // Yes, we don't need the (0, 0) but it looks nicer. :)
+    let tree_top = [
+                          (0, 0),
+                 (-1, 1), (0, 1), (1, 1),
+        (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2)
+    ];
+
     let mut robots = load(input);
     let mut hashes = HashSet::new();
 
@@ -55,30 +63,20 @@ fn part_two(input: &str, nrows: i32, ncols: i32) -> usize
     'outer: loop {
         robots.iter_mut()
             .for_each(|robot| { *robot = move_robot(*robot, nrows, ncols); });
-        let positions = robots.iter().map(|r| r.p).collect::<HashSet<_>>();
 
-        // Look for the top of a tree anywhere in the data.
-        // Yes, we don't need the (0, 0) but it looks nicer. :)
-        let tree_top = [
-                              (0, 0),
-                     (-1, 1), (0, 1), (1, 1),
-            (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2)
-        ];
-        for p in &positions {
-            let found = tree_top.iter()
-                .all(|d| {
-                    let p = (p.0 + d.0, p.1 + d.1);
-                    positions.contains(&p)
-                });
-            if found { break 'outer }
+        // Hash sets are faster to search than vectors.
+        let pos = robots.iter().map(|r| (r.x, r.y)).collect::<HashSet<_>>();
+        for p in &pos {
+            if tree_top.iter().all(|d| pos.contains(&(p.0 + d.0, p.1 + d.1))) {
+                break 'outer
+            }
         }
 
         // Stop when we start to cycle in case we need to start again
         // with a larger tree top.
         let mut hasher = DefaultHasher::new();
         robots.hash(&mut hasher);
-        let hash = hasher.finish();
-        if !hashes.insert(hash) {
+        if !hashes.insert(hasher.finish()) {
             break;
         }
         steps += 1
@@ -89,61 +87,25 @@ fn part_two(input: &str, nrows: i32, ncols: i32) -> usize
 
 fn move_robot(robot: Robot, nrows: i32, ncols: i32) -> Robot
 {
-    let c = robot.p.0 + robot.v.0;
-    let x = if c < 0 { 
-        ncols + c
-    } else if c >= ncols {
-        c - ncols
+    let col = robot.x + robot.dx;
+    let x = if col < 0 { 
+        ncols + col
+    } else if col >= ncols {
+        col - ncols
     } else {
-        c
+        col
     };
 
-    let r = robot.p.1 + robot.v.1;
-    let y = if r < 0 {
-        nrows + r
-    } else if r >= nrows {
-        r - nrows
+    let row = robot.y + robot.dy;
+    let y = if row < 0 {
+        nrows + row
+    } else if row >= nrows {
+        row - nrows
     } else {
-        r
+        row
     };
 
-    Robot { p: (x, y), ..robot }
-}
-
-#[allow(dead_code)]
-fn print(robots: &HashSet<Position>)
-{
-    for y in 0..103 {
-        for x in 0..101 {
-            if robots.contains(&(x, y)) {
-                print!("#");
-            } else {
-                print!(".");
-            }
-        }
-        println!();
-    }
-}
-
-#[allow(dead_code)]
-fn write(robots: HashSet<Position>, n: i32, file: &mut File)
-{
-    use std::io::Write;
-
-    let mut s = format!("{n}\n");
-    for y in 0..103 {
-        for x in 0..101 {
-            if robots.contains(&(x, y)) {
-                s += "#";
-            } else {
-                s += ".";
-            }
-        }
-        s += "\n";
-    }
-    s += "\n";
-
-    file.write_all(s.as_bytes()).unwrap();
+    Robot { x, y, ..robot }
 }
 
 fn load(input: &str) -> Vec<Robot>
@@ -159,7 +121,7 @@ fn load(input: &str) -> Vec<Robot>
             let dx = sx.parse::<i32>().unwrap();
             let dy = sy.parse::<i32>().unwrap();
 
-            Robot { p: (x, y), v: (dx, dy) }
+            Robot { x, y, dx, dy }
         })
         .collect()
 }

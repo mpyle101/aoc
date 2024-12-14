@@ -73,7 +73,8 @@ fn part_two(input: &str, nrows: i32, ncols: i32) -> usize
             if found { break 'outer }
         }
 
-        // Stop when we start to cycle.
+        // Stop when we start to cycle in case we need to start again
+        // with a larger tree top.
         let mut hasher = DefaultHasher::new();
         robots.hash(&mut hasher);
         let hash = hasher.finish();

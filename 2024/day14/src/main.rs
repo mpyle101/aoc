@@ -87,22 +87,15 @@ fn part_two(input: &str, nrows: i32, ncols: i32) -> usize
 
 fn move_robot(robot: Robot, nrows: i32, ncols: i32) -> Robot
 {
-    let col = robot.x + robot.dx;
-    let x = if col < 0 { 
-        ncols + col
-    } else if col >= ncols {
-        col - ncols
-    } else {
-        col
+    let x = match robot.x + robot.dx {
+        col if col < 0      => ncols + col,
+        col if col >= ncols => col - ncols,
+        col => col
     };
-
-    let row = robot.y + robot.dy;
-    let y = if row < 0 {
-        nrows + row
-    } else if row >= nrows {
-        row - nrows
-    } else {
-        row
+    let y = match robot.y + robot.dy {
+        row if row < 0      => nrows + row,
+        row if row >= nrows => row - nrows,
+        row => row
     };
 
     Robot { x, y, ..robot }

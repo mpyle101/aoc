@@ -57,8 +57,8 @@ fn part_two(input: &str, nrows: i32, ncols: i32) -> usize
             .for_each(|robot| { *robot = move_robot(*robot, nrows, ncols); });
         let positions = robots.iter().map(|r| r.p).collect::<HashSet<_>>();
 
-        // Look for the top a tree anywhere in the data. We don't need the
-        // (0, 0) but it looks nicer. :)
+        // Look for the top of a tree anywhere in the data.
+        // Yes, we don't need the (0, 0) but it looks nicer. :)
         let tree_top = [
                               (0, 0),
                      (-1, 1), (0, 1), (1, 1),

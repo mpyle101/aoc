@@ -120,21 +120,20 @@ fn do_move_wide(c: char, robot: usize, wh: &mut Warehouse) -> usize
             BTreeSet::from([p, p - 1])
         };
 
-        let mut done = false;
         let mut blocked = false;
-        while !done && !blocked {
+        loop {
             let b = boxes.iter()
-                .flat_map(|&p| {
+                .fold(BTreeSet::new(), |mut v, &p| {
                     let q = (p as i32 + offset) as usize;
                     match wh.contents[q] {
-                        '[' => vec![p, q, q + 1],
-                        ']' => vec![p, q - 1, q],
-                        '.' => vec![p],
-                         _  => { blocked = true; vec![] }
-                    }.into_iter()
-                })
-                .collect();
-            done = boxes == b;
+                        '[' => { v.insert(p); v.insert(q); v.insert(q + 1); },
+                        ']' => { v.insert(p); v.insert(q); v.insert(q - 1); },
+                        '.' => { v.insert(p); },
+                         _  => blocked = true,
+                    };
+                    v
+                });
+            if blocked || b == boxes { break };
             boxes = b;
         }
 

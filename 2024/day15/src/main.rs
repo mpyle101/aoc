@@ -124,12 +124,12 @@ fn do_move_wide(c: char, robot: usize, wh: &mut Warehouse) -> usize
         loop {
             let b = boxes.iter()
                 .fold(BTreeSet::new(), |mut v, &p| {
+                    v.insert(p);
                     let q = (p as i32 + offset) as usize;
                     match wh.contents[q] {
-                        '[' => { v.insert(p); v.insert(q); v.insert(q + 1); },
-                        ']' => { v.insert(p); v.insert(q); v.insert(q - 1); },
-                        '.' => { v.insert(p); },
-                         _  => blocked = true,
+                        '[' => { v.insert(q); v.insert(q + 1); },
+                        ']' => { v.insert(q); v.insert(q - 1); },
+                         c  => blocked |= c == '#',
                     };
                     v
                 });

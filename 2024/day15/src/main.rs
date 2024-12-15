@@ -113,6 +113,7 @@ fn do_move_wide(c: char, robot: usize, wh: &mut Warehouse) -> usize
             (p as i32 + offset) as usize
         }
     } else {
+        // Collect the set of positions marking halfs of boxes to be moved.
         let mut boxes = if wh.contents[p] == '[' {
             BTreeSet::from([p, p + 1])
         } else {
@@ -138,8 +139,15 @@ fn do_move_wide(c: char, robot: usize, wh: &mut Warehouse) -> usize
         }
 
         if blocked {
+            // We ran into a wall some where so we can't move so just
+            // return the current robot position.
             robot
         } else {
+            // we need to iterate from the positions we're moving boxes
+            // into back to the robot. So, we iterator over the positions
+            // based on the movement direction. BTreeSet returns elements
+            // in ascending order so reverse if robot is moving them down
+            // (offset is positive).
             let move_box = |&b| {
                 let q = (b as i32 + offset) as usize;
                 wh.contents[q] = wh.contents[b];

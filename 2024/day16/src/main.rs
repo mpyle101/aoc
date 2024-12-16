@@ -20,14 +20,13 @@ fn part_one(input: &str) -> usize
     use pathfinding::prelude::dijkstra;
 
     let (start, goal, ncols, maze) = load(input);
-
-    let (_, r) = dijkstra(
+    let (_, cost) = dijkstra(
         &(start, '>'),
         |&(p, d)| do_moves(p, d, ncols, &maze),
         |&(p, _)| p == goal
     ).unwrap();
 
-    r
+    cost
 }
 
 fn part_two(input: &str) -> usize
@@ -37,14 +36,22 @@ fn part_two(input: &str) -> usize
 
     let (start, goal, ncols, maze) = load(input);
 
+    // Yen finds the 'k' shortest paths. Manually move
+    // the value up from 2 until the unique set of tiles
+    // across all the paths stops progressing. For our
+    // input data, that was 9. There are mmore paths of
+    // the shortest cost through the maze but they are
+    // just variations on traversing the tiles covered
+    // by the top 9.
+    let k = 9;
     let paths = yen(
         &(start, '>'),
         |&(p, d)| do_moves(p, d, ncols, &maze),
         |&(p, _)| p == goal,
-        9
+        k
     );
 
-    let cost = paths[0].1;
+    let cost  = paths[0].1;
     let tiles = paths.iter()
         .filter(|(_, c)| *c == cost)
         .flat_map(|(v, _)| v.iter().map(|p| p.0))
@@ -61,7 +68,7 @@ fn do_moves(p: usize, d: char, ncols: usize, maze: &[char]) -> Vec<Step>
         '^' => p - ncols,
          _  => unreachable!()
     };
-    let mut v = if maze[pos] == '.' { 
+    let mut steps = if maze[pos] == '.' { 
         vec![((pos, d), 1)]
     } else {
         vec![]
@@ -69,17 +76,17 @@ fn do_moves(p: usize, d: char, ncols: usize, maze: &[char]) -> Vec<Step>
 
     match d {
         '^' | 'v' => {
-            if maze[p - 1] == '.' { v.push(((p, '<'), 1000)) }
-            if maze[p + 1] == '.' { v.push(((p, '>'), 1000)) }
+            if maze[p - 1] == '.' { steps.push(((p, '<'), 1000)) }
+            if maze[p + 1] == '.' { steps.push(((p, '>'), 1000)) }
         },
         '>' | '<' => {
-            if maze[p - ncols] == '.' { v.push(((p, '^'), 1000)) }
-            if maze[p + ncols] == '.' { v.push(((p, 'v'), 1000)) }
+            if maze[p - ncols] == '.' { steps.push(((p, '^'), 1000)) }
+            if maze[p + ncols] == '.' { steps.push(((p, 'v'), 1000)) }
         },
          _  => unreachable!()
     };
 
-    v
+    steps
 }
 
 fn load(input: &str) -> (usize, usize, usize, Vec<char>)

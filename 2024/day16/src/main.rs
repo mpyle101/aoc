@@ -34,8 +34,6 @@ fn part_two(input: &str) -> usize
     use std::collections::HashSet;
     use pathfinding::prelude::yen;
 
-    let (start, goal, ncols, maze) = load(input);
-
     // Yen finds the 'k' shortest paths. Manually move
     // the value up from 2 until the unique set of tiles
     // across all the paths stops progressing. For our
@@ -44,6 +42,7 @@ fn part_two(input: &str) -> usize
     // just variations on traversing the tiles covered
     // by the top 9.
     let k = 9;
+    let (start, goal, ncols, maze) = load(input);
     let paths = yen(
         &(start, '>'),
         |&(p, d)| do_moves(p, d, ncols, &maze),
@@ -56,6 +55,7 @@ fn part_two(input: &str) -> usize
         .filter(|(_, c)| *c == cost)
         .flat_map(|(v, _)| v.iter().map(|p| p.0))
         .collect::<HashSet<_>>();
+
     tiles.len()
 }
 

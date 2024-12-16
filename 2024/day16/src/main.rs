@@ -69,11 +69,8 @@ fn do_moves(p: usize, d: char, ncols: usize, maze: &[char]) -> Vec<Step>
          _  => unreachable!()
     };
 
-    let mut steps = if maze[p1] == '.' { 
-        vec![((p1, d), 1)]
-    } else {
-        vec![]
-    };
+    let mut steps = Vec::with_capacity(3);
+    if maze[p1] == '.' { steps.push(((p1, d), 1)) }
     if maze[s1.0.0] == '.' { steps.push(s1) }
     if maze[s2.0.0] == '.' { steps.push(s2) }
 

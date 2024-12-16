@@ -1,4 +1,4 @@
-use std::hash::BuildHasherDefault;
+use std::hash::{BuildHasherDefault, Hash};
 use indexmap::IndexMap;
 use rustc_hash::FxHasher;
 
@@ -7,18 +7,19 @@ type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
 // Lifted from the pathfinding crate and modified to our
 // specific needs as we don't need the whole path, just the
 // length.
-pub fn bfs<FN, IN>(
-    start: u32,
+pub fn bfs<N, FN, IN>(
+    start: N,
     mut successors: FN,
-    goal: u32) -> Option<usize>
+    goal: N) -> Option<usize>
 where
-    FN: FnMut(u32) -> IN,
-    IN: IntoIterator<Item = u32>,
+    N: Copy + Eq + Hash,
+    FN: FnMut(N) -> IN,
+    IN: IntoIterator<Item = N>,
 {
     use indexmap::map::Entry::Vacant;
 
     let mut i = 0;
-    let mut parents: FxIndexMap<u32, usize> = FxIndexMap::default();
+    let mut parents: FxIndexMap<N, usize> = FxIndexMap::default();
     parents.insert(start, usize::MAX);
     while let Some((node, _)) = parents.get_index(i) {
         for successor in successors(*node) {
@@ -35,7 +36,7 @@ where
     None
 }
 
-fn bfs_length(parents: &FxIndexMap<u32, usize>, start: usize) -> usize
+fn bfs_length<N>(parents: &FxIndexMap<N, usize>, start: usize) -> usize
 {
     let mut count = 0;
     let mut i = start;

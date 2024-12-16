@@ -61,30 +61,21 @@ fn part_two(input: &str) -> usize
 
 fn do_moves(p: usize, d: char, ncols: usize, maze: &[char]) -> Vec<Step>
 {
-    let pos = match d {
-        '>' => p + 1,
-        '<' => p - 1,
-        'v' => p + ncols,
-        '^' => p - ncols,
+    let (p1, s1, s2) = match d {
+        '>' => (p + 1, ((p - ncols, '^'), 1000), ((p + ncols, 'v'), 1000)),
+        '<' => (p - 1, ((p - ncols, '^'), 1000), ((p + ncols, 'v'), 1000)),
+        'v' => (p + ncols, ((p - 1, '<'), 1000), ((p + 1, '>'), 1000)),
+        '^' => (p - ncols, ((p - 1, '<'), 1000), ((p + 1, '>'), 1000)),
          _  => unreachable!()
     };
-    let mut steps = if maze[pos] == '.' { 
-        vec![((pos, d), 1)]
+
+    let mut steps = if maze[p1] == '.' { 
+        vec![((p1, d), 1)]
     } else {
         vec![]
     };
-
-    match d {
-        '^' | 'v' => {
-            if maze[p - 1] == '.' { steps.push(((p, '<'), 1000)) }
-            if maze[p + 1] == '.' { steps.push(((p, '>'), 1000)) }
-        },
-        '>' | '<' => {
-            if maze[p - ncols] == '.' { steps.push(((p, '^'), 1000)) }
-            if maze[p + ncols] == '.' { steps.push(((p, 'v'), 1000)) }
-        },
-         _  => unreachable!()
-    };
+    if maze[s1.0.0] == '.' { steps.push(s1) }
+    if maze[s2.0.0] == '.' { steps.push(s2) }
 
     steps
 }

@@ -1,3 +1,5 @@
+type Step = ((usize, char), usize);
+
 fn main()
 {
     use std::time::Instant;
@@ -50,13 +52,8 @@ fn part_two(input: &str) -> usize
     tiles.len()
 }
 
-fn do_moves(p: usize, d: char, ncols: usize, maze: &[char]) -> Vec<((usize, char), usize)>
+fn do_moves(p: usize, d: char, ncols: usize, maze: &[char]) -> Vec<Step>
 {
-    let mut v = match d {
-        '>' | '<' => vec![((p, '^'), 1000), ((p, 'v'), 1000)],
-        '^' | 'v' => vec![((p, '<'), 1000), ((p, '>'), 1000)],
-         _  => unreachable!()
-    };
     let pos = match d {
         '>' => p + 1,
         '<' => p - 1,
@@ -64,7 +61,23 @@ fn do_moves(p: usize, d: char, ncols: usize, maze: &[char]) -> Vec<((usize, char
         '^' => p - ncols,
          _  => unreachable!()
     };
-    if maze[pos] == '.' { v.push(((pos, d), 1)) }
+    let mut v = if maze[pos] == '.' { 
+        vec![((pos, d), 1)]
+    } else {
+        vec![]
+    };
+
+    match d {
+        '^' | 'v' => {
+            if maze[p - 1] == '.' { v.push(((p, '<'), 1000)) }
+            if maze[p + 1] == '.' { v.push(((p, '>'), 1000)) }
+        },
+        '>' | '<' => {
+            if maze[p - ncols] == '.' { v.push(((p, '^'), 1000)) }
+            if maze[p + ncols] == '.' { v.push(((p, 'v'), 1000)) }
+        },
+         _  => unreachable!()
+    };
 
     v
 }
@@ -109,12 +122,12 @@ mod tests {
         assert_eq!(part_one(input), 134588);
     }
 
-    // #[test]
-    // fn input_part_two()
-    // {
-    //     let input = include_str!("../input.txt");
-    //     assert_eq!(part_two(input), 631);
-    // }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 631);
+    }
 
     #[test]
     fn example_part_one()

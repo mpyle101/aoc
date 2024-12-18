@@ -66,7 +66,6 @@ fn execute(mut regs: [u64; 3], program: &[u64]) -> Vec<u64>
     let mut ip = 0;
     let mut stdout = Vec::with_capacity(16);
     while ip < program.len() {
-        // println!("{ip} {:?} {:?} {:?}", regs, program[ip], program[ip+1]);
         let (nx, out) = process(ip, &mut regs, program);
         if let Some(n) = out { stdout.push(n) }
         ip = nx

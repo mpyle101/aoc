@@ -51,15 +51,20 @@ fn part_two(input: &str, d: u32) -> (u32, u32)
         })
         .collect::<Vec<_>>();
 
-    let mut fallen = HashSet::new();
-    for byte in bytes {
-        fallen.insert(byte);
-        if dijkstra(&(0, 0), |&p| do_moves(p, d, &fallen), |&p| p == (d, d)).is_none() {
-            return byte
+    // Do a binary search to find the byte blocking the path.
+    let mut i = 0;
+    let mut j = bytes.len() / 2;
+    loop {
+        let fallen = HashSet::from_iter(bytes[0..j].iter().cloned());
+        if dijkstra(&(0, 0), |&p| do_moves(p, d, &fallen), |&p| p == (d, d)).is_some() {
+            i = j;
+            j += (bytes.len() - j) / 2;
+        } else {
+            j -= (j - i) / 2
         }
-    }
 
-    (0, 0)
+        if i >= j - 1 { return bytes[i] }
+    }
 }
 
 fn do_moves((x, y): (u32, u32), d: u32, bytes: &HashSet<(u32, u32)>) -> Vec<((u32, u32), u32)>

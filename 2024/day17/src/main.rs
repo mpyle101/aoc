@@ -24,8 +24,23 @@ fn part_one(input: &str) -> String
 
 fn part_two(input: &str) -> u64
 {
-    let (_, b, c, program) = load(input);
+    use pathfinding::directed::dfs::dfs;
 
+    let (_, b, c, p) = load(input);
+
+    let mut g = p.clone();
+    g.reverse();
+    let result = dfs(
+        (0, vec![]),
+        |(n, _)| neighbors(*n, b, c, &p, &g),
+        |(_, v)| v.len() == p.len() && p.iter().zip(v).all(|(a, b)| a == b)
+    ).unwrap();
+
+    result.last().unwrap().0
+}
+
+fn neighbors(n: u64, b: u64, c: u64, p: &[u64], g: &[u64]) -> Vec<(u64, Vec<u64>)>
+{
     // It's a 3 bit computer. Each loop produces one output and
     // them the value in the A register loses 3 bits (divided by 8).
     // So each 3 bits of the starting A value turns into the output
@@ -36,29 +51,19 @@ fn part_two(input: &str) -> u64
     // running that through the program looking for a match. If we
     // don't get one, mark all bits used (7, this was found playing
     // around with the results because don't always find a match).
-    let mut n = program.iter()
-        .rev()
-        .fold(0, |acc, p| {
-            (0..8)
-                .map(|n| (acc << 3) | n)
-                .find(|&n| {
-                    let output = execute([n, b, c], &program);
-                    output[0] == *p
-                })
-                .unwrap_or((acc << 3) | 7)
-        });
-
-    // We matched all but the first instruction. Since the lowest
-    // numbers affect the first opcode, we brute force and increment
-    // A until we get a match. For our input data, the difference
-    // was 54.
-    let mut output = execute([n, b, c], &program);
-    while output != program {
-        n += 1;
-        output = execute([n, b, c], &program);
-    }
-
-    n
+    (0..8)
+        .map(|i| {
+            let a = (n << 3) | i;
+            (a, execute([a, b, c], p))
+        })
+        .filter(|(_, v)| {
+            v.len() <= p.len() &&
+            v.iter()
+                .rev()
+                .zip(g)
+                .all(|(a, b)| a == b)
+        })
+        .collect()
 }
 
 fn execute(mut regs: [u64; 3], program: &[u64]) -> Vec<u64>

@@ -48,9 +48,7 @@ fn neighbors(n: u64, b: u64, c: u64, p: &[u64], g: &[u64]) -> Vec<(u64, Vec<u64>
     // build up by finding an input that generates the program
     // instructions 3 bits at a time by taking the current value,
     // adding all possible combinations of 3 bits to the right and
-    // running that through the program looking for a match. If we
-    // don't get one, mark all bits used (7, this was found playing
-    // around with the results because don't always find a match).
+    // running that through the program looking for a match.
     (0..8)
         .map(|i| {
             let a = (n << 3) | i;

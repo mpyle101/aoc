@@ -30,11 +30,7 @@ fn part_one(input: &str) -> usize
             (design, pat)
         })
         .filter_map(|(design, pat)| {
-            dfs(
-                design,
-                |d| possible(d, &pat),
-                |d| d.is_empty()
-            )
+            dfs(design, |d| possible(d, &pat), |d| d.is_empty())
         })
         .count()
 }
@@ -56,11 +52,7 @@ fn part_two(input: &str) -> usize
             (design, pat)
         })
         .map(|(design, pat)| {
-            count_paths(
-                design,
-                |d| possible(d, &pat),
-                |d| d.is_empty()
-            )
+            count_paths(design, |d| possible(d, &pat), |d| d.is_empty())
         })
         .sum()
 }
@@ -71,20 +63,6 @@ fn possible<'a>(design: &'a str, patterns: &[&str]) -> Vec<&'a str>
         .filter(|&pat| design.starts_with(pat))
         .map(|pat| &design[pat.len()..])
         .collect()
-}
-
-#[allow(dead_code)]
-fn is_possible(design: &str, patterns: &[&str]) -> bool
-{
-    if design.is_empty() {
-        true
-    } else {
-        patterns.iter()
-            .filter(|&p| design.starts_with(p))
-            .any(|p| {
-                p.len() == design.len() || is_possible(&design[p.len()..], patterns)
-            })
-    }
 }
 
 

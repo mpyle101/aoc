@@ -33,7 +33,7 @@ fn part_two(input: &str) -> u64
     let result = dfs(
         (0, vec![]),
         |(n, _)| neighbors(*n, b, c, &p, &g),
-        |(_, v)| v.len() == p.len() && p.iter().zip(v).all(|(a, b)| a == b)
+        |(_, v)| v.len() == p.len()
     ).unwrap();
 
     result.last().unwrap().0

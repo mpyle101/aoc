@@ -30,6 +30,12 @@ fn part_two(input: &str) -> u64
 
     let mut g = p.clone();
     g.reverse();
+
+    // DFS works over straight find the number based on the
+    // next 3 bits because there are multiple over all values
+    // that will give you a sequence matching the program and
+    // dfs will back track to the next one when the matching
+    // fails.
     let result = dfs(
         (0, vec![]),
         |(n, _)| neighbors(*n, b, c, &p, &g),

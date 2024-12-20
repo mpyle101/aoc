@@ -76,7 +76,8 @@ fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> Vec<(usize, i32)>
     // Find all positions within a manhattan distance of 20 also
     // within the walls of the maze and return the open ones ('.').
     // The MD from a point in a grid is a star with tips straight up,
-    // down, left and right.
+    // down, left and right. Return the index into the path vector
+    // the manhattan distance to that location from p.
     let p = p as i32;
     let ncols = ncols as i32;
 
@@ -87,27 +88,28 @@ fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> Vec<(usize, i32)>
     let mut positions = Vec::new();
     for r in 0..=20 {
         for c in 0..=20 - r {
+            let md = r + c;
             let (rt, rb) = (row - r, row + r);
             let (cl, cr) = (col - c, col + c);
 
             if rt > 0 {
                 if cl > 0 {
                     let q = (rt * ncols + cl) as usize;
-                    if maze[q] == '.' { positions.push((q, r + c)); }
+                    if maze[q] == '.' { positions.push((q, md)); }
                 }
                 if cl != cr && cr < ncols { 
                     let q = (rt * ncols + cr) as usize;
-                    if maze[q] == '.' { positions.push((q, r + c)); }
+                    if maze[q] == '.' { positions.push((q, md)); }
                 }
             }
             if rt != rb && rb < nrows {
                 if cl > 0 {
                     let q = (rb * ncols + cl) as usize;
-                    if maze[q] == '.' { positions.push((q, r + c)); }
+                    if maze[q] == '.' { positions.push((q, md)); }
                 }
                 if cl != cr && cr < ncols {
                     let q = (rb * ncols + cr) as usize;
-                    if maze[q] == '.' { positions.push((q, r + c)); }
+                    if maze[q] == '.' { positions.push((q, md)); }
                 }
             }
         }

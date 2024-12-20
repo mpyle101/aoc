@@ -146,6 +146,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "day20"
+version = "0.1.0"
+dependencies = [
+ "pathfinding",
+ "utils",
+]
+
+[[package]]
 name = "deprecate-until"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -344,5 +352,6 @@ name = "utils"
 version = "0.1.0"
 dependencies = [
  "indexmap",
+ "num-traits",
  "rustc-hash",
 ]

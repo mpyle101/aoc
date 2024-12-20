@@ -65,25 +65,13 @@ fn part_two(input: &str, limit: usize) -> usize
         .enumerate()
         .fold(0, |acc,  (i, &p)| {
             acc + do_cheats(p, ncols, &maze).iter()
-                .filter_map(|q| tiles.get(q).map(|j| (*q, *j)))
-                .filter(|(_, j)| *j > i)
-                .map(|(q, j)| j - i - md(p, q, ncols))
-                .filter(|n| *n >= limit)
+                .filter_map(|(q, md)| tiles.get(q).map(|j| (*j, *md as usize)))
+                .filter(|(j, md)| *j > i && j - i - *md >= limit)
                 .count()
         })
 }
 
-fn md(p: usize, q: usize, ncols: usize) -> usize
-{
-    let p_row = p / ncols;
-    let p_col = p % ncols;
-    let q_row = q / ncols;
-    let q_col = q % ncols;
-
-    p_row.abs_diff(q_row) + p_col.abs_diff(q_col)
-}
-
-fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> Vec<usize>
+fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> Vec<(usize, i32)>
 {
     // Find all positions within a manhattan distance of 20 also
     // within the walls of the maze and return the open ones ('.').
@@ -105,21 +93,21 @@ fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> Vec<usize>
             if rt > 0 {
                 if cl > 0 {
                     let q = (rt * ncols + cl) as usize;
-                    if maze[q] == '.' { positions.push(q); }
+                    if maze[q] == '.' { positions.push((q, r + c)); }
                 }
                 if cl != cr && cr < ncols { 
                     let q = (rt * ncols + cr) as usize;
-                    if maze[q] == '.' { positions.push(q); }
+                    if maze[q] == '.' { positions.push((q, r + c)); }
                 }
             }
             if rt != rb && rb < nrows {
                 if cl > 0 {
                     let q = (rb * ncols + cl) as usize;
-                    if maze[q] == '.' { positions.push(q); }
+                    if maze[q] == '.' { positions.push((q, r + c)); }
                 }
                 if cl != cr && cr < ncols {
                     let q = (rb * ncols + cr) as usize;
-                    if maze[q] == '.' { positions.push(q); }
+                    if maze[q] == '.' { positions.push((q, r + c)); }
                 }
             }
         }

@@ -75,8 +75,8 @@ fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> Vec<(usize, i32)>
 {
     // Find all positions within a manhattan distance of 20 also
     // within the walls of the maze and return the open ones ('.').
-    // The MD from a point in a grid is a star with tips straight up,
-    // down, left and right. Return the index into the path vector
+    // The MD from a point in a grid is a diamond with tips straight
+    // up, down, left and right. Return the index into the path vector
     // the manhattan distance to that location from p.
     let p = p as i32;
     let ncols = ncols as i32;

@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 fn main()
 {
     use std::time::Instant;
@@ -7,6 +9,10 @@ fn main()
     let t = Instant::now();
     let result = part_one(input, 100);
     println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input, 100);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str, limit: usize) -> usize
@@ -29,28 +35,95 @@ fn part_one(input: &str, limit: usize) -> usize
     // really need to do is for each step find steps through walls which
     // are farther along the path. The tiles map gives us maze position to
     // index into the path which tells us if a given tile is farther along
-    // and, thus, saves steps. We put the results in a mapped keyed by steps
-    // saved and keep count.
-    let counts = path.iter()
+    // and, thus, saves steps. Count how many are at or over the limit.
+    path.iter()
         .enumerate()
-        .fold(HashMap::new(), |mut m, (i, p)| {
-            [p - 1, p + 1, p - ncols, p + ncols].iter()
+        .fold(0, |acc, (i, p)| {
+            acc + [p - 1, p + 1, p - ncols, p + ncols].iter()
                 .filter(|q| maze[**q] == '#')
                 .filter_map(|q| tiles.get(&((q + q).wrapping_sub(*p))))
-                .filter(|j| **j > i)
-                .for_each(|j| {
-                    // time saved is the number of steps removed minus 2
-                    // for the stepping through the wall
-                    let saved = j - i - 2;
-                    *m.entry(saved).or_default() += 1;
+                .filter(|&&j| j > i && j - i - 2 >= limit)
+                .count()
+        })
+}
+
+fn part_two(input: &str, limit: usize) -> usize
+{
+    use std::collections::HashMap;
+    use pathfinding::prelude::dijkstra;
+
+    let (start, goal, ncols, maze) = load(input);
+    let (path, _) = dijkstra(
+        &start,
+        |&p| do_moves(p, ncols, &maze).into_iter().map(|p| (p, 1)),
+        |&p| p == goal
+    ).unwrap();
+    let tiles = path.iter()
+        .enumerate()
+        .map(|(i, p)| (*p, i))
+        .collect::<HashMap<_,_>>();
+
+    let counts = path.iter()
+        .enumerate()
+        .fold(HashMap::new(), |mut m, (i, &p)| {
+            let moves = do_cheats(p, ncols, &maze);
+            moves.iter()
+                .filter_map(|q| tiles.get(q).map(|j| (*q, *j)))
+                .filter(|(_, j)| *j > i)
+                .for_each(|(q, j)| {
+                    let saved = j - i - md(p, q, ncols);
+                    if saved >= limit {
+                        *m.entry(saved).or_default() += 1;
+                    }
                 });
             m
         });
+    //dbg!(&counts);
 
-    // Only count the ones saving at least the limit amount of steps.
-    counts.iter()
-        .filter_map(|(saved, n)| (*saved >= limit).then_some(n))
-        .sum()
+    counts.values().sum()
+}
+
+fn md(p: usize, q: usize, ncols: usize) -> usize
+{
+    let p_row = p / ncols;
+    let p_col = p % ncols;
+    let q_row = q / ncols;
+    let q_col = q % ncols;
+
+    p_row.abs_diff(q_row) + p_col.abs_diff(q_col)
+}
+
+fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> HashSet<usize>
+{
+    // Find all positions within a manhattan distance of 20 that
+    // are also within the walls of the maze and return the ones
+    // which are open. The MD from a point in a grid is going to
+    // be a star with tips straight up, down, left and right.
+    let p = p as i32;
+    let ncols = ncols as i32;
+
+    let row = p / ncols;
+    let col = p % ncols;
+    let nrows = maze.len() as i32 / ncols;
+
+    let mut v = HashSet::new();
+    for r in 0..=20 {
+        for c in 0..=20 - r {
+            let (rt, rb) = (row - r, row + r);
+            let (cl, cr) = (col - c, col + c);
+
+            if rt > 0 {
+                if cl > 0 { v.insert((rt * ncols + cl) as usize); }
+                if cr < ncols { v.insert((rt * ncols + cr) as usize); }
+            }
+            if rb < nrows {
+                if cl > 0 { v.insert((rb * ncols + cl) as usize); }
+                if cr < ncols { v.insert((rb * ncols + cr) as usize); }
+            }
+        }
+    }
+
+    v
 }
 
 fn do_moves(p: usize, ncols: usize, maze: &[char]) -> Vec<usize>
@@ -105,9 +178,23 @@ mod tests {
     }
 
     #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input, 100), 979014);
+    }
+
+    #[test]
     fn example_part_one()
     {
         let input = include_str!("../example.txt");
         assert_eq!(part_one(input, 2), 44);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input, 50), 285);
     }
 }

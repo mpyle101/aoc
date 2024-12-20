@@ -50,12 +50,12 @@ fn part_one(input: &str, limit: usize) -> usize
 fn part_two(input: &str, limit: usize) -> usize
 {
     use std::collections::HashMap;
-    use pathfinding::prelude::dijkstra;
+    use pathfinding::prelude::dfs;
 
     let (start, goal, ncols, maze) = load(input);
-    let (path, _) = dijkstra(
-        &start,
-        |&p| do_moves(p, ncols, &maze).into_iter().map(|p| (p, 1)),
+    let path = dfs(
+        start,
+        |&p| do_moves(p, ncols, &maze),
         |&p| p == goal
     ).unwrap();
     let tiles = path.iter()

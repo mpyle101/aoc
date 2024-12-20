@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 fn main()
 {
     use std::time::Instant;
@@ -85,12 +83,12 @@ fn md(p: usize, q: usize, ncols: usize) -> usize
     p_row.abs_diff(q_row) + p_col.abs_diff(q_col)
 }
 
-fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> HashSet<usize>
+fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> Vec<usize>
 {
-    // Find all positions within a manhattan distance of 20 that
-    // are also within the walls of the maze and return the ones
-    // which are open. The MD from a point in a grid is going to
-    // be a star with tips straight up, down, left and right.
+    // Find all positions within a manhattan distance of 20 also
+    // within the walls of the maze and return the open ones ('.').
+    // The MD from a point in a grid is a star with tips straight up,
+    // down, left and right.
     let p = p as i32;
     let ncols = ncols as i32;
 
@@ -98,7 +96,7 @@ fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> HashSet<usize>
     let col = p % ncols;
     let nrows = maze.len() as i32 / ncols;
 
-    let mut positions = HashSet::new();
+    let mut positions = Vec::new();
     for r in 0..=20 {
         for c in 0..=20 - r {
             let (rt, rb) = (row - r, row + r);
@@ -107,21 +105,21 @@ fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> HashSet<usize>
             if rt > 0 {
                 if cl > 0 {
                     let q = (rt * ncols + cl) as usize;
-                    if maze[q] == '.' { positions.insert(q); }
+                    if maze[q] == '.' { positions.push(q); }
                 }
-                if cr < ncols { 
+                if cl != cr && cr < ncols { 
                     let q = (rt * ncols + cr) as usize;
-                    if maze[q] == '.' { positions.insert(q); }
+                    if maze[q] == '.' { positions.push(q); }
                 }
             }
-            if rb < nrows {
+            if rt != rb && rb < nrows {
                 if cl > 0 {
                     let q = (rb * ncols + cl) as usize;
-                    if maze[q] == '.' { positions.insert(q); }
+                    if maze[q] == '.' { positions.push(q); }
                 }
-                if cr < ncols {
+                if cl != cr && cr < ncols {
                     let q = (rb * ncols + cr) as usize;
-                    if maze[q] == '.' { positions.insert(q); }
+                    if maze[q] == '.' { positions.push(q); }
                 }
             }
         }

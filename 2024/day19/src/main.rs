@@ -37,8 +37,6 @@ fn part_one(input: &str) -> usize
 
 fn part_two(input: &str) -> usize
 {
-    use pathfinding::directed::count_paths::*;
-
     let (patterns, designs) = input.split_once("\n\n").unwrap();
     let mut patterns = patterns.split(", ").collect::<Vec<_>>();
     patterns.sort_by(|&a, b| b.len().cmp(&a.len()));
@@ -51,10 +49,15 @@ fn part_two(input: &str) -> usize
                 .collect::<Vec<_>>();
             (design, pat)
         })
-        .map(|(design, pat)| {
-            count_paths(design, |d| possible(d, &pat), |d| d.is_empty())
-        })
+        .map(|(design, pat)| count_possible(design, &pat))
         .sum()
+}
+
+fn count_possible(design: &str, patterns: &[&str]) -> usize
+{
+    use pathfinding::directed::count_paths::count_paths;
+
+    count_paths(design, |d| possible(d, patterns), |d| d.is_empty())
 }
 
 fn possible<'a>(design: &'a str, patterns: &[&str]) -> Vec<&'a str>

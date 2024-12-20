@@ -63,24 +63,16 @@ fn part_two(input: &str, limit: usize) -> usize
         .map(|(i, p)| (*p, i))
         .collect::<HashMap<_,_>>();
 
-    let counts = path.iter()
+    path.iter()
         .enumerate()
-        .fold(HashMap::new(), |mut m, (i, &p)| {
-            let moves = do_cheats(p, ncols, &maze);
-            moves.iter()
+        .fold(0, |acc,  (i, &p)| {
+            acc + do_cheats(p, ncols, &maze).iter()
                 .filter_map(|q| tiles.get(q).map(|j| (*q, *j)))
                 .filter(|(_, j)| *j > i)
-                .for_each(|(q, j)| {
-                    let saved = j - i - md(p, q, ncols);
-                    if saved >= limit {
-                        *m.entry(saved).or_default() += 1;
-                    }
-                });
-            m
-        });
-    //dbg!(&counts);
-
-    counts.values().sum()
+                .map(|(q, j)| j - i - md(p, q, ncols))
+                .filter(|n| *n >= limit)
+                .count()
+        })
 }
 
 fn md(p: usize, q: usize, ncols: usize) -> usize

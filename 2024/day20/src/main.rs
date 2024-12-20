@@ -98,24 +98,36 @@ fn do_cheats(p: usize, ncols: usize, maze: &[char]) -> HashSet<usize>
     let col = p % ncols;
     let nrows = maze.len() as i32 / ncols;
 
-    let mut v = HashSet::new();
+    let mut positions = HashSet::new();
     for r in 0..=20 {
         for c in 0..=20 - r {
             let (rt, rb) = (row - r, row + r);
             let (cl, cr) = (col - c, col + c);
 
             if rt > 0 {
-                if cl > 0 { v.insert((rt * ncols + cl) as usize); }
-                if cr < ncols { v.insert((rt * ncols + cr) as usize); }
+                if cl > 0 {
+                    let q = (rt * ncols + cl) as usize;
+                    if maze[q] == '.' { positions.insert(q); }
+                }
+                if cr < ncols { 
+                    let q = (rt * ncols + cr) as usize;
+                    if maze[q] == '.' { positions.insert(q); }
+                }
             }
             if rb < nrows {
-                if cl > 0 { v.insert((rb * ncols + cl) as usize); }
-                if cr < ncols { v.insert((rb * ncols + cr) as usize); }
+                if cl > 0 {
+                    let q = (rb * ncols + cl) as usize;
+                    if maze[q] == '.' { positions.insert(q); }
+                }
+                if cr < ncols {
+                    let q = (rb * ncols + cr) as usize;
+                    if maze[q] == '.' { positions.insert(q); }
+                }
             }
         }
     }
 
-    v
+    positions
 }
 
 fn do_moves(p: usize, ncols: usize, maze: &[char]) -> Vec<usize>

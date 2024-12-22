@@ -26,52 +26,50 @@ fn part_one(input: &str) -> usize
 
 fn sequence(seq: &str) -> usize
 {
-    use pathfinding::prelude::astar_bag;
-
     let nbrs = numbers();
-    let dirs = directions();
 
-    let mut path = seq.chars().collect::<Vec<_>>();
-    path.insert(0, 'A');
+    let path  = seq.chars().collect::<Vec<_>>();
+    let start = nbrs.get(&'A').unwrap();
+    let goal  = nbrs.get(&path[0]).unwrap();
 
-    let mut possible = vec![];
+    let mut possible = solutions(start, goal);
     for w in path.windows(2) {
         let start = nbrs.get(&w[0]).unwrap();
         let goal  = nbrs.get(&w[1]).unwrap();
-        let (slns, _) = astar_bag(
-            start, |p| numeric_moves(*p), |p| md(p, goal), |p| p == goal
-        ).unwrap();
-
-        let k = slns
-            .map(|sln| {
-                let mut s = "".to_string();
-                sln.windows(2)
-                    .for_each(|w| {
-                        let delta = (w[1].0 - w[0].0, w[1].1 - w[0].1);
-                        let key   = *dirs.get(&delta).unwrap();
-                        s.push(key)
-                    });
-                s.push('A');
-                s
-            })
-            .flat_map(|s| expand(&s))
+        possible = solutions(start, goal).iter()
+            .flat_map(|s| possible.iter().map(|p| concat(p, s)))
             .collect::<Vec<_>>();
-        possible = if possible.is_empty() {
-            k
-        } else {
-            k.iter()
-                .flat_map(|s| possible.iter().map(|p| {
-                    let mut q = p.clone();
-                    q.push_str(s);
-                    q
-                }))
-                .collect::<Vec<_>>()
-        };
     }
+
     possible.iter()
         .map(|p| score(p))
         .min()
         .unwrap()
+}
+
+fn solutions(start: &(i32, i32), goal: &(i32, i32)) -> Vec<String>
+{
+    use pathfinding::prelude::astar_bag;
+
+    let (slns, _) = astar_bag(
+        start, |p| numeric_moves(*p), |p| md(p, goal), |p| p == goal
+    ).unwrap();
+
+    let dirs = directions();
+    slns
+        .map(|sln| {
+            let mut s = "".to_string();
+            sln.windows(2)
+                .for_each(|w| {
+                    let delta = (w[1].0 - w[0].0, w[1].1 - w[0].1);
+                    let key   = *dirs.get(&delta).unwrap();
+                    s.push(key)
+                });
+            s.push('A');
+            s
+        })
+        .flat_map(|s| expand(&s))
+        .collect()
 }
 
 fn expand(seq: &str) -> Vec<String>
@@ -107,6 +105,13 @@ fn score(seq: &str) -> usize
     }
 
     score
+}
+
+fn concat(s1: &str, s2: &str) -> String
+{
+    let mut s = s1.to_string();
+    s.push_str(s2);
+    s
 }
 
 fn md((x1, y1): &(i32, i32), (x2, y2): &(i32, i32)) -> i32

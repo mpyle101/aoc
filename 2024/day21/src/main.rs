@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::collections::HashMap;
 
 type Directions = HashMap<(i32, i32), char>;
@@ -8,7 +9,7 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../example2.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     let result = part_one(input);
@@ -18,18 +19,14 @@ fn main()
 fn part_one(input: &str) -> usize
 {
     input.lines()
-//        .map(|line| (&line[0..3], sequence(line)))
         .map(|line| (&line[0..3], sequence(line)))
-        .inspect(|(s, n)| println!("{s} {n}"))
         .filter_map(|(s, v)| s.parse::<usize>().ok().map(|n| n * v))
         .sum()
 }
 
 fn sequence(seq: &str) -> usize
 {
-    use std::collections::HashSet;
     use pathfinding::prelude::astar_bag_collect;
-    use rayon::prelude::*;
 
     let nbrs = numbers();
     let dirs = directions();
@@ -37,7 +34,7 @@ fn sequence(seq: &str) -> usize
     let mut path = seq.chars().collect::<Vec<_>>();
     path.insert(0, 'A');
 
-    let mut possible = HashSet::new();
+    let mut possible = vec![];
     for w in path.windows(2) {
         let start = nbrs.get(&w[0]).unwrap();
         let goal  = nbrs.get(&w[1]).unwrap();
@@ -45,7 +42,7 @@ fn sequence(seq: &str) -> usize
             start, |p| numeric_moves(*p), |p| md(p, goal), |p| p == goal
         ).unwrap();
 
-        let v = slns.par_iter()
+        let v = slns.iter()
             .map(|sln| {
                 let mut s = "".to_string();
                 sln.windows(2)
@@ -57,50 +54,34 @@ fn sequence(seq: &str) -> usize
                 s.push('A');
                 s
             })
-            .collect::<HashSet<_>>();
+            .collect::<Vec<_>>();
 
-        let k = v.par_iter()
-            .flat_map(|s| expand(s)).collect::<HashSet<_>>();
-        let min = k.iter().map(|s| s.len()).min().unwrap();
+        let k = v.iter()
+            .flat_map(|s| expand(s))
+            .collect::<Vec<_>>();
         possible = if possible.is_empty() {
-            k.iter().filter(|s| s.len() == min).cloned().collect::<HashSet<_>>()
+            k
         } else {
             k.iter()
-                .filter(|s| s.len() == min)
                 .flat_map(|s| possible.iter().map(|p| {
                     let mut q = p.clone();
                     q.push_str(s);
                     q
                 }))
-                .collect::<HashSet<_>>()
+                .collect::<Vec<_>>()
         };
-
-        let k = possible.par_iter()
-            .flat_map(|s| expand(s)).collect::<HashSet<_>>();
-        let min = k.iter().map(|s| s.len()).min().unwrap();
-        possible = k.iter()
-            .filter(|s| s.len() == min)
-            .flat_map(|s| possible.iter().map(|p| {
-                let mut q = p.clone();
-                q.push_str(s);
-                q
-            }))
-            .collect::<HashSet<_>>();
     }
-    
-    dbg!(&possible);
-    possible.len()
+    possible.iter()
+        .map(|p| score(p))
+        .min()
+        .unwrap()
 }
 
 fn expand(seq: &str) -> Vec<String>
 {
     let exps  = expansions();
     let chars = seq.chars().collect::<Vec<_>>();
-    let mut v = if let Some(ex) = exps.get(&('A', chars[0])) {
-        ex.clone()
-    } else {
-        vec![]
-    };
+    let mut v = exps.get(&('A', chars[0])).unwrap().clone();
 
     for w in chars.windows(2) {
         let ex = exps.get(&(w[0], w[1])).unwrap();
@@ -116,6 +97,21 @@ fn expand(seq: &str) -> Vec<String>
     v
 }
 
+fn score(seq: &str) -> usize
+{
+    let exps  = expansions();
+    let chars = seq.chars().collect::<Vec<_>>();
+    let v = exps.get(&('A', chars[0])).unwrap();
+
+    let mut score = v[0].len();
+    for w in chars.windows(2) {
+        let ex = exps.get(&(w[0], w[1])).unwrap();
+        score += ex[0].len();
+    }
+
+    score
+}
+
 fn md((x1, y1): &(i32, i32), (x2, y2): &(i32, i32)) -> i32
 {
     (x1.abs_diff(*x2) + y1.abs_diff(*y2)) as i32
@@ -127,7 +123,7 @@ fn numeric_moves((x, y): (i32, i32)) -> Vec<((i32, i32), i32)>
 
     if x < 2 { v.push(((x + 1, y), 1)) }
     if y > 0 { v.push(((x, y - 1), 1)) }
-    if x > 0 && !(x == 1 && y == 2) { v.push(((x - 1, y), 1)) }
+    if x > 0 && !(x == 1 && y == 3) { v.push(((x - 1, y), 1)) }
     if y < 3 && !(x == 0 && y == 2) { v.push(((x, y + 1), 1)) }
 
     v
@@ -199,7 +195,7 @@ fn numbers() -> &'static Numbers
         ('5', (1, 1)),
         ('6', (2, 1)),
         ('7', (0, 0)),
-        ('8', (1, 1)),
+        ('8', (1, 0)),
         ('9', (2, 0))
     ]))
 }
@@ -213,7 +209,7 @@ mod tests {
     fn input_part_one()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one(input), 218);
+        assert_eq!(part_one(input), 237342);
     }
 
     #[test]

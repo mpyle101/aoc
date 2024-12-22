@@ -27,16 +27,21 @@ fn part_one(input: &str) -> usize
 fn sequence(seq: &str) -> usize
 {
     let nbrs = numbers();
+    let path = seq.chars().collect::<Vec<_>>();
 
-    let path  = seq.chars().collect::<Vec<_>>();
     let start = nbrs.get(&'A').unwrap();
     let goal  = nbrs.get(&path[0]).unwrap();
+    let mut possible = solutions(start, goal).iter()
+        .flat_map(|s| expand(s))
+        .collect::<Vec<_>>();
 
-    let mut possible = solutions(start, goal);
     for w in path.windows(2) {
         let start = nbrs.get(&w[0]).unwrap();
         let goal  = nbrs.get(&w[1]).unwrap();
-        possible = solutions(start, goal).iter()
+        let slns  = solutions(start, goal).iter()
+            .flat_map(|s| expand(s))
+            .collect::<Vec<_>>();
+        possible = slns.iter()
             .flat_map(|s| possible.iter().map(|p| concat(p, s)))
             .collect::<Vec<_>>();
     }
@@ -68,7 +73,6 @@ fn solutions(start: &(i32, i32), goal: &(i32, i32)) -> Vec<String>
             s.push('A');
             s
         })
-        .flat_map(|s| expand(&s))
         .collect()
 }
 

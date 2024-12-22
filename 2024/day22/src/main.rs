@@ -43,11 +43,9 @@ fn part_two(input: &str) -> i64
     let mut m = HashMap::new();
     for (d, p) in deltas.iter().zip(prices) {
         let mut seen = HashSet::new();
-        for (w, i) in d.windows(4).zip(4..) {
-            if seen.insert(w) {
-                let n = p[i];
-                *m.entry(w).or_insert(Tracker::new()).entry(n).or_default() += 1;
-            }
+        for (w, i) in d.windows(4).zip(4..).filter(|(w, _)| seen.insert(*w)) {
+            let n = p[i];
+            *m.entry(w).or_insert(Tracker::new()).entry(n).or_default() += 1;
         }
     }
     

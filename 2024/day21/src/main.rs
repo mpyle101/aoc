@@ -26,7 +26,7 @@ fn part_one(input: &str) -> usize
 
 fn sequence(seq: &str) -> usize
 {
-    use pathfinding::prelude::astar_bag_collect;
+    use pathfinding::prelude::astar_bag;
 
     let nbrs = numbers();
     let dirs = directions();
@@ -38,11 +38,11 @@ fn sequence(seq: &str) -> usize
     for w in path.windows(2) {
         let start = nbrs.get(&w[0]).unwrap();
         let goal  = nbrs.get(&w[1]).unwrap();
-        let (slns, _) = astar_bag_collect(
+        let (slns, _) = astar_bag(
             start, |p| numeric_moves(*p), |p| md(p, goal), |p| p == goal
         ).unwrap();
 
-        let v = slns.iter()
+        let k = slns
             .map(|sln| {
                 let mut s = "".to_string();
                 sln.windows(2)
@@ -54,10 +54,7 @@ fn sequence(seq: &str) -> usize
                 s.push('A');
                 s
             })
-            .collect::<Vec<_>>();
-
-        let k = v.iter()
-            .flat_map(|s| expand(s))
+            .flat_map(|s| expand(&s))
             .collect::<Vec<_>>();
         possible = if possible.is_empty() {
             k

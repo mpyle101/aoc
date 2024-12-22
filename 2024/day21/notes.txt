@@ -1,0 +1,57 @@
++---+---+---+
+| 7 | 8 | 9 |
++---+---+---+
+| 4 | 5 | 6 |
++---+---+---+
+| 1 | 2 | 3 |
++---+---+---+
+    | 0 | A |
+    +---+---+
+
+    +---+---+
+    | ^ | A |
++---+---+---+
+| < | v | > |
++---+---+---+
+
+A 0 2 9 A
+<A ^A >^^A vvvA
+v<<A>>^A <A>A vA<^AA>A <vAAA>^A
+<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A <vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+
+029A: <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+980A: <v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A
+179A: <v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
+456A: <v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
+379A: <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
+
+v<<A>>^A<A>AvA<^AA>A<vAAA>^A
+v<<A>>^A<A>AvA<^AA>A<vAAA^>A
+
+v<<A>^>A<A>AvA^<AA>A<vAAA^>A
+v<<A>>^A<A>A<AA>vA^A<vAAA^>A
+
+A
+A:0 <A
+0:2 ^A
+2:9 >^^A
+9:A vvvA
+
+<A   : v<<A >>^A
+^A   : <A >A
+>^^A : vA <^A A >A
+vvvA : <vA A A >^A
+
+(r:A)
+A<, <A => v<<A>>^A (r:A)
+A^, ^A => <A>A (r:A)
+A>, >^, ^^, ^A => vA<^AA>A (r:A)
+Av, vv, vv, vA => <vAAA>^A (r:A)
+
+v<<A>>^A <A>A <vAAA>^A <vAA>^A
+
+A,^ => <    A,> => v    A,v => <v   A,< => v<<
+^,A => >    ^,v => v    ^,> => >v   ^,< => v<
+>,A => ^    >,v => <    >,^ => <^   >,< => <<
+v,^ => ^    v,> => >    v,A => >^   v,< => <
+<,v => >    <,> => >>   <,^ => >^   <,A => >>^

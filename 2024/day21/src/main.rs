@@ -4,16 +4,21 @@ use std::collections::HashMap;
 type Directions = HashMap<(i32, i32), char>;
 type Expansions = HashMap<(char, char), Vec<String>>;
 type Numbers    = HashMap<char, (i32, i32)>;
+type Memos      = HashMap<(String, usize), usize>;
 
 fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../input.txt");
+    let input = include_str!("../test.txt");
 
     let t = Instant::now();
     let result = part_one(input);
     println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> usize
@@ -24,6 +29,68 @@ fn part_one(input: &str) -> usize
         .sum()
 }
 
+fn part_two(input: &str) -> usize
+{
+    let mut memos = Memos::new();
+
+    input.lines()
+        .for_each(|line| {
+            let seqs = initial_sequences(line);
+            let keys = seqs.iter()
+                .map(|sq| {
+                    let s = concat("A", sq);
+                    expand(&s, 3, &mut memos)
+                })
+                .min()
+                .unwrap();
+            println!("KEYS: {line} {keys:?}");
+        });
+
+    0
+}
+
+fn expand(seq: &str, robots: usize, memos: &mut Memos) -> usize
+{
+    if seq.len() == 1 {
+        1
+    } else if let Some(n) = memos.get(&(seq.to_string(), robots)) {
+        *n
+    } else if robots == 0 {
+        score2(seq)
+    } else {
+        let exps = expansions();
+
+        let chars = seq.chars().collect::<Vec<_>>();
+        let n = chars.windows(2)
+            .map(|w| {
+                let exp = exps.get(&(w[0], w[1])).unwrap();
+                exp.iter()
+                    .map(|s| expand(s, robots - 1, memos))
+                    .min()
+                    .unwrap()
+            })
+            .sum();
+
+        memos.insert((seq.to_string(), robots), n);
+
+        n
+    }
+}
+
+fn score2(seq: &str) -> usize
+{
+    let exps  = expansions();
+    let chars = seq.chars().collect::<Vec<_>>();
+
+    let mut score = 0;
+    for w in chars.windows(2) {
+        let ex = exps.get(&(w[0], w[1])).unwrap();
+        score += ex[0].len();
+    }
+
+    score
+}
+
 fn sequence(seq: &str) -> usize
 {
     let nbrs = numbers();
@@ -32,14 +99,14 @@ fn sequence(seq: &str) -> usize
     let start = nbrs.get(&'A').unwrap();
     let goal  = nbrs.get(&path[0]).unwrap();
     let mut possible = solutions(start, goal).iter()
-        .flat_map(|s| expand(s))
+        .flat_map(|s| expand_sequence(s))
         .collect::<Vec<_>>();
 
     for w in path.windows(2) {
         let start = nbrs.get(&w[0]).unwrap();
         let goal  = nbrs.get(&w[1]).unwrap();
         let slns  = solutions(start, goal).iter()
-            .flat_map(|s| expand(s))
+            .flat_map(|s| expand_sequence(s))
             .collect::<Vec<_>>();
         possible = slns.iter()
             .flat_map(|s| possible.iter().map(|p| concat(p, s)))
@@ -50,6 +117,27 @@ fn sequence(seq: &str) -> usize
         .map(|p| score(p))
         .min()
         .unwrap()
+}
+
+fn initial_sequences(seq: &str) -> Vec<String>
+{
+    let nbrs = numbers();
+    let path = seq.chars().collect::<Vec<_>>();
+
+    let start = nbrs.get(&'A').unwrap();
+    let goal  = nbrs.get(&path[0]).unwrap();
+    let mut possible = solutions(start, goal);
+
+    for w in path.windows(2) {
+        let start = nbrs.get(&w[0]).unwrap();
+        let goal  = nbrs.get(&w[1]).unwrap();
+        let slns  = solutions(start, goal);
+        possible  = slns.iter()
+            .flat_map(|s| possible.iter().map(|p| concat(p, s)))
+            .collect::<Vec<_>>();
+    }
+
+    possible
 }
 
 fn solutions(start: &(i32, i32), goal: &(i32, i32)) -> Vec<String>
@@ -76,20 +164,16 @@ fn solutions(start: &(i32, i32), goal: &(i32, i32)) -> Vec<String>
         .collect()
 }
 
-fn expand(seq: &str) -> Vec<String>
+fn expand_sequence(seq: &str) -> Vec<String>
 {
     let exps  = expansions();
+
     let chars = seq.chars().collect::<Vec<_>>();
     let mut v = exps.get(&('A', chars[0])).unwrap().clone();
-
     for w in chars.windows(2) {
         let ex = exps.get(&(w[0], w[1])).unwrap();
         v = ex.iter()
-            .flat_map(|e| v.iter().map(|s| {
-                let mut s = s.to_string();
-                s.push_str(e);
-                s
-            }))
+            .flat_map(|e| v.iter().map(|s| concat(s, e)))
             .collect::<Vec<_>>()
     }
 

@@ -10,14 +10,14 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../example.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     let result = part_one(input);
     println!("Part 1: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
-    let result = part_two(input);
+    let result = part_two(input, 25);
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
@@ -29,24 +29,27 @@ fn part_one(input: &str) -> usize
         .sum()
 }
 
-fn part_two(input: &str) -> usize
+fn part_two(input: &str, robots: usize) -> usize
 {
+    use std::str::FromStr;
+
     let mut memos = Memos::new();
 
     input.lines()
-        .for_each(|line| {
+        .map(|line| {
+            let n = usize::from_str(&line[0..3]).unwrap();
             let seqs = initial_sequences(line);
             let keys = seqs.iter()
                 .map(|sq| {
-                    let s = concat("A", sq);
-                    expand(&s, 3, &mut memos)
+                    let s = "A".to_string() + sq;
+                    expand(&s, robots, &mut memos)
                 })
                 .min()
                 .unwrap();
             println!("KEYS: {line} {keys:?}");
-        });
-
-    0
+            n * (keys - 1)
+        })
+        .sum()
 }
 
 fn expand(seq: &str, robots: usize, memos: &mut Memos) -> usize
@@ -55,40 +58,25 @@ fn expand(seq: &str, robots: usize, memos: &mut Memos) -> usize
         1
     } else if let Some(n) = memos.get(&(seq.to_string(), robots)) {
         *n
-    } else if robots == 0 {
-        score2(seq)
+    } else if robots == 1 {
+        score(seq)
     } else {
         let exps = expansions();
 
-        let chars = seq.chars().collect::<Vec<_>>();
-        let n = chars.windows(2)
-            .map(|w| {
-                let exp = exps.get(&(w[0], w[1])).unwrap();
-                exp.iter()
-                    .map(|s| expand(s, robots - 1, memos))
-                    .min()
-                    .unwrap()
-            })
-            .sum();
+        let mut chars = seq.chars();
+        let c1  = chars.next().unwrap();
+        let c2  = chars.next().unwrap();
+        let exp = exps.get(&(c1, c2)).unwrap();
+        let mut n = exp.iter()
+            .map(|s| expand(s, robots - 1, memos))
+            .min()
+            .unwrap();
+        n += expand(&seq[1..], robots, memos);
 
         memos.insert((seq.to_string(), robots), n);
 
         n
     }
-}
-
-fn score2(seq: &str) -> usize
-{
-    let exps  = expansions();
-    let chars = seq.chars().collect::<Vec<_>>();
-
-    let mut score = 0;
-    for w in chars.windows(2) {
-        let ex = exps.get(&(w[0], w[1])).unwrap();
-        score += ex[0].len();
-    }
-
-    score
 }
 
 fn sequence(seq: &str) -> usize
@@ -109,7 +97,7 @@ fn sequence(seq: &str) -> usize
             .flat_map(|s| expand_sequence(s))
             .collect::<Vec<_>>();
         possible = slns.iter()
-            .flat_map(|s| possible.iter().map(|p| concat(p, s)))
+            .flat_map(|s| possible.iter().map(|p| p.to_owned() + s))
             .collect::<Vec<_>>();
     }
 
@@ -133,7 +121,7 @@ fn initial_sequences(seq: &str) -> Vec<String>
         let goal  = nbrs.get(&w[1]).unwrap();
         let slns  = solutions(start, goal);
         possible  = slns.iter()
-            .flat_map(|s| possible.iter().map(|p| concat(p, s)))
+            .flat_map(|s| possible.iter().map(|p| p.to_owned() + s))
             .collect::<Vec<_>>();
     }
 
@@ -157,7 +145,7 @@ fn solutions(start: &(i32, i32), goal: &(i32, i32)) -> Vec<String>
                 let key   = *dirs.get(&delta).unwrap();
                 s.push(key)
             });
-        s.push('A');
+        s += "A";
         s
     })
     .collect()
@@ -172,7 +160,7 @@ fn expand_sequence(seq: &str) -> Vec<String>
     for w in chars.windows(2) {
         let ex = exps.get(&(w[0], w[1])).unwrap();
         v = ex.iter()
-            .flat_map(|e| v.iter().map(|s| concat(s, e)))
+            .flat_map(|e| v.iter().map(|s| s.to_owned() + e))
             .collect::<Vec<_>>()
     }
 
@@ -194,11 +182,18 @@ fn score(seq: &str) -> usize
     score
 }
 
-fn concat(s1: &str, s2: &str) -> String
+fn score2(seq: &str) -> usize
 {
-    let mut s = s1.to_string();
-    s.push_str(s2);
-    s
+    let exps  = expansions();
+    let chars = seq.chars().collect::<Vec<_>>();
+
+    let mut score = 0;
+    for w in chars.windows(2) {
+        let ex = exps.get(&(w[0], w[1])).unwrap();
+        score += ex[0].len();
+    }
+
+    score
 }
 
 fn md((x1, y1): &(i32, i32), (x2, y2): &(i32, i32)) -> i32
@@ -240,13 +235,14 @@ fn expansions() -> &'static Expansions
         (('A', 'A'), vec!["A".into()]), 
         (('A', '^'), vec!["<A".into()]),
         (('A', '>'), vec!["vA".into()]),
-        (('A', 'v'), vec!["<vA".into(), "v<A".into()]),   
-        (('A', '<'), vec!["v<<A".into(), "<v<A".into()]),
+        (('A', 'v'), vec!["v<A".into(), "<vA".into()]),   
+//        (('A', '<'), vec!["v<<A".into(), "<v<A".into()]),
+        (('A', '<'), vec!["v<<A".into()]),
     
         (('^', '^'), vec!["A".into()]),
         (('^', 'A'), vec![">A".into()]),
         (('^', 'v'), vec!["vA".into()]), 
-        (('^', '>'), vec![">vA".into(), "v>A".into()]),
+        (('^', '>'), vec!["v>A".into(), ">vA".into()]),
         (('^', '<'), vec!["v<A".into()]),
     
         (('>', '>'), vec!["A".into()]),
@@ -265,7 +261,8 @@ fn expansions() -> &'static Expansions
         (('<', 'v'), vec![">A".into()]),
         (('<', '>'), vec![">>A".into()]),
         (('<', '^'), vec![">^A".into()]),
-        (('<', 'A'), vec![">>^A".into(), ">^>A".into()]),
+//        (('<', 'A'), vec![">>^A".into(), ">^>A".into()]),
+        (('<', 'A'), vec![">>^A".into()]),
     ]))
 }
 
@@ -306,5 +303,15 @@ mod tests {
     {
         let input = include_str!("../example.txt");
         assert_eq!(part_one(input), 126384);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input, 2), 126384);
+
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input, 2), 237342);   
     }
 }

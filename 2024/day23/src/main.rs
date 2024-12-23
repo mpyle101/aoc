@@ -113,6 +113,7 @@ impl<'a> BronKerbosch<'a> {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;

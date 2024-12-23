@@ -10,7 +10,7 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../test.txt");
+    let input = include_str!("../example.txt");
 
     let t = Instant::now();
     let result = part_one(input);
@@ -149,19 +149,18 @@ fn solutions(start: &(i32, i32), goal: &(i32, i32)) -> Vec<String>
     ).unwrap();
 
     let dirs = directions();
-    slns
-        .map(|sln| {
-            let mut s = "".to_string();
-            sln.windows(2)
-                .for_each(|w| {
-                    let delta = (w[1].0 - w[0].0, w[1].1 - w[0].1);
-                    let key   = *dirs.get(&delta).unwrap();
-                    s.push(key)
-                });
-            s.push('A');
-            s
-        })
-        .collect()
+    slns.map(|sln| {
+        let mut s = "".to_string();
+        sln.windows(2)
+            .for_each(|w| {
+                let delta = (w[1].0 - w[0].0, w[1].1 - w[0].1);
+                let key   = *dirs.get(&delta).unwrap();
+                s.push(key)
+            });
+        s.push('A');
+        s
+    })
+    .collect()
 }
 
 fn expand_sequence(seq: &str) -> Vec<String>

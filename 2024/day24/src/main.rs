@@ -23,43 +23,46 @@ fn main()
 fn part_one(input: &str) -> u64
 {
     let (mut wires, gates) = load(input);
-    let z_wires = gates.keys()
+    gates.keys()
         .filter(|k| k.starts_with('z'))
-        .collect::<Vec<_>>();
-
-    let mut z = 0;
-    for w in z_wires {
-        let n = evaluate(w, &mut wires, &gates);
-        let i = w[1..].parse::<u64>().unwrap();
-        if n == 1 { z |= 1 << i } else { z &= !(1 << i) }
-    }
-
-    z
+        .map(|w| (w, evaluate(w, &mut wires, &gates)))
+        .filter(|(_, n)| *n == 1)
+        .filter_map(|(w, _)| w[1..].parse::<u64>().ok())
+        .fold(0_u64, |z, i| z | 1 << i)
 }
 
-fn part_two(input: &str) -> u64
+fn part_two(input: &str) -> String
 {
     let (mut wires, gates) = load(input);
-    let _x = wires.iter()
-        .filter(|(w, &n)| n == 1 && w.starts_with('x'))
-        .map(|(w, _)| w[1..].parse::<u64>().unwrap())
-        .fold(0, |x, i| x | 1 << i);
-    let _y = wires.iter()
-        .filter(|(w, &n)| n == 1 && w.starts_with('y'))
-        .map(|(w, _)| w[1..].parse::<u64>().unwrap())
-        .fold(0, |x, i| x | 1 << i);
     let z_wires = gates.keys()
         .filter(|k| k.starts_with('z'))
         .collect::<Vec<_>>();
 
-    let mut z = 0;
-    for w in z_wires {
-        let n = evaluate(w, &mut wires, &gates);
-        let i = w[1..].parse::<u64>().unwrap();
-        if n == 1 { z |= 1 << i } else { z &= !(1 << i) }
-    }
+    let mut x = 0_u64;
+    let mut y = 0_u64;
+    wires.iter()
+        .filter(|(_, &n)| n == 1)
+        .filter_map(|(w, _)| w[1..].parse::<u64>().ok().map(|i| (w, i)))
+        .for_each(|(w, i)| {
+            match w.chars().next() {
+                Some('x') => x |= 1 << i,
+                Some('y') => y |= 1 << i,
+                _ => unreachable!()
+            }
+        });
 
-    z
+    let z = z_wires.iter()
+        .map(|w| (w, evaluate(w, &mut wires, &gates)))
+        .filter(|(_, n)| *n == 1)
+        .filter_map(|(w, _)| w[1..].parse::<u64>().ok())
+        .fold(0_u64, |z, i| z | 1 << i);
+    
+    println!("{x:046b} {x}");
+    println!("{y:046b} {y}");
+    println!("{:046b} {:?}", x + y, x + y);
+    println!("{z:046b} {z}");
+
+    "nope".into()
 }
 
 fn evaluate<'a>(w: &'a str, wires: &mut Wires<'a>, gates: &Gates<'a>) -> u64
@@ -110,7 +113,6 @@ fn load(input: &str) -> (Wires, Gates)
         });
 
     (wires, gates)
- 
 }
 
 

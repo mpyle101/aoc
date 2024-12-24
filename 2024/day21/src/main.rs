@@ -1,8 +1,7 @@
-#![allow(dead_code)]
 use std::collections::HashMap;
 
+type Expansions<'a> = HashMap<(char, char), Vec<&'a str>>;
 type Directions = HashMap<(i32, i32), char>;
-type Expansions = HashMap<(char, char), Vec<String>>;
 type Numbers    = HashMap<char, (i32, i32)>;
 type Memos      = HashMap<(String, usize), usize>;
 
@@ -23,13 +22,15 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
-    input.lines()
-        .map(|line| (&line[0..3], sequence(line)))
-        .filter_map(|(s, v)| s.parse::<usize>().ok().map(|n| n * v))
-        .sum()
+    solve(input, 2)
 }
 
 fn part_two(input: &str, robots: usize) -> usize
+{
+    solve(input, robots)
+}
+
+fn solve(input: &str, robots: usize) -> usize
 {
     use std::str::FromStr;
 
@@ -38,76 +39,47 @@ fn part_two(input: &str, robots: usize) -> usize
     input.lines()
         .map(|line| {
             let n = usize::from_str(&line[0..3]).unwrap();
-            let seqs = initial_sequences(line);
+            let seqs = sequences(line);
             let keys = seqs.iter()
-                .map(|sq| {
-                    let s = "A".to_string() + sq;
-                    expand(&s, robots, &mut memos)
-                })
-                .min()
-                .unwrap();
-            println!("KEYS: {line} {keys:?}");
-            n * (keys - 1)
+                .map(|sq| expand(sq, robots, &mut memos))
+                .min().unwrap();
+            n * keys
         })
         .sum()
 }
 
 fn expand(seq: &str, robots: usize, memos: &mut Memos) -> usize
 {
-    if seq.len() == 1 {
-        1
-    } else if let Some(n) = memos.get(&(seq.to_string(), robots)) {
-        *n
-    } else if robots == 1 {
-        score(seq)
+    if let Some(n) = memos.get(&(seq.into(), robots)) {
+        return *n
+    }
+
+    let n = if robots == 0 {
+        seq.len()
     } else {
         let exps = expansions();
+        let mut chars = seq.chars().collect::<Vec<_>>();
+        chars.insert(0, 'A');
 
-        let mut chars = seq.chars();
-        let c1  = chars.next().unwrap();
-        let c2  = chars.next().unwrap();
-        let exp = exps.get(&(c1, c2)).unwrap();
-        let mut n = exp.iter()
-            .map(|s| expand(s, robots - 1, memos))
-            .min()
-            .unwrap();
-        n += expand(&seq[1..], robots, memos);
+        chars.windows(2)
+            .fold(0, |acc, w| {
+                acc + if w[0] == w[1] {
+                    1
+                } else {
+                    let exp = exps.get(&(w[0], w[1])).unwrap();
+                    exp.iter()
+                        .map(|sq| expand(sq, robots - 1, memos))
+                        .min().unwrap()
+                }
+            })
+    };
 
-        memos.insert((seq.to_string(), robots), n);
+    memos.insert((seq.into(), robots), n);
 
-        n
-    }
+    n
 }
 
-fn sequence(seq: &str) -> usize
-{
-    let nbrs = numbers();
-    let path = seq.chars().collect::<Vec<_>>();
-
-    let start = nbrs.get(&'A').unwrap();
-    let goal  = nbrs.get(&path[0]).unwrap();
-    let mut possible = solutions(start, goal).iter()
-        .flat_map(|s| expand_sequence(s))
-        .collect::<Vec<_>>();
-
-    for w in path.windows(2) {
-        let start = nbrs.get(&w[0]).unwrap();
-        let goal  = nbrs.get(&w[1]).unwrap();
-        let slns  = solutions(start, goal).iter()
-            .flat_map(|s| expand_sequence(s))
-            .collect::<Vec<_>>();
-        possible = slns.iter()
-            .flat_map(|s| possible.iter().map(|p| p.to_owned() + s))
-            .collect::<Vec<_>>();
-    }
-
-    possible.iter()
-        .map(|p| score(p))
-        .min()
-        .unwrap()
-}
-
-fn initial_sequences(seq: &str) -> Vec<String>
+fn sequences(seq: &str) -> Vec<String>
 {
     let nbrs = numbers();
     let path = seq.chars().collect::<Vec<_>>();
@@ -151,51 +123,6 @@ fn solutions(start: &(i32, i32), goal: &(i32, i32)) -> Vec<String>
     .collect()
 }
 
-fn expand_sequence(seq: &str) -> Vec<String>
-{
-    let exps  = expansions();
-
-    let chars = seq.chars().collect::<Vec<_>>();
-    let mut v = exps.get(&('A', chars[0])).unwrap().clone();
-    for w in chars.windows(2) {
-        let ex = exps.get(&(w[0], w[1])).unwrap();
-        v = ex.iter()
-            .flat_map(|e| v.iter().map(|s| s.to_owned() + e))
-            .collect::<Vec<_>>()
-    }
-
-    v
-}
-
-fn score(seq: &str) -> usize
-{
-    let exps  = expansions();
-    let chars = seq.chars().collect::<Vec<_>>();
-    let v = exps.get(&('A', chars[0])).unwrap();
-
-    let mut score = v[0].len();
-    for w in chars.windows(2) {
-        let ex = exps.get(&(w[0], w[1])).unwrap();
-        score += ex[0].len();
-    }
-
-    score
-}
-
-fn score2(seq: &str) -> usize
-{
-    let exps  = expansions();
-    let chars = seq.chars().collect::<Vec<_>>();
-
-    let mut score = 0;
-    for w in chars.windows(2) {
-        let ex = exps.get(&(w[0], w[1])).unwrap();
-        score += ex[0].len();
-    }
-
-    score
-}
-
 fn md((x1, y1): &(i32, i32), (x2, y2): &(i32, i32)) -> i32
 {
     (x1.abs_diff(*x2) + y1.abs_diff(*y2)) as i32
@@ -226,43 +153,41 @@ fn directions() -> &'static Directions
     ]))
 }
 
-fn expansions() -> &'static Expansions
+fn expansions<'a>() -> &'static Expansions<'a>
 {
     use std::sync::OnceLock;
 
     static EXPANSIONS: OnceLock<Expansions> = OnceLock::new();
     EXPANSIONS.get_or_init(|| HashMap::from([
-        (('A', 'A'), vec!["A".into()]), 
-        (('A', '^'), vec!["<A".into()]),
-        (('A', '>'), vec!["vA".into()]),
-        (('A', 'v'), vec!["v<A".into(), "<vA".into()]),   
-//        (('A', '<'), vec!["v<<A".into(), "<v<A".into()]),
-        (('A', '<'), vec!["v<<A".into()]),
+        (('A', 'A'), vec!["A"]), 
+        (('A', '^'), vec!["<A"]),
+        (('A', '>'), vec!["vA"]),
+        (('A', 'v'), vec!["v<A", "<vA"]),   
+        (('A', '<'), vec!["v<<A"]),
     
-        (('^', '^'), vec!["A".into()]),
-        (('^', 'A'), vec![">A".into()]),
-        (('^', 'v'), vec!["vA".into()]), 
-        (('^', '>'), vec!["v>A".into(), ">vA".into()]),
-        (('^', '<'), vec!["v<A".into()]),
+        (('^', '^'), vec!["A"]),
+        (('^', 'A'), vec![">A"]),
+        (('^', 'v'), vec!["vA"]), 
+        (('^', '>'), vec!["v>A", ">vA"]),
+        (('^', '<'), vec!["v<A"]),
     
-        (('>', '>'), vec!["A".into()]),
-        (('>', 'A'), vec!["^A".into()]),
-        (('>', 'v'), vec!["<A".into()]),
-        (('>', '^'), vec!["^<A".into(), "<^A".into()]),
-        (('>', '<'), vec!["<<A".into()]),
+        (('>', '>'), vec!["A"]),
+        (('>', 'A'), vec!["^A"]),
+        (('>', 'v'), vec!["<A"]),
+        (('>', '^'), vec!["^<A", "<^A"]),
+        (('>', '<'), vec!["<<A"]),
     
-        (('v', 'v'), vec!["A".into()]),
-        (('v', '^'), vec!["^A".into()]),
-        (('v', '>'), vec![">A".into()]), 
-        (('v', '<'), vec!["<A".into()]), 
-        (('v', 'A'), vec!["^>A".into(), ">^A".into()]),
+        (('v', 'v'), vec!["A"]),
+        (('v', '^'), vec!["^A"]),
+        (('v', '>'), vec![">A"]), 
+        (('v', '<'), vec!["<A"]), 
+        (('v', 'A'), vec!["^>A", ">^A"]),
     
-        (('<', '<'), vec!["A".into()]),
-        (('<', 'v'), vec![">A".into()]),
-        (('<', '>'), vec![">>A".into()]),
-        (('<', '^'), vec![">^A".into()]),
-//        (('<', 'A'), vec![">>^A".into(), ">^>A".into()]),
-        (('<', 'A'), vec![">>^A".into()]),
+        (('<', '<'), vec!["A"]),
+        (('<', 'v'), vec![">A"]),
+        (('<', '>'), vec![">>A"]),
+        (('<', '^'), vec![">^A"]),
+        (('<', 'A'), vec![">>^A"]),
     ]))
 }
 
@@ -296,6 +221,13 @@ mod tests {
     {
         let input = include_str!("../input.txt");
         assert_eq!(part_one(input), 237342);
+    }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input, 25), 294585598101704);
     }
 
     #[test]

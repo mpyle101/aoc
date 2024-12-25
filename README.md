@@ -1,4 +1,4 @@
-# aoc-rs
+# aoc
 
-Advent of Code in Rust
+Advent of Code
 

@@ -112,7 +112,7 @@ cqk,fph,gds,jrs,wrk,z15,z21,z34
 (("hjm", "jrs", '|'), "hpt")
 (("x30", "y30", '^'), "jrs")
 (("dwm", "wrk", '&'), "hjm")
-(("x30", "y30", '&'), "wrk")
+(("x30", "y30", '&'), "wrk") (jrs, wrk)
 
 
 (("fcv", "ksm", '&'), "z34") (z34, cqk)

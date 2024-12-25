@@ -44,6 +44,11 @@ fn part_two(input: &str) -> String
             }
         });
 
+    // Solved manually after looking up how binary adders are implemented
+    // and printing out how the z bits were directly being set and noticing
+    // 4 were not like the others. However the last was due to being the last
+    // and printing out the values in bites showed 31 was off which led to 
+    // the "wrk" / "jrs" swap.
     let mut g = gates.clone();
     g.insert("z15", *gates.get("fph").unwrap());
     g.insert("fph", *gates.get("z15").unwrap());

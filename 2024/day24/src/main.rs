@@ -2,8 +2,9 @@
 
 use std::collections::HashMap;
 
+type Gate<'a>  = (&'a str, &'a str, char);
+type Gates<'a> = HashMap<&'a str, Gate<'a>>;
 type Wires<'a> = HashMap<&'a str, u64>;
-type Gates<'a> = HashMap<&'a str, (&'a str, &'a str, char)>;
 
 fn main()
 {
@@ -22,21 +23,13 @@ fn main()
 
 fn part_one(input: &str) -> u64
 {
-    let (mut wires, gates) = load(input);
-    gates.keys()
-        .filter(|k| k.starts_with('z'))
-        .map(|w| (w, evaluate(w, &mut wires, &gates)))
-        .filter(|(_, n)| *n == 1)
-        .filter_map(|(w, _)| w[1..].parse::<u64>().ok())
-        .fold(0_u64, |z, i| z | 1 << i)
+    let (wires, gates) = load(input);
+    evaluate(&wires, &gates)
 }
 
 fn part_two(input: &str) -> String
 {
-    let (mut wires, gates) = load(input);
-    let z_wires = gates.keys()
-        .filter(|k| k.starts_with('z'))
-        .collect::<Vec<_>>();
+    let (wires, gates) = load(input);
 
     let mut x = 0_u64;
     let mut y = 0_u64;
@@ -51,27 +44,40 @@ fn part_two(input: &str) -> String
             }
         });
 
-    let z = z_wires.iter()
-        .map(|w| (w, evaluate(w, &mut wires, &gates)))
-        .filter(|(_, n)| *n == 1)
-        .filter_map(|(w, _)| w[1..].parse::<u64>().ok())
-        .fold(0_u64, |z, i| z | 1 << i);
-    
-    println!("{x:046b} {x}");
-    println!("{y:046b} {y}");
-    println!("{:046b} {:?}", x + y, x + y);
-    println!("{z:046b} {z}");
+    let mut g = gates.clone();
+    g.insert("z15", *gates.get("fph").unwrap());
+    g.insert("fph", *gates.get("z15").unwrap());
+    g.insert("z21", *gates.get("gds").unwrap());
+    g.insert("gds", *gates.get("z21").unwrap());
+    g.insert("jrs", *gates.get("wrk").unwrap());
+    g.insert("wrk", *gates.get("jrs").unwrap());
+    g.insert("z34", *gates.get("cqk").unwrap());
+    g.insert("cqk", *gates.get("z34").unwrap());
+    let z = evaluate(&wires, &g);
+    assert!(z == x + y);
 
-    "nope".into()
+    "cqk,fph,gds,jrs,wrk,z15,z21,z34".into()
 }
 
-fn evaluate<'a>(w: &'a str, wires: &mut Wires<'a>, gates: &Gates<'a>) -> u64
+fn evaluate(wires: &Wires, gates: &Gates) -> u64
+{
+    let mut wires = wires.clone();
+    gates.keys()
+        .filter(|k| k.starts_with('z'))
+        .map(|w| (w, solve(w, &mut wires, gates)))
+        .filter(|(_, n)| *n == 1)
+        .filter_map(|(w, _)| w[1..].parse::<u64>().ok())
+        .fold(0_u64, |z, i| z | 1 << i)
+}
+
+fn solve<'a>(w: &'a str, wires: &mut Wires<'a>, gates: &Gates<'a>) -> u64
 {
     if let Some(n) = wires.get(w) {
         *n
-    } else if let Some(&(a, b, op)) = gates.get(w) {
-        let a = evaluate(a, wires, gates);
-        let b = evaluate(b, wires, gates);
+    } else {
+        let (a, b, op) = gates.get(w).unwrap();
+        let a = solve(a, wires, gates);
+        let b = solve(b, wires, gates);
         let n = match op {
             '&' => a & b,
             '|' => a | b,
@@ -81,8 +87,6 @@ fn evaluate<'a>(w: &'a str, wires: &mut Wires<'a>, gates: &Gates<'a>) -> u64
 
         wires.insert(w, n);
         n
-    } else {
-        unreachable!()
     }
 }
 
@@ -125,6 +129,13 @@ mod tests {
     {
         let input = include_str!("../input.txt");
         assert_eq!(part_one(input), 46463754151024);
+    }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), "cqk,fph,gds,jrs,wrk,z15,z21,z34");
     }
 
     #[test]

@@ -1,61 +1,59 @@
 use std::collections::HashSet;
 
-fn main() {
-    let answers = load(include_str!("./answers.txt"));
-
-    timeit("Part 1", || part_one(&answers));
-    timeit("Part 2", || part_two(&answers));
-}
-
-fn timeit<T>(s: &str, func: impl Fn() -> T)
-    where T: std::fmt::Debug
+fn main()
 {
-    let t = std::time::Instant::now();
-    let result = func();
-    println!("{s}: {:?} ({:?})", result, t.elapsed());
+    use std::time::Instant;
+
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn load(input: &str) -> Vec<Vec<&str>> {
-    input.split("\n\n").map(|s| s.split('\n').collect()).collect()
-}
-
-fn part_one(answers: &[Vec<&str>]) -> usize {
-    // Union the vectors for each group and sum the lengths.
-    answers.iter()
-        .map(|v| {
-            let f: HashSet<&u8> = HashSet::new();
-            v.iter().fold(f, |set, s| &set | &to_set(s)).len()
+fn part_one(input: &str) -> usize
+{
+    input.split("\n\n")
+        .map(|group| {
+            group.lines()
+                .map(|line| HashSet::from_iter(line.chars()))
+                .fold(HashSet::new(), |set, group| &set | &group)
+                .len()
         })
         .sum()
 }
 
-fn part_two(answers: &[Vec<&str>]) -> usize {
-    // Intersect the vectors for each group and sum the lengths.
-    answers.iter()
-        .map(|v| {
-            let f: HashSet<&u8> = v[0].as_bytes().iter().collect();
-            v.iter().fold(f, |set, s| &set & &to_set(s)).len()
+fn part_two(input: &str) -> usize {
+    input.split("\n\n")
+        .map(|group| {
+            group.lines()
+                .map(|line| HashSet::from_iter(line.chars()))
+                .reduce(|set: HashSet<char>, group| &set & &group)
+                .map_or(0, |set| set.len())
         })
         .sum()
-}
-
-fn to_set(s: &str) -> HashSet<&u8> {
-    s.as_bytes().iter().collect()
 }
 
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let answers = load(include_str!("./answers.txt"));
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 6430);
+    }
 
-    let count = part_one(&answers);
-    assert_eq!(count, 6430);
-
-    let count = part_two(&answers);
-    assert_eq!(count, 3125);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 3125);
+    }
 }

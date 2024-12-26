@@ -1,69 +1,91 @@
-use std::collections::HashSet;
+fn main()
+{
+    use std::time::Instant;
 
-fn main() {
-    let map = load(include_str!("./map.txt"));
+    let input = include_str!("../input.txt");
 
-    println!("Part1: {}", part_one(&map));
-    println!("Part2: {}", part_two(&map));
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-#[derive(Debug)]
-struct Map {
-    rows: usize,
-    cols: usize,
-    trees: HashSet<(usize, usize)>
+fn part_one(input: &str) -> usize
+{
+    let (nrows, ncols, map) = load(input);
+    (0..nrows)
+        .map(|row| row * ncols + (row * 3) % ncols)
+        .filter(|p| map[*p] == '#')
+        .count()
 }
 
-impl Map {
-    fn is_tree(&self, pos: &(usize, usize)) -> bool {
-        self.trees.contains(&(pos.0, pos.1 % self.cols))
-    }
+fn part_two(input: &str) -> usize
+{
+    let slopes: [(usize, usize);5] = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
+
+    let (nrows, ncols, map) = load(input);
+    slopes.iter()
+        .map(|(dc, dr)| {
+            let (mut row, mut col, mut trees) = (0, 0, 0);
+            while row < nrows {
+                let p = row * ncols + (col % ncols);
+                row += dr; col += dc;
+                trees += (map[p] == '#') as usize;
+            }
+            trees
+        })
+        .product()
 }
 
-fn load(map: &str) -> Map {
-    let v: Vec<_> = map.lines().map(|l| l.as_bytes().iter().count()).collect();
-    let rows = v.len();
-    let cols = v[0];
+fn load(input: &str) -> (usize, usize, Vec<char>)
+{
+    let mut ncols = 0;
+    let mut nrows = 0;
+    let map = input.lines()
+        .enumerate()
+        .fold(vec![], |mut v, (row, line)| {
+            nrows = row + 1;
+            ncols = line.len();
+            v.extend(line.chars());
+            v
+        });
 
-    let trees: HashSet<_> = map.lines().enumerate()
-        .flat_map(|(r, l)| {
-            l.as_bytes().iter().enumerate().filter(|(_, &c)| c == b'#')
-                .map(|(c, _)| (r, c) ).collect::<Vec<(usize, usize)>>()
-        }).collect();
-
-    Map { rows, cols, trees }
+    (nrows, ncols, map)
 }
-
-fn part_one(map: &Map) -> u32 {
-    trees(map, &(1, 3))
-}
-
-fn part_two(map: &Map) -> u32 {
-    [(1, 1), (1, 3), (1, 5), (1, 7), (2, 1)].iter()
-        .fold(1, |acc, slope| acc * trees(map, slope))
-}
-
-fn trees(map: &Map, slope: &(usize, usize)) -> u32 {
-    let mut pos = (0, 0);
-    (0..map.rows).fold(0, |acc, _| {
-        pos = (pos.0 + slope.0, pos.1 + slope.1);
-        acc + map.is_tree(&pos) as u32 
-    })
-}
-
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let map = load(include_str!("./map.txt"));
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 259);
+    }
 
-    let trees = part_one(&map);
-    assert_eq!(trees, 259);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2224913600);
+    }
 
-    let trees = part_two(&map);
-    assert_eq!(trees, 2224913600);
-  }
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 7);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 336);
+    }
+
 }

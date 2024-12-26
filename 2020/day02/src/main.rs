@@ -1,61 +1,87 @@
+fn main()
+{
+    use std::time::Instant;
 
-fn main() {
-    let policies = load(include_str!("./passwords.txt"));
+    let input = include_str!("../input.txt");
 
-    println!("Part1: {}", part_one(&policies));
-    println!("Part2: {}", part_two(&policies));
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-#[derive(Debug)]
-struct Policy<'a> {
-    min: usize,
-    max: usize,
-    letter: u8,
-    password: &'a [u8]
-}
+fn part_one(input: &str) -> usize
+{
+    input.lines()
+        .map(|line| {
+            let (s, p) = line.split_once(": ").unwrap();
+            let (r, c) = s.split_once(' ').unwrap();
+            let (i, j) = r.split_once('-').unwrap();
+            let c = c.chars().next().unwrap();
+            let i = i.parse::<usize>().unwrap();
+            let j = j.parse::<usize>().unwrap();
 
-fn load(passwords: &str) -> Vec<Policy> {
-    passwords.lines()
-        .map(|l| l.split(' ').collect::<Vec<&str>>())
-        .map(|v| (v[0].split('-').collect::<Vec<&str>>(), v[1].as_bytes()[0], v[2]))
-        .map(|(v, letter, password)| Policy {
-            min: v[0].parse::<usize>().unwrap(),
-            max: v[1].parse::<usize>().unwrap(),
-            letter,
-            password: password.as_bytes()
+            (i, j, p.chars().filter(|c1| *c1 == c).count())
         })
-        .collect()
+        .filter(|(i, j, n)| (*i..=*j).contains(n))
+        .count()
 }
 
-fn part_one(policies: &[Policy]) -> u32 {
-    policies.iter().fold(0, |acc, p| {
-        let count = p.password.iter()
-            .filter(|&c| *c == p.letter).count();
-        if count >= p.min && count <= p.max { acc + 1 } else { acc }
-    })
-}
+fn part_two(input: &str) -> usize
+{
+    input.lines()
+        .map(|line| {
+            let (s, p) = line.split_once(": ").unwrap();
+            let (r, c) = s.split_once(' ').unwrap();
+            let (i, j) = r.split_once('-').unwrap();
+            let i = i.parse::<usize>().unwrap();
+            let j = j.parse::<usize>().unwrap();
 
-fn part_two(policies: &[Policy]) -> u32 {
-    policies.iter().fold(0, |acc, p| {
-        let s = p.password;
-        acc + (((s[p.min - 1] == p.letter) as u8) +
-               ((s[p.max - 1] == p.letter) as u8) == 1) as u32
-    })
+            let c = c.as_bytes()[0];
+            let p = p.as_bytes();
+
+            let a = (p[i-1] == c) as u8;
+            let b = (p[j-1] == c) as u8;
+            (a, b)
+        })
+        .filter(|(a, b)| (a ^ b) == 1)
+        .count()
 }
 
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let policies = load(include_str!("./passwords.txt"));
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 538);
+    }
 
-    let valid = part_one(&policies);
-    assert_eq!(valid, 538);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 489);
+    }
 
-    let valid = part_two(&policies);
-    assert_eq!(valid, 489);
-  }
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 2);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 1);
+    }
+
 }

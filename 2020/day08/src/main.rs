@@ -1,108 +1,128 @@
-fn main() {
-    let program = load(include_str!("./program.txt"));
+fn main()
+{
+    use std::time::Instant;
 
-    println!("Part 1: {}", part_one(&program));
-    println!("Part 2: {}", part_two(&program));
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-#[derive(Clone, Copy, Debug)]
-enum Cmd {
-    Nop(i32),
-    Jmp(i32),
-    Acc(i32)
+fn part_one(input: &str) -> i32
+{
+    let program = load(input);
+    exec_one(&program).unwrap()
 }
 
-fn load(input: &str) -> Vec<Cmd> {
+fn part_two(input: &str) -> i32
+{
+    let mut program = load(input);
+    let ips = (0..program.len())
+        .filter(|ip| program[*ip].0 == "jmp" || program[*ip].0 == "nop")
+        .collect::<Vec<_>>();
+
+    for ip in ips {
+        let inst = program[ip].0;
+        program[ip].0 = if inst == "jmp" { "nop" } else { "jmp" };
+        if let Some(n) = exec_two(&program) {
+            return n
+        }
+        program[ip].0 = inst
+    }
+    
+    0
+}
+
+fn load(input: &str) -> Vec<(&str, i32)>
+{
     input.lines()
-        .map(|l| l.split(' ').collect::<Vec<&str>>())
-        .map(|v| match v[0] {
-            "nop" => Cmd::Nop(v[1].parse::<i32>().unwrap()),
-            "jmp" => Cmd::Jmp(v[1].parse::<i32>().unwrap()),
-            "acc" => Cmd::Acc(v[1].parse::<i32>().unwrap()),
-            _ => panic!("Unknown command found")
+        .map(|line| {
+            let (op, v) = line.split_once(' ').unwrap();
+            let v = v.parse::<i32>().unwrap();
+            (op, v)
         })
         .collect()
 }
 
-fn part_one(program: &[Cmd]) -> i32 {
-    let (_, acc) = run(program);
-    acc
-}
-
-fn part_two(program: &[Cmd]) -> i32 {
-
-    let len = program.len();
-    for (i, cmd) in program.iter().enumerate() {
-        let mut v: Vec<_> = program.to_vec();
-        match cmd {
-            Cmd::Acc(_) => {},
-            Cmd::Nop(n) => { v[i] = Cmd::Jmp(*n) },
-            Cmd::Jmp(n) => { v[i] = Cmd::Nop(*n) },
-        }
-        let (ip, acc) = run(&v);
-        if ip == len as i32 {
-            return acc
-        }
-    }
-
-    0
-}
-
-fn run(program: &[Cmd]) -> (i32, i32) {
+fn exec_one(program: &[(&str, i32)]) -> Option<i32>
+{
     use std::collections::HashSet;
 
-    let mut ip  = 0i32;
-    let mut acc = 0;
-    let mut visited = HashSet::new();
-
-    let len = program.len() as i32;
+    let mut ip   = 0;
+    let mut acc  = 0;
+    let mut seen = HashSet::new();
     loop {
-        visited.insert(ip);
-        let cmd = &program[ip as usize];        
-        ip = match cmd {
-            Cmd::Nop(_) => ip + 1,
-            Cmd::Acc(n) => { acc += n; ip + 1 },
-            Cmd::Jmp(n) => {
-                let nextip = ip + n;
-                if visited.contains(&nextip) {
-                    break
-                } else {
-                    nextip
-                }
+        if seen.insert(ip) {
+            ip = match program[ip] {
+                ("acc", n) => { acc += n; ip + 1 },
+                ("jmp", n) => (ip as i32 + n) as usize,
+                ("nop", _) => ip + 1,
+                _ => unreachable!()
             }
-        };
+        } else {
+            return Some(acc)
+        }
+    }
+}
 
-        if ip == len {
-            break;
+fn exec_two(program: &[(&str, i32)]) -> Option<i32>
+{
+    use std::collections::HashSet;
+
+    let mut ip   = 0;
+    let mut acc  = 0;
+    let mut seen = HashSet::new();
+    while ip < program.len() {
+        if seen.insert(ip) {
+            ip = match program[ip] {
+                ("acc", n) => { acc += n; ip + 1 },
+                ("jmp", n) => (ip as i32 + n) as usize,
+                ("nop", _) => ip + 1,
+                _ => unreachable!()
+            }
+        } else {
+            return None
         }
     }
 
-    (ip, acc)
+    Some(acc)
 }
 
 
-/** Unit Tests */
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let program = load(include_str!("./program.txt"));
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1489);
+    }
 
-    let acc = part_one(&program);
-    assert_eq!(acc, 1489);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1539);
+    }
 
-    let acc = part_two(&program);
-    assert_eq!(acc, 1539);
-  }
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 5);
+    }
 
-
-  #[test]
-  fn small() {
-    let program = load(include_str!("./test_s.txt"));
-
-    let acc = part_one(&program);
-    assert_eq!(acc, 5);
-  }
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 8);
+    }
 }

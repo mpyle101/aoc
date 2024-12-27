@@ -1,53 +1,72 @@
-use std::cmp::min;
+fn main()
+{
+    use std::time::Instant;
 
-fn main() {
-    let adapters = load(include_str!("./adapters.txt"));
+    let input = include_str!("../input.txt");
 
-    let jolts = part_one(&adapters);
-    println!("Part 1: {jolts}");
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let jolts = part_two(&adapters);
-    println!("Part 2: {jolts}");
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn load(adapters: &str) -> Vec<u32> {
-    let mut v: Vec<_> = adapters.lines().map(|v| v.parse::<u32>().unwrap())
-        .collect();
+fn part_one(input: &str) -> u32
+{
+    // The jolt change can only go up so the adapters must
+    // go in sorted order which, for the problem to be solvable,
+    // must represent the adapter order. So, we just need to
+    // count the jumps of 1 and 3.
+    let mut v = input.lines()
+        .filter_map(|line| line.parse::<u32>().ok())
+        .collect::<Vec<_>>();
     v.sort_unstable();
-
     let last = *v.last().unwrap();
     v.insert(0, 0);
     v.push(last + 3);
-    v
+
+    v.windows(2)
+        .fold([0, 0], |arr, w| {
+            [
+                arr[0] + (w[1] - w[0] == 1) as u32,
+                arr[1] + (w[1] - w[0] == 3) as u32,
+            ]
+        })
+        .iter()
+        .product()
 }
 
-fn part_one(adapters: &[u32]) -> u32 {
-    let mut prev = adapters[0];
-    let (ones, threes) = adapters.iter().fold((0, 0), |mut acc, &v| {
-        if v - prev == 1 {
-            acc = (acc.0 + 1, acc.1)
-        } else if v - prev == 3 {
-            acc = (acc.0, acc.1 + 1)
-        }
-        prev = v;
-        acc
-    });
+fn part_two(input: &str) -> u64
+{
+    use std::cmp::min;
 
-    ones * threes
-}
+    let mut a = input.lines()
+        .filter_map(|line| line.parse::<u32>().ok())
+        .collect::<Vec<_>>();
+    a.sort_unstable();
+    let last = *a.last().unwrap();
+    a.insert(0, 0);
+    a.push(last + 3);
 
-fn part_two(adapters: &[u32]) -> i64 {
-    let arr = adapters;
-    let mut dp = vec![0i64; adapters.len()];
-
+    // The number of ways you can get to a value is the sum of
+    // the ways to get to values which can reach that value.
+    // Start with 1 way to get to the starting value and run
+    // the length of the value array increasing the counts for
+    // each value that can be reached from the current one.
+    let mut dp = vec![0; a.len()];
     dp[0] = 1;
     (0..dp.len()).for_each(|i| {
-        let l = min(dp.len() - i, 4);
-        (1..l).for_each(|j| if arr[i+j] - arr[i] <= 3 { dp[i+j] += dp[i] })
+        let end = min(i+3, dp.len()-1);
+        (i+1..=end)
+            .filter(|j| a[*j] - a[i] <= 3)
+            .for_each(|j| dp[j] += dp[i]);
     });
-
-    dp[dp.len()-1]
+    
+    dp[dp.len() - 1]
 }
+
 
 
 #[cfg(test)]
@@ -55,35 +74,36 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let adapters = load(include_str!("./adapters.txt"));
-        
-        let jolts = part_one(&adapters);
-        assert_eq!(jolts, 2574);
-        
-        let jolts = part_two(&adapters);
-        assert_eq!(jolts, 2644613988352);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 2574);
     }
 
     #[test]
-    fn small_works() {
-        let adapters = load(include_str!("./test_s.txt"));
-        
-        let jolts = part_one(&adapters);
-        assert_eq!(jolts, 35);
-
-        let count = part_two(&adapters);
-        assert_eq!(count, 8);
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2644613988352);
     }
 
     #[test]
-    fn medium_works() {
-        let adapters = load(include_str!("./test_m.txt"));
-        
-        let jolts = part_one(&adapters);
-        assert_eq!(jolts, 220);
+    fn example_part_one()
+    {
+        let input = include_str!("../example1.txt");
+        assert_eq!(part_one(input), 35);
 
-        let count = part_two(&adapters);
-        assert_eq!(count, 19208);
+        let input = include_str!("../example2.txt");
+        assert_eq!(part_one(input), 220);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example1.txt");
+        assert_eq!(part_two(input), 8);
+
+        let input = include_str!("../example2.txt");
+        assert_eq!(part_two(input), 19208);
     }
 }

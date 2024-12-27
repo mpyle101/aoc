@@ -1,44 +1,48 @@
-use std::{error, fmt};
-use itertools::Itertools;
+fn main()
+{
+    use std::time::Instant;
 
-fn main() -> Result<(), Box<dyn error::Error>> {
-    let expenses = load(include_str!("./input.txt"))?;
+    let input = include_str!("../input.txt");
 
-    let result = part_one(&expenses)?;
-    println!("Part 1: {result}");
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let result = part_two(&expenses)?;
-    println!("Part 2: {result}");
-
-    Ok(())
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-#[derive(Debug)]
-struct NotFound;
-impl fmt::Display for NotFound {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "No combination found")
+fn part_one(input: &str) -> u32
+{
+    let v = input.lines()
+        .filter_map(|line| line.parse::<u32>().ok())
+        .collect::<Vec<_>>();
+
+    for i in 0..v.len() - 1 {
+        for j in i + 1..v.len() {
+            if v[i] + v[j] == 2020 { return v[i] * v[j] }
+        }
     }
-}
-impl error::Error for NotFound {}
 
-fn load(input: &str) -> Result<Vec<i32>, std::num::ParseIntError> {
-    input.lines()
-        .map(|v| v.parse::<i32>())
-        .collect()
+    0
 }
 
-fn part_one(expenses: &[i32]) -> Result<i32, NotFound> {
-    expenses.iter().combinations(2)
-        .filter_map(|v| (v[0] + v[1] == 2020).then(|| v[0] * v[1]))
-        .next().ok_or(NotFound)
-}
+fn part_two(input: &str) -> u32
+{
+    let v = input.lines()
+        .filter_map(|line| line.parse::<u32>().ok())
+        .collect::<Vec<_>>();
 
-fn part_two(expenses: &[i32]) -> Result<i32, NotFound> {
-    expenses.iter().combinations(3)
-        .filter(|v| v[0] + v[1] + v[2] == 2020)
-        .map(|v| v[0] * v[1] * v[2])
-        .next().ok_or(NotFound)
+    for i in 0..v.len()-2 {
+        for j in i+1..v.len()-1 {
+            for k in j+1..v.len() {
+                if v[i] + v[j] + v[k] == 2020 { return v[i] * v[j] * v[k]}
+            }
+        }
+    }
+
+    0
 }
 
 
@@ -47,15 +51,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() -> Result<(), Box<dyn error::Error>> {
-        let expenses = load(include_str!("./input.txt"))?;
-
-        let result = part_one(&expenses)?;
-        assert_eq!(result, 878724);
-
-        let result = part_two(&expenses)?;
-        assert_eq!(result, 201251610);
-
-        Ok(())
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 878724);
     }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 201251610);
+    }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 514579);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 241861950);
+    }
+
 }

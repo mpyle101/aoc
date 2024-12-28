@@ -70,13 +70,12 @@ fn adjacent(p: usize, seats: &[char], ncols: i32, nrows: i32) -> usize
     let p = p as i32;
     let row = p / ncols;
     let col = p % ncols;
+    let in_bounds = |(r, c): &(i32, i32)| (0..nrows).contains(r) && (0..ncols).contains(c);
 
     SEATS.iter()
-        .filter(|(dr, dc)| 
-            (0..nrows).contains(&(row + dr)) &&
-            (0..ncols).contains(&(col + dc))
-        )
-        .map(|(dr, dc)| (row + dr) * ncols + col + dc)
+        .map(|(dr, dc)| (row + dr, col + dc))
+        .filter(in_bounds)
+        .map(|(row, col)| row * ncols + col)
         .filter(|&p| seats[p as usize] == '#')
         .count()
 }
@@ -84,24 +83,23 @@ fn adjacent(p: usize, seats: &[char], ncols: i32, nrows: i32) -> usize
 fn visible(p: usize, seats: &[char], ncols: i32, nrows: i32) -> usize
 {
     let p = p as i32;
-    let rows = 0..nrows;
-    let cols = 0..ncols;
+    let row = p / ncols;
+    let col = p % ncols;
+    let in_bounds = |(r, c): &(i32, i32)| (0..nrows).contains(r) && (0..ncols).contains(c);
 
-    let mut count = 0;
-    for (dr, dc) in SEATS {
-        let mut occupied = false;
-        let mut row = (p / ncols) + dr;
-        let mut col = (p % ncols) + dc;
-        while rows.contains(&row) && cols.contains(&col) {
-            let i = row * ncols + col;
-            let c = seats[i as usize];
-            if c != '.' { occupied = c == '#'; break }
-            row += dr; col += dc;
-        }
-        count += occupied as usize
-    }
-
-   count
+    SEATS.iter()
+        .map(|(dr, dc)| ((dr, dc), row + dr, col + dc))
+        .filter(|((&dr, &dc), mut row, mut col)| {
+            let mut occupied = false;
+            while in_bounds(&(row, col)) {
+                let i = row * ncols + col;
+                let c = seats[i as usize];
+                if c != '.' { occupied = c == '#'; break }
+                row += dr; col += dc;
+            }
+            occupied
+        })
+        .count()
 }
 
 fn hash(v: &[char]) -> u64

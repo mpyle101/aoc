@@ -1,128 +1,141 @@
-use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 
-fn main() {
-    let (seats, rows, cols) = load(include_str!("./seats.txt"));
+type NeighborsFn = fn(usize, &[char], i32, i32) -> usize;
 
-    println!("Part1: {}", part_one(&seats));
-    println!("Part2: {}", part_two(&seats, rows, cols));
+fn main()
+{
+    use std::time::Instant;
+
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-type Pos = (i32, i32);
+fn part_one(input: &str) -> usize
+{
+    board(4, input, adjacent)
+}
 
-fn load(input: &str) -> (HashSet<Pos>, usize, usize) {
-    let rows  = input.lines().count();
-    let cols  = input.as_bytes().iter().take_while(|&b| *b != b'\n').count();
+fn part_two(input: &str) -> usize
+{
+    board(5, input, visible)
+}
 
-    let seats = input.lines()
+fn board(n: usize, input: &str, neighbors: NeighborsFn) -> usize
+{
+    use std::collections::HashSet;
+
+    let (nrows, ncols, mut seats) = load(input);
+
+    let mut seen = HashSet::new();
+    while seen.insert(hash(&seats)) {
+        seats = update(n, &seats, ncols, nrows, neighbors);
+    }
+
+    seats.iter()
+        .filter(|c| **c == '#')
+        .count()
+}
+
+fn update(n: usize, seats: &[char], ncols: i32, nrows: i32, neighbors: NeighborsFn) -> Vec<char>
+{
+    seats.iter()
         .enumerate()
-        .flat_map(|(y, s)| s.as_bytes().iter().enumerate()
-            .filter_map(|(x, c)| match c {
-                b'L' => Some((x as i32, y as i32)),
-                _ => None,
-            }).collect::<Vec<_>>())
-        .collect::<HashSet<_>>();
-    
-    (seats, rows, cols)
-}
-
-fn part_one(seats: &HashSet<Pos>) -> usize {
-    let mut occupied = HashSet::new();
-
-    loop {
-        let mut taken = Vec::new();
-        for seat in seats {
-            let adjacent = adjacent_taken(seat, &occupied);
-            if occupied.contains(seat) {
-                if adjacent < 4 {
-                    taken.push(seat);
-                }
-            } else if adjacent == 0 {
-                taken.push(seat);
+        .map(|(p, &c)| {
+            let count = neighbors(p, seats, ncols, nrows);
+            match c {
+                'L' if count == 0 => '#',
+                '#' if count >= n => 'L',
+                 _ => c
             }
-        }
-        if taken.len() == occupied.len() {
-            break occupied.len()
-        } else {
-            occupied = taken.iter().map(|s| (s.0, s.1)).collect::<HashSet<_>>();
-        }
-    }
-}
-
-fn part_two(seats: &HashSet<Pos>, rows: usize, cols: usize) -> usize {
-    let mut occupied = HashSet::new();
-
-    loop {
-        let mut taken = Vec::new();
-        for seat in seats {
-            let adjacent = adjacent_visible(seat, seats, &occupied, rows, cols);
-            if occupied.contains(seat) {
-                if adjacent < 5 {
-                    taken.push(seat);
-                }
-            } else if adjacent == 0 {
-                taken.push(seat);
-            }
-        }
-        if taken.len() == occupied.len() {
-            break occupied.len()
-        } else {
-            occupied = taken.iter().map(|s| (s.0, s.1)).collect::<HashSet<_>>();
-        }
-    }
-}
-
-
-const DELTA: [Pos; 8] = [
-    (-1, -1), (0, -1), (1, -1),
-    (-1,  0),          (1,  0),
-    (-1,  1), (0,  1), (1,  1)
-];
-fn adjacent_taken(seat: &Pos, occupied: &HashSet<Pos>) -> usize {
-    DELTA.iter()
-        .map(|d| (seat.0 + d.0, seat.1 + d.1))
-        .filter(|s| occupied.contains(s))
-        .count()
-}
-
-fn adjacent_visible(
-    seat: &Pos,
-    seats: &HashSet<Pos>,
-    occupied: &HashSet<Pos>,
-    rows: usize,
-    cols: usize
-) -> usize {
-    let in_bounds = |t:(i32, i32)| t.0 >= 0 && t.1 >=0 && t.0 < cols as i32 && t.1 < rows as i32;
-    
-    DELTA.iter()
-        .filter_map(|d| {
-            let mut check = (seat.0 + d.0, seat.1 + d.1);
-            while in_bounds(check) {
-                if occupied.contains(&check) {
-                    return Some(())
-                } else if seats.contains(&check) {
-                    return None
-                }
-                check = (check.0 + d.0, check.1 + d.1);
-            };
-            None
         })
+        .collect()
+}
+
+static SEATS: [(i32, i32);8] = [
+    (-1, -1), (-1, 0), (-1, 1),
+    ( 0, -1),          ( 0, 1),
+    ( 1, -1), ( 1, 0), ( 1, 1),
+];
+
+fn adjacent(p: usize, seats: &[char], ncols: i32, nrows: i32) -> usize
+{
+    let p = p as i32;
+    let row = p / ncols;
+    let col = p % ncols;
+
+    SEATS.iter()
+        .filter(|(dr, dc)| 
+            (0..nrows).contains(&(row + dr)) &&
+            (0..ncols).contains(&(col + dc))
+        )
+        .map(|(dr, dc)| (row + dr) * ncols + col + dc)
+        .filter(|&p| seats[p as usize] == '#')
         .count()
+}
+
+fn visible(p: usize, seats: &[char], ncols: i32, nrows: i32) -> usize
+{
+    let p = p as i32;
+    let rows = 0..nrows;
+    let cols = 0..ncols;
+
+    let mut count = 0;
+    for (dr, dc) in SEATS {
+        let mut occupied = false;
+        let mut row = (p / ncols) + dr;
+        let mut col = (p % ncols) + dc;
+        while rows.contains(&row) && cols.contains(&col) {
+            let i = row * ncols + col;
+            let c = seats[i as usize];
+            if c != '.' { occupied = c == '#'; break }
+            row += dr; col += dc;
+        }
+        count += occupied as usize
+    }
+
+   count
+}
+
+fn hash(v: &[char]) -> u64
+{
+    let mut hasher = DefaultHasher::new();
+    v.hash(&mut hasher);
+    hasher.finish()
+}
+
+fn load(input: &str) -> (i32, i32, Vec<char>)
+{
+    let mut nrows = 0;
+    let mut ncols = 0;
+    let seats = input.lines()
+        .fold(vec![], |mut v, line| {
+            nrows += 1;
+            ncols = line.len() as i32;
+            v.extend(line.chars());
+            v
+    });
+
+    (nrows, ncols, seats)
 }
 
 #[allow(dead_code)]
-fn draw(seats: &HashSet<Pos>, taken: &HashSet<Pos>, rows: usize, cols: usize) {
-    (0..cols).for_each(|y| {
-        (0..rows).for_each(|x| {
-            let seat = (x as i32, y as i32);
-            let c = match seat {
-                _ if taken.contains(&seat) => '#',
-                _ if seats.contains(&seat) => 'L',
-                _ => '.'
-            };
-            print!("{c}");
+fn print(seats: &[char], ncols: i32)
+{
+    seats.iter()
+        .zip(0..)
+        .for_each(|(c, i)| {
+            if i % ncols == 0 { println!() }
+            print!("{c}")
         });
-        println!();
-    })
+    println!();
 }
 
 
@@ -131,25 +144,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let (seats, rows, cols) = load(include_str!("./seats.txt"));
-        
-        let taken = part_one(&seats);
-        assert_eq!(taken, 2344);
-        
-        let taken = part_two(&seats, rows, cols);
-        assert_eq!(taken, 2076);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 2344);
     }
-
 
     #[test]
-    fn small_works() {
-        let (seats, rows, cols) = load(include_str!("./test_s.txt"));
-        
-        let taken = part_one(&seats);
-        assert_eq!(taken, 37);
-        
-        let taken = part_two(&seats, rows, cols);
-        assert_eq!(taken, 26);
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2076);
     }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 37);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 26);
+    }
+
 }

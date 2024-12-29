@@ -25,7 +25,7 @@ fn part_one(input: &str) -> u64
         .filter_map(|(s1, s2)| {
             let target = s1.parse::<u64>().unwrap();
             let values = s2.split(' ')
-                .filter_map(|s| s.parse::<u64>().ok())
+                .flat_map(|s| s.parse::<u64>())
                 .collect::<Vec<_>>();
             valid(target, values[0], &values[1..], &ops)
                 .then_some(target)
@@ -46,7 +46,7 @@ fn part_two(input: &str) -> u64
         .filter_map(|(s1, s2)| {
             let target = s1.parse::<u64>().unwrap();
             let values = s2.split(' ')
-                .filter_map(|s| s.parse::<u64>().ok())
+                .flat_map(|s| s.parse::<u64>())
                 .collect::<Vec<_>>();
             valid(target, values[0], &values[1..], &ops)
                 .then_some(target)

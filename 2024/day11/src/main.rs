@@ -20,7 +20,7 @@ fn main()
 fn part_one(input: &str) -> usize
 {
     let stones = input.split(' ')
-        .filter_map(|s| s.parse::<u64>().ok())
+        .flat_map(|s| s.parse::<u64>())
         .collect::<Vec<_>>();
 
     (0..25).fold(stones, |acc, _| blink(&acc)).len()
@@ -31,7 +31,7 @@ fn part_two(input: &str, blinks: usize) -> usize
     let mut memos = Memos::new();
     
     input.split(' ')
-        .filter_map(|s| s.parse::<u64>().ok())
+        .flat_map(|s| s.parse::<u64>())
         .map(|n| expand(n, blinks, &mut memos))
         .sum()
 }

@@ -33,7 +33,7 @@ fn part_one(input: &str) -> u32
 
     pages.lines()
         .map(|line| line.split(',')
-            .filter_map(|s| s.parse().ok())
+            .flat_map(|s| s.parse())
             .collect::<Vec<_>>())
         .filter(|v| is_ordered(&rules, v))
         .map(|v| v[v.len() / 2])
@@ -56,7 +56,7 @@ fn part_two(input: &str) -> u32
 
     pages.lines()
         .map(|line| line.split(',')
-            .filter_map(|s| s.parse().ok())
+            .flat_map(|s| s.parse())
             .collect::<Vec<_>>())
         .filter_map(|mut v| is_reordered(&rules, &mut v).then_some(v) )
         .map(|v| v[v.len() / 2])

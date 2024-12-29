@@ -16,7 +16,7 @@ fn main()
 fn part_one(input: &str) -> i64
 {
     input.lines()
-        .filter_map(|line| line.parse::<i64>().ok())
+        .flat_map(|line| line.parse::<i64>())
         .map(|n| (0..2000).fold(n, |acc, _| evolve(acc)))
         .sum()
 }
@@ -27,7 +27,7 @@ fn part_two(input: &str) -> i64
     type Tracker = HashMap<i64, i64>;
 
     let prices = input.lines()
-        .filter_map(|line| line.parse::<i64>().ok())
+        .flat_map(|line| line.parse::<i64>())
         .map(|n| {
             let mut m = n;
             let mut v = (0..2000).map(|_| { m = evolve(m); m % 10 })

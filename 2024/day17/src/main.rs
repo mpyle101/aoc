@@ -153,7 +153,7 @@ fn load(input: &str) -> (u64, u64, u64, Vec<u64>)
     let c = s[12..].parse::<u64>().unwrap();
 
     let p = s2[9..].split(',')
-        .filter_map(|s| s.parse::<u64>().ok())
+        .flat_map(|s| s.parse::<u64>())
         .collect::<Vec<_>>();
 
     (a, b, c, p)

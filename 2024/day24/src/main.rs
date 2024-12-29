@@ -35,7 +35,7 @@ fn part_two(input: &str) -> String
     let mut y = 0_u64;
     wires.iter()
         .filter(|(_, &n)| n == 1)
-        .filter_map(|(w, _)| w[1..].parse::<u64>().ok().map(|i| (w, i)))
+        .flat_map(|(w, _)| w[1..].parse::<u64>().map(|i| (w, i)))
         .for_each(|(w, i)| {
             match w.chars().next() {
                 Some('x') => x |= 1 << i,
@@ -71,7 +71,7 @@ fn evaluate(wires: &Wires, gates: &Gates) -> u64
         .filter(|k| k.starts_with('z'))
         .map(|w| (w, solve(w, &mut wires, gates)))
         .filter(|(_, n)| *n == 1)
-        .filter_map(|(w, _)| w[1..].parse::<u64>().ok())
+        .flat_map(|(w, _)| w[1..].parse::<u64>())
         .fold(0_u64, |z, i| z | 1 << i)
 }
 
@@ -100,7 +100,7 @@ fn load(input: &str) -> (Wires, Gates)
     let (s1, s2) = input.split_once("\n\n").unwrap();
     let wires = s1.lines()
         .filter_map(|line| line.split_once(": "))
-        .filter_map(|(w, v)| v.parse::<u64>().ok().map(|n| (w, n)))
+        .flat_map(|(w, v)| v.parse::<u64>().map(|n| (w, n)))
         .collect::<Wires>();
 
     let gates = s2.lines()

@@ -21,7 +21,7 @@ fn part_one(input: &str) -> u32
         .fold([vec![], vec![]], |mut v, line| {
             line.split_whitespace()
                 .enumerate()
-                .filter_map(|(i, s)| u32::from_str(s).map(|n| (i, n)).ok())
+                .flat_map(|(i, s)| u32::from_str(s).map(|n| (i, n)))
                 .for_each(|(i, n)| v[i].push(n));
             v
         });
@@ -43,7 +43,7 @@ fn part_two(input: &str) -> u32
         .fold([map![], map![]], |mut m, line| {
             line.split_whitespace()
                 .enumerate()
-                .filter_map(|(i, s)| u32::from_str(s).map(|n| (i, n)).ok())
+                .flat_map(|(i, s)| u32::from_str(s).map(|n| (i, n)))
                 .for_each(|(i, n)| *m[i].entry(n).or_insert(0) += 1);
             m
         });

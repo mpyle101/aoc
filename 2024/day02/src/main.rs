@@ -19,7 +19,7 @@ fn part_one(input: &str) -> usize
     input.lines()
         .filter(|line| {
             let len = line.split(' ')
-                .filter_map(|s| s.parse().ok())
+                .flat_map(|s| s.parse())
                 .fold(0, |i, n| { v[i] = n; i + 1 });
             is_safe(&v, len)
         })
@@ -33,7 +33,7 @@ fn part_two(input: &str) -> usize
     input.lines()
         .filter(|line| {
             let len = line.split(' ')
-                .filter_map(|s| s.parse().ok())
+                .flat_map(|s| s.parse())
                 .fold(0, |i, n| { v[i] = n; i + 1 });
             is_safe(&v, len) ||
             (0..len).any(|i| {

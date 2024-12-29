@@ -1,100 +1,63 @@
+fn main()
+{
+    use std::time::Instant;
 
-fn main() {
-    let (ts, shuttles) = load_notes(include_str!("./notes.txt"));
+    let input = include_str!("../example.txt");
 
-    let bus = part_one(ts, &shuttles);
-    println!("Part 1: {bus}");
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let shuttles = load_shuttles(include_str!("./notes.txt"));
-    let ts = part_two(&shuttles);
-    println!("Part 2: {ts}");
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn load_notes(notes: &str) -> (i32, Vec<i32>) {
-    let mut lines = notes.lines();
-    let ts = lines.next().unwrap().parse::<i32>().unwrap();
-    let shuttles = lines.next().unwrap().split(',')
-        .filter_map(|v| match v {
-            "x" => None,
-             s  => s.parse::<i32>().ok()
-        })
-        .collect::<Vec<_>>();
-
-    (ts, shuttles)
-}
-
-fn load_shuttles(notes: &str) -> Vec<(u64, u64)> {
-    let mut line = notes.lines().skip(1);
-    let mut v: Vec<_> = line.next().unwrap().split(',')
-        .enumerate()
-        .filter_map(|(i, v)| match v {
-            "x" => None,
-             s  => s.parse::<u64>().map(|v| (i as u64, v)).ok()
-        })
-        .collect();
-
-    // Generate remainder / lookback values
-    let last = v.last().unwrap().0;
-    v.iter_mut().for_each(|(wait, _)| *wait = last - *wait );
-    v
-}
-
-fn part_one(ts: i32, shuttles: &[i32]) -> i32 {
-    let (wait, id) = shuttles.iter().map(|id| {
-        let wait = (ts / id + 1) * id - ts;
-        (wait, id)
-    }).min().unwrap();
+fn part_one(input: &str) -> u32
+{
+    let (s1, s2) = input.split_once('\n').unwrap();
+    let start = s1.parse::<u32>().unwrap();
     
-    wait * id
+    s2.split(',')
+        .flat_map(|s| s.parse::<u32>())
+        .map(|n| (n, n - start % n))
+        .min_by(|a, b| a.1.cmp(&b.1))
+        .map_or(0, |(n, v)| n * v)
 }
 
-fn part_two(shuttles: &[(u64, u64)]) -> u64 {
-    let f = shuttles[0].0;
-    let m = chinese_remainder(shuttles);
-    let mut ts = m;
+fn part_two(input: &str) -> i64
+{
+    let (_, s2) = input.split_once('\n').unwrap();
+    let (r, m): (Vec<_>, Vec<_>) = s2.split(',')
+        .zip(0..)
+        .flat_map(|(s, i)| s.parse::<i64>().map(|n| (i, n)))
+        .unzip();
+    let delta = r[r.len() - 1];
+    let r = r.iter().map(|n| delta - n).collect::<Vec<_>>();
 
-    loop {
-        if shuttles.iter().all(|(lb, id)| (ts - lb) % id == 0) {
-            return ts - f
-        }
-        ts += m;
-    }
+    crt(&r, &m) - r[0]
 }
 
-fn chinese_remainder(shuttles: &[(u64, u64)]) -> u64 {
-    let prod = shuttles.iter().fold(1, |acc, (_, id)| acc * id);
-    let pp: Vec<_>  = shuttles.iter().map(|(_, id)| prod / id).collect();
-    let inv: Vec<_> = shuttles.iter().enumerate()
-        .map(|(i, (_, n))| modinv(pp[i], *n)).collect();
-    
-    shuttles.iter().enumerate()
-        .fold(0, |acc, (i, (r, _))| acc + r * pp[i] * inv[i]) % prod
+// Chinese Remainder Theorem
+fn crt(residues: &[i64], moduli: &[i64]) -> i64
+{
+    let prod = moduli.iter().product::<i64>();
+    let sum  = residues.iter()
+        .zip(moduli)
+        .fold(0, |acc, (r, m)| {
+            let p = prod / m;
+            acc + (r * modinv(p, *m).unwrap() * p)
+        });
+
+    sum % prod
 }
 
-// Modulo inverse of a with respect to m
-fn modinv(a: u64, m: u64) -> u64 {
-    let mut aa = a as i64;
-    let mut ma = m as i64;
-    let mut x0 = 0;
-    let mut x1 = 1;
+fn modinv(x: i64, n: i64) -> Option<i64>
+{
+    use num_integer::Integer;
 
-    if m == 1 { return 0 }
-
-    // Extended Euclid Algorithm
-    while aa > 1 {
-        let q = aa / ma;
-        let t0 = ma;
-
-        ma = aa % ma;
-        aa = t0;
-
-        let t1 = x0;
-        x0 = x1 - q * x0;
-        x1 = t1;
-    }
-
-    if x1 < 0 { x1 += m as i64 };
-    x1 as u64
+    let e = x.extended_gcd(&n);
+    (e.gcd == 1).then_some((e.x % n + n) % n)
 }
 
 
@@ -103,60 +66,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let (ts, shuttles) = load_notes(include_str!("./notes.txt"));
-        let bus = part_one(ts, &shuttles);
-        assert_eq!(bus, 203);
-
-        let shuttles = load_shuttles(include_str!("./notes.txt"));
-        let ts = part_two(&shuttles);
-        assert_eq!(ts, 905694340256752);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 203);
     }
 
     #[test]
-    fn example_1() {
-        let shuttles = load_shuttles("0\n7,13,x,x,59,x,31,19");
-
-        let ts = part_two(&shuttles);
-        assert_eq!(ts, 1068781);
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 905694340256752);
     }
 
     #[test]
-    fn example_2() {
-        let shuttles = load_shuttles("0\n17,x,13,19");
-
-        let ts = part_two(&shuttles);
-        assert_eq!(ts, 3417);
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 295);
     }
 
     #[test]
-    fn example_3() {
-        let shuttles = load_shuttles("0\n67,7,59,61");
-        let ts = part_two(&shuttles);
-        assert_eq!(ts, 754018);
-    }
-
-    #[test]
-    fn example_4() {
-        let shuttles = load_shuttles("0\n67,x,7,59,61");
-
-        let ts = part_two(&shuttles);
-        assert_eq!(ts, 779210);
-    }
-
-    #[test]
-    fn example_5() {
-        let shuttles = load_shuttles("0\n67,7,x,59,61");
-        let ts = part_two(&shuttles);
-
-        assert_eq!(ts, 1261476);
-    }
-
-    #[test]
-    fn example_6() {
-        let shuttles = load_shuttles("0\n1789,37,47,1889");
-        let ts = part_two(&shuttles);
-
-        assert_eq!(ts, 1202161486);
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 1068781);
     }
 }

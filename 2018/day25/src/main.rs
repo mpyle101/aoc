@@ -40,7 +40,7 @@ fn load(input: &str) -> Vec<Point>
             let mut pt = [0;4];
             l.split(',')
                 .enumerate()
-                .filter_map(|(i, s)| s.parse::<i8>().ok().map(|n| (i, n)))
+                .flat_map(|(i, s)| s.parse::<i8>().map(|n| (i, n)))
                 .for_each(|(i, n)| pt[i] = n);
             pt
         })

@@ -16,7 +16,7 @@ fn main()
 fn part_one(input: &str) -> u32
 {
     let v = input.lines()
-        .filter_map(|line| line.parse::<u32>().ok())
+        .flat_map(|line| line.parse::<u32>())
         .collect::<Vec<_>>();
 
     for i in 0..v.len() - 1 {
@@ -31,7 +31,7 @@ fn part_one(input: &str) -> u32
 fn part_two(input: &str) -> u32
 {
     let v = input.lines()
-        .filter_map(|line| line.parse::<u32>().ok())
+        .flat_map(|line| line.parse::<u32>())
         .collect::<Vec<_>>();
 
     for i in 0..v.len()-2 {

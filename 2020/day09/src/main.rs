@@ -16,7 +16,7 @@ fn main()
 fn part_one(input: &str, preamble: usize, lookback: usize) -> u64
 {
     let xmas = input.lines()
-        .filter_map(|s| s.parse::<u64>().ok())
+        .flat_map(|s| s.parse::<u64>())
         .collect::<Vec<_>>();
 
     step_one(&xmas, preamble, lookback)
@@ -25,7 +25,7 @@ fn part_one(input: &str, preamble: usize, lookback: usize) -> u64
 fn part_two(input: &str, preamble: usize, lookback: usize) -> u64
 {
     let xmas = input.lines()
-        .filter_map(|s| s.parse::<u64>().ok())
+        .flat_map(|s| s.parse::<u64>())
         .collect::<Vec<_>>();
 
     let n = step_one(&xmas, preamble, lookback);

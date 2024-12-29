@@ -20,7 +20,7 @@ fn part_one(input: &str) -> u32
     // must represent the adapter order. So, we just need to
     // count the jumps of 1 and 3.
     let mut v = input.lines()
-        .filter_map(|line| line.parse::<u32>().ok())
+        .flat_map(|line| line.parse::<u32>())
         .collect::<Vec<_>>();
     v.sort_unstable();
     let last = *v.last().unwrap();
@@ -43,7 +43,7 @@ fn part_two(input: &str) -> u64
     use std::cmp::min;
 
     let mut a = input.lines()
-        .filter_map(|line| line.parse::<u32>().ok())
+        .flat_map(|line| line.parse::<u32>())
         .collect::<Vec<_>>();
     a.sort_unstable();
     let last = *a.last().unwrap();

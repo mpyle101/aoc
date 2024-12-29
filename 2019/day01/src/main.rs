@@ -15,14 +15,14 @@ fn main() {
 
 fn part_one(input: &str) -> i32 {
     input.lines()
-        .filter_map(|s| s.parse::<i32>().ok())
+        .flat_map(|s| s.parse::<i32>())
         .map(|mass| mass / 3 - 2)
         .sum()
 }
 
 fn part_two(input: &str) -> i32 {
     input.lines()
-        .filter_map(|s| s.parse::<i32>().ok())
+        .flat_map(|s| s.parse::<i32>())
         .map(fuel_needed)
         .sum()
 }

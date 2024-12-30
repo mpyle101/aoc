@@ -36,18 +36,18 @@ fn play(nums: &[u32], iterations: u32) -> u32
     use std::collections::HashMap;
 
     let mut spoken: HashMap<_,_> = nums.iter()
-        .zip(0..)
-        .map(|(n, i)| (*n, (i+1, i+1)))
+        .zip(1..)
+        .map(|(n, i)| (*n, (i, i)))
         .collect();
 
     let last  = nums[nums.len() - 1];
     let turn = (spoken.len() + 1) as u32;
     (turn..=iterations)
         .fold(last, |last, i| {
-            let (a, b) = spoken.entry(last).or_insert((i, i));
-            let n = *b - *a;
-            let e = spoken.entry(n).or_insert((i, i));
-            *e = (e.1, i);
+            let (a, b) = *spoken.entry(last).or_insert((i, i));
+            let n = b - a;
+            let (a, b) = spoken.entry(n).or_insert((i, i));
+            (*a, *b) = (*b, i);
             n
         })
 }

@@ -22,13 +22,13 @@ fn part_one(input: &str) -> u32
     play(&v, 2020)
 }
 
-fn part_two(input: &str) -> u32
+fn part_two(input: &str) -> usize
 {
     let v = input.split(',')
-        .flat_map(|s| s.parse::<u32>())
+        .flat_map(|s| s.parse::<usize>())
         .collect::<Vec<_>>();
 
-    play(&v, 30000000)
+    play_two(&v, 30000000)
 }
 
 fn play(nums: &[u32], iterations: u32) -> u32
@@ -48,6 +48,26 @@ fn play(nums: &[u32], iterations: u32) -> u32
             let n = b - a;
             let (a, b) = spoken.entry(n).or_insert((i, i));
             (*a, *b) = (*b, i);
+            n
+        })
+}
+
+fn play_two(nums: &[usize], iterations: usize) -> usize
+{
+    let mut spoken = vec![usize::MAX;iterations];
+    nums.iter()
+        .enumerate()
+        .for_each(|(i, n)| spoken[*n] = i);
+
+    let last = nums[nums.len() - 1];
+    spoken[last] = usize::MAX;
+
+    let turn = nums.len() - 1;
+    (turn..iterations-1)
+        .fold(last, |last, i| {
+            let n = spoken[last];
+            let n = if n == usize::MAX { 0 } else { i - n };
+            spoken[last] = i;
             n
         })
 }

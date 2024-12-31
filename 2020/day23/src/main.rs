@@ -148,10 +148,10 @@ mod tests {
     {
         let input = include_str!("../example.txt");
 
-        let labels = part_one(&input, 10);
+        let labels = part_one(input, 10);
         assert_eq!(labels, "92658374");
 
-        let labels = part_one(&input, 100);
+        let labels = part_one(input, 100);
         assert_eq!(labels, "67384529");
     }
 

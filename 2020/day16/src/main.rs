@@ -1,110 +1,118 @@
-fn main() {
-    let (rules, ticket, nearby) = load(include_str!("./tickets.txt"));
+use std::ops::RangeInclusive;
 
-    let ticket_scanning_error_rate = part_one(&rules, &nearby);
-    println!("Part 1: {ticket_scanning_error_rate}");
+type Ticket = Vec<u32>;
+type Rules<'a> = Vec<(&'a str, RangeInclusive<u32>, RangeInclusive<u32>)>;
+type RI32 = RangeInclusive<u32>;
 
-    let departure_product = part_two(&rules, &ticket, &nearby);
-    println!("Part 2: {departure_product}");
+fn main()
+{
+    use std::time::Instant;
+
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(rules: &[Rule], tickets: &[Ticket]) -> u32 {
-    tickets.iter().fold(0, |acc, t| {
-        let invalid: u32 = t.fields.iter()
-            .filter(|&v| rules.iter().all(|r| !valid_field(r, *v))).sum();
-        acc + invalid
-    })
+fn part_one(input: &str) -> u32
+{
+    let (rules, _, nearby) = load(input);
+
+    let invalid = |n| !rules.iter().any(|(_, r1, r2)| r1.contains(n) || r2.contains(n));
+    nearby.iter()
+        .flat_map(|v| v.iter().filter(|n| invalid(*n)))
+        .sum::<u32>()
 }
 
-fn part_two(rules: &[Rule], ticket: &Ticket, nearby: &[Ticket]) -> u64 {
-    use std::collections::{VecDeque, HashMap, HashSet};
+fn part_two(input: &str) -> u64
+{
+    let (rules, ticket, nearby) = load(input);
 
-    let tickets = nearby.iter()
-        .filter(|t| valid_ticket(t, rules))
+    let valid = |n| rules.iter().any(|(_, r1, r2)| r1.contains(n) || r2.contains(n));
+    let nearby = nearby.iter()
+        .filter(|v| v.iter().all(valid))
         .collect::<Vec<_>>();
 
-    let mut fields = HashMap::new();
-    let mut unused = (0..ticket.fields.len()).collect::<HashSet<_>>();
-    let mut queue  = rules.iter().collect::<VecDeque<_>>();
+    // The mask is a bit pattern matching the possible ticket columns.
+    // There's one for each rule in the order vector. We iterate over
+    // the valid tickets and for each one test the rules against the
+    // column value. If we find a rule which can't handle a given value,
+    // put a 0 at that column position in the bit mask.
+    let mask: u32 = 0b0000_0000_0000_1111_1111_1111_1111_1111;
+    let mut order = vec![mask; ticket.len()];
 
-    while let Some(rule) = queue.pop_front() {
-        let valid = unused.iter()
-            .filter(|&n| tickets.iter().all(|&t| valid_field(rule, t.fields[*n])))
-            .copied()
-            .collect::<Vec<_>>();
+    let invalid = |n, r1: &RI32, r2: &RI32| !(r1.contains(n) || r2.contains(n));
+    nearby.iter()
+        .for_each(|tkt| tkt.iter()
+            .enumerate()
+            .for_each(|(i, n)| {
+                rules.iter()
+                    .enumerate()
+                    .filter(|(_, (_, r1, r2))| invalid(n, r1, r2))
+                    .for_each(|(r, _)| order[r] &= !(1 << i))
+            })
+        );
 
-        if valid.len() == 1 {
-            fields.insert(rule.name, valid[0]);
-            unused.remove(&valid[0]);
-        } else {
-            queue.push_back(rule);
-        }
+    // For it to work, when we're done with the above, there must be
+    // at least one rule with only one possible column. We find it,
+    // and remove that bit from the rest, find the next one, remove
+    // it's bit and so on until we've found all the column for all
+    // the rules.
+    let mut order = order.iter().zip(0usize..).map(|(n, i)| (*n, i)).collect::<Vec<_>>();
+    let mut rules = [0u32;20];
+    while let Some(i) = order.iter().position(|(n, _)| n.count_ones() == 1) {
+        let (n, p) = order.remove(i);
+        rules[p] = n;
+        order.iter_mut().for_each(|(m, _)| *m &= !n)
     }
 
-    fields.iter().filter(|(r, _)| r.starts_with("departure"))
-        .map(|(_, &i)| ticket.fields[i] as u64)
+    // The first 6 rules are the departure rules. Turn those column
+    // masks into indexes and get the values from the ticket.
+    rules.iter()
+        .take(6)
+        .map(|n| (31 - n.leading_zeros()) as usize)
+        .map(|i| ticket[i] as u64)
         .product()
 }
 
-fn valid_ticket(ticket: &Ticket, rules: &[Rule]) -> bool {
-    ticket.fields.iter().all(|&f| rules.iter().any(|r| valid_field(r, f)))
-}
+fn load(input: &str) -> (Rules, Ticket, Vec<Ticket>)
+{
+    let mut it = input.split("\n\n");
+    let s = it.next().unwrap();
+    let rules = s.lines()
+        .map(|l| {
+            let (name, s2) = l.split_once(": ").unwrap();
+            let (s1, s2)   = s2.split_once(" or ").unwrap();
+            let r1 = parse_range(s1);
+            let r2 = parse_range(s2);
+            (name, r1, r2)
+        })
+        .collect::<Rules>();
 
-fn valid_field(rule: &Rule, v: u32) -> bool {
-    rule.valid.iter().any(|(min, max)| v >= *min && v <= *max)
-}
-
-fn load(input: &str) -> (Vec<Rule>, Ticket, Vec<Ticket>) {
-    let mut iter = input.split("\n\n");
-    let rules = iter.next().unwrap().lines()
-        .map(parse_rule)
-        .collect();
-
-    let tickets = iter.next().unwrap().lines().skip(1)
-        .map(parse_ticket)
+    let s = it.next().unwrap();
+    let ticket = s.lines()
+        .skip(1)
+        .flat_map(|l| l.split(',').flat_map(|s| s.parse::<u32>()))
         .collect::<Vec<_>>();
 
-    let nearby = iter.next().unwrap().lines().skip(1)
-        .map(parse_ticket)
-        .collect();
-
-    (rules, tickets.first().cloned().unwrap(), nearby)
-}
-
-fn parse_rule(rule: &str) -> Rule {
-    let parts = rule.split(": ").collect::<Vec<_>>();
-    let valid = parts[1].split(" or ")
-        .map(parse_range)
-        .collect();
-
-    Rule { name: parts[0], valid }
-}
-
-fn parse_range(range: &str) -> (u32, u32) {
-    let vals = range.split('-')
-        .map(|v| v.parse::<u32>().unwrap())
+    let s = it.next().unwrap();
+    let nearby = s.lines()
+        .skip(1)
+        .map(|l| l.split(',').flat_map(|s| s.parse::<u32>()).collect())
         .collect::<Vec<_>>();
 
-    (vals[0], vals[1])
+    (rules, ticket, nearby)
 }
 
-fn parse_ticket(ticket: &str) -> Ticket {
-    let fields = ticket.split(',')
-        .map(|s| s.parse::<u32>().unwrap())
-        .collect();
-
-    Ticket { fields }
-}
-
-#[derive(Debug)]
-struct Rule<'a> {
-    name: &'a str,
-    valid: Vec<(u32, u32)>,
-}
-
-#[derive(Clone, Debug)]
-struct Ticket {
-    fields: Vec<u32>,
+fn parse_range(s: &str) -> RangeInclusive<u32>
+{
+    let (n1, n2) = s.split_once('-').unwrap();
+    n1.parse::<u32>().unwrap()..=n2.parse::<u32>().unwrap()
 }
 
 
@@ -113,13 +121,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let (rules, ticket, nearby) = load(include_str!("./tickets.txt"));
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 25059);
+    }
 
-        let ticket_scanning_error_rate = part_one(&rules, &nearby);
-        assert_eq!(ticket_scanning_error_rate, 25059);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 3253972369789);
+    }
 
-        let departure_product = part_two(&rules, &ticket, &nearby);
-        assert_eq!(departure_product, 3253972369789);
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 71);
     }
 }

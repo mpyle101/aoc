@@ -1,31 +1,52 @@
-fn main() {
-    let input = [1,3,5,4,6,8,7,2,9];
+fn main()
+{
+    use std::time::Instant;
 
-    let labels = part_one(&input, 100);
-    println!("Part 1: {labels}");
+    let input = include_str!("../input.txt");
 
-    let stars = part_two(&input);
-    println!("Part 2: {stars}");
+    let t = Instant::now();
+    let result = part_one(input, 100);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &[i32;9], moves: u32) -> String {
-    let mut cups: Vec<_> = input.to_vec();
-
+fn part_one(input: &str, moves: u32) -> String
+{
+    let mut cups = input.chars()
+        .flat_map(|c| c.to_digit(10).map(|n| n as i32))
+        .collect::<Vec<_>>();
     (0..moves).fold(0, |cup, _| do_move(cup, &mut cups));
 
     let pos = cups.iter().position(|&n| n == 1).unwrap();
     let l = cups.len();
-    (1..l).map(|i| cups[(pos + i) % l].to_string()).collect()
+    (1..l)
+        .map(|i| cups[(pos + i) % l]
+        .to_string())
+        .collect()
 }
 
-fn part_two(input: &[i32;9]) -> u64 {
+fn part_two(input: &str) -> u64 {
+    let input = input.chars()
+        .flat_map(|c| c.to_digit(10).map(|n| n as i32))
+        .collect::<Vec<_>>();
+
     // Add a zero so the position values align with the cup label.
     let mut cups = vec![0];
     cups.append(&mut (1..10)
         .map(|n| input.iter().position(|v| *v == n))
-        .map(|p| if let Some(n) = p {
-            if n == input.len() - 1 { input.len() as i32 + 1 } else { input[n + 1] }
-        } else { 0 })
+        .map(|p|
+            if let Some(n) = p {
+                if n == input.len() - 1 {
+                    input.len() as i32 + 1
+                } else {
+                    input[n + 1]
+                }
+            } else { 
+                0
+            })
         .collect::<Vec<_>>());
     cups.append(&mut (11..1_000_001).collect::<Vec<_>>());
     cups.push(input[0]);
@@ -109,27 +130,36 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let input = [1,3,5,4,6,8,7,2,9];
-
-        let labels = part_one(&input, 100);
-        assert_eq!(labels, "32897654");
-
-        let stars = part_two(&input);
-        assert_eq!(stars, 186715244496);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input, 100), "32897654");
     }
 
     #[test]
-    fn small() {
-        let input = [3,8,9,1,2,5,4,6,7];
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 186715244496);
+    }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
 
         let labels = part_one(&input, 10);
         assert_eq!(labels, "92658374");
 
         let labels = part_one(&input, 100);
         assert_eq!(labels, "67384529");
-
-        let stars = part_two(&input);
-        assert_eq!(stars, 149245887792);
     }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 149245887792);
+    }
+
 }

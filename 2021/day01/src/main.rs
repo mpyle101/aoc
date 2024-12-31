@@ -1,49 +1,43 @@
-use std::fs;
-use std::error::Error;
-use std::num::ParseIntError;
-
-fn main() -> Result<(), Box<dyn Error>> {
-    let input = load(&fs::read_to_string("./input.txt")?)?;
-
-    timeit("Part 1", || part_one(&input));
-    timeit("Part 2", || part_two(&input));
-
-    Ok(())
-}
-
-fn timeit<T>(s: &str, func: impl Fn() -> T)
-    where T: std::fmt::Debug
+fn main()
 {
-    let t = std::time::Instant::now();
-    let result = func();
-    println!("{s}: {:?} ({:?})", result, t.elapsed());
+    use std::time::Instant;
+
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn load(input: &str) -> Result<Vec<i32>, ParseIntError> {
-    input.lines().map(|v| v.parse::<i32>()).collect()
+fn part_one(input: &str) -> usize
+{
+    let v = input.lines()
+        .flat_map(|s| s.parse::<u32>())
+        .collect::<Vec<_>>();
+
+    v.windows(2)
+        .filter(|w| w[1] > w[0])
+        .count()
 }
 
-fn part_one(depths: &[i32]) -> i32 {
-    let mut iter = depths.iter();
-    let first = iter.next().unwrap();
-    let (_, count) = iter
-        .fold((first, 0), |(last, count), v|
-            (v, count + ((v > last) as i32))
-        );
-    
-    count
-}
+fn part_two(input: &str) -> u32
+{
+    let v = input.lines()
+        .flat_map(|s| s.parse::<u32>())
+        .collect::<Vec<_>>();
 
-fn part_two(depths: &[i32]) -> i32 {
-    let mut iter = depths.windows(3);
-    let w = iter.next().unwrap();
-    let first = w.iter().sum::<i32>();
-    let (_, count) = iter
-        .fold((first, 0), |(last, count), v| {
-            let val = v.iter().sum();
-            (val, count + ((val > last) as i32))
+    let mut count = 0;
+    v.windows(3)
+        .fold(u32::MAX, |last, w| {
+            let n = w.iter().sum();
+            count += (n > last) as u32;
+            n
         });
-    
+
     count
 }
 
@@ -53,14 +47,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let input = load(include_str!("../input.txt"))
-            .expect("Failed to load input data");
-
-        let count = part_one(&input);
-        assert_eq!(count, 1676);
-
-        let count = part_two(&input);
-        assert_eq!(count, 1706);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1676);
     }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1706);
+    }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 7);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 5);
+    }
+
 }

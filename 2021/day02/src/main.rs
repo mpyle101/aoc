@@ -1,62 +1,51 @@
-
-fn main() {
-    use std::fs;
+fn main()
+{
     use std::time::Instant;
 
-    let input = load(&fs::read_to_string("./input.txt").unwrap());
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let pos = part_one(&input);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", pos, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let t1 = Instant::now();
-    let pos = part_two(&input);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", pos, t2 - t1);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-enum Action {
-    Up(i32),
-    Down(i32),
-    Forward(i32),
+fn part_one(input: &str) -> u32
+{
+    input.lines()
+        .flat_map(|line| line.split_once(' '))
+        .map(|(d, s)| (d, s.parse::<u32>().unwrap()))
+        .fold([0, 0], |[x, y], (d, n)| 
+            match d {
+                "up"      => [x, y - n],
+                "down"    => [x, y + n],
+                "forward" => [x + n, y],
+                _ => unreachable!()
+            }
+        )
+        .iter()
+        .product()
 }
 
-fn load(input: &str) -> Vec<Action> {
-    input.lines().map(|l| {
-        let v = l.split(' ').collect::<Vec<_>>();
-        let steps = v[1].parse::<i32>().unwrap();
-        match v[0] {
-            "up"   => Action::Up(steps),
-            "down" => Action::Down(steps),
-            _      => Action::Forward(steps)
-        }
-    }).collect()
-}
-
-fn part_one(actions: &[Action]) -> i32 {
-    let (pos, depth) = actions.iter().fold((0, 0), |(pos, depth), action|
-        match action {
-            Action::Up(steps)      => (pos, depth - steps),
-            Action::Down(steps)    => (pos, depth + steps),
-            Action::Forward(steps) => (pos + steps, depth),
-        }
-    );
-    
-    pos * depth
-}
-
-fn part_two(actions: &[Action]) -> i32 {
-    let (pos, depth, _) = actions.iter().fold((0, 0, 0),
-     |(pos, depth, aim), action|
-        match action {
-            Action::Up(steps)      => (pos, depth, aim - steps),
-            Action::Down(steps)    => (pos, depth, aim + steps),
-            Action::Forward(steps) => (pos + steps, depth + (aim * steps), aim),
-        }
-    );
-    
-    pos * depth
+fn part_two(input: &str) -> u64
+{
+    input.lines()
+        .flat_map(|line| line.split_once(' '))
+        .map(|(d, s)| (d, s.parse::<u64>().unwrap()))
+        .fold([0, 0, 0], |[a, x, y], (d, n)| {
+            match d {
+                "up"      => [a - n, x, y],
+                "down"    => [a + n, x, y],
+                "forward" => [a, x + n, y + n * a],
+                _ => unreachable!()
+            }
+        })
+        .iter()
+        .skip(1)
+        .product()
 }
 
 
@@ -65,13 +54,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let input = load(include_str!("../input.txt"));
-
-        let pos = part_one(&input);
-        assert_eq!(pos, 1924923);
-
-        let pos = part_two(&input);
-        assert_eq!(pos, 1982495697);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1924923);
     }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1982495697);
+    }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 150);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 900);
+    }
+
 }

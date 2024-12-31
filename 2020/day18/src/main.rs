@@ -1,10 +1,18 @@
 #![allow(clippy::redundant_closure_call)]
 
-fn main() {
-    let exprs = include_str!("./expr.txt");
+fn main()
+{
+    use std::time::Instant;
 
-    println!("Part 1: {}", part_one(exprs));
-    println!("Part 2: {}", part_two(exprs));
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> i64 {
@@ -42,16 +50,19 @@ peg::parser!( grammar parser() for str {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let exprs = include_str!("./expr.txt");
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 36382392389406);
+    }
 
-    let val = part_one(exprs);
-    assert_eq!(val, 36382392389406);
-
-    let val = part_two(exprs);
-    assert_eq!(val, 381107029777968);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 381107029777968);
+    }
 }

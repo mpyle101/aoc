@@ -1,13 +1,18 @@
 use std::collections::HashSet;
 
-fn main() {
-    let cubes = load(include_str!("./cubes.txt"));
+fn main()
+{
+    use std::time::Instant;
 
-    let active = part_one(&cubes);
-    println!("Part 1: {active}");
+    let input = include_str!("../input.txt");
 
-    let active = part_two(&cubes);
-    println!("Part 2: {active}");
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn load(input: &str) -> HashSet<Point> {
@@ -21,9 +26,10 @@ fn load(input: &str) -> HashSet<Point> {
         ).collect()
 }
 
-fn part_one(cubes: &HashSet<Point>) -> usize {
+fn part_one(input: &str) -> usize {
     use itertools::Itertools;
 
+    let cubes = load(input);
     let mut deltas = (-1..=1)
         .map(|_| -1..=1)
         .multi_cartesian_product()
@@ -35,9 +41,10 @@ fn part_one(cubes: &HashSet<Point>) -> usize {
     (0..6).fold(cubes.clone(), |acc, _| cycle(&acc, &deltas)).len()
 }
 
-fn part_two(cubes: &HashSet<Point>) -> usize {
+fn part_two(input: &str) -> usize {
     use itertools::Itertools;
 
+    let cubes = load(input);
     let mut deltas = (-1..=1)
         .flat_map(|w| (-1..=1)
             .map(|_| -1..=1)
@@ -91,13 +98,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let cubes = load(include_str!("./cubes.txt"));
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 319);
+    }
 
-        let active_count = part_one(&cubes);
-        assert_eq!(active_count, 319);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2324);
+    }
 
-        let active_count = part_two(&cubes);
-        assert_eq!(active_count, 2324);
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 112);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 848);
     }
 }

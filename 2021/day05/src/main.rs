@@ -1,93 +1,111 @@
-use std::collections::HashMap;
-
-fn main() {
-    use std::fs;
+fn main()
+{
     use std::time::Instant;
 
-    let lines = load(&fs::read_to_string("./input.txt").unwrap());
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let (p1, p2) = doit(&lines);
-    let t2 = Instant::now();
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    println!("Part 1: {p1}");
-    println!("Part 2: {p2}");
-    println!("{:?}", t2 - t1);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-enum Line {
-    Vert((i32, i32), (i32, i32)),
-    Horz((i32, i32), (i32, i32)),
-    Diag((i32, i32), (i32, i32)),
-}
+fn part_one(input: &str) -> usize
+{
+    use std::collections::HashMap;
 
-fn load(input: &str) -> Vec<Line> {
-    input.lines().map(|l| l.split(" -> ").collect::<Vec<&str>>())
-        .map(|v| {
-            let p1: Vec<_> = v[0].split(',').map(|s| s.parse::<i32>().unwrap()).collect();
-            let p2: Vec<_> = v[1].split(',').map(|s| s.parse::<i32>().unwrap()).collect();
-            if p1[0] == p2[0] {
-                Line::Vert((p1[0], p1[1]), (p2[0], p2[1]))
-            } else if p1[1] == p2[1] {
-                Line::Horz((p1[0], p1[1]), (p2[0], p2[1]))
-            } else {
-                Line::Diag((p1[0], p1[1]), (p2[0], p2[1]))
+    let lines = load(input);
+
+    lines.iter()
+        .filter(|((x1, y1), (x2, y2))| x1 == x2 || y1 == y2)
+        .fold(HashMap::new(), |mut m, &((x1, y1), (x2, y2))| {
+            let (dx, dy) = ((x2 - x1).signum(), (y2 -y1).signum());
+            let (mut x, mut y) = (x1, y1);
+            loop {
+                *m.entry((x, y)).or_insert(0) += 1;
+                if (x, y) == (x2, y2) { break }
+                (x, y) = (x + dx, y + dy);
             }
+            m
+        })
+        .values()
+        .filter(|n| **n > 1)
+        .count()
+}
+
+fn part_two(input: &str) -> usize
+{
+    use std::collections::HashMap;
+
+    let lines = load(input);
+
+    lines.iter()
+        .fold(HashMap::new(), |mut m, &((x1, y1), (x2, y2))| {
+            let (dx, dy) = ((x2 - x1).signum(), (y2 -y1).signum());
+            let (mut x, mut y) = (x1, y1);
+            loop {
+                *m.entry((x, y)).or_insert(0) += 1;
+                if (x, y) == (x2, y2) { break }
+                (x, y) = (x + dx, y + dy);
+            }
+            m
+        })
+        .values()
+        .filter(|n| **n > 1)
+        .count()
+}
+
+fn load(input: &str) -> Vec<((i32, i32), (i32, i32))>
+{
+    input.lines()
+        .flat_map(|line| line.split_once(" -> "))
+        .map(|(s1, s2)| {
+            let (x1, y1) = s1.split_once(',').unwrap();
+            let x1 = x1.parse::<i32>().unwrap();
+            let y1 = y1.parse::<i32>().unwrap();
+
+            let (x2, y2) = s2.split_once(',').unwrap();
+            let x2 = x2.parse::<i32>().unwrap();
+            let y2 = y2.parse::<i32>().unwrap();
+
+            ((x1, y1), (x2, y2))
         })
         .collect()
 }
 
-fn doit(lines: &[Line]) -> (i32, i32) {
-    use itertools::zip;
-    use num::range_step_inclusive as range;
-
-    let mut pts = HashMap::new();
-    let diag = lines.iter().fold(Vec::new(), |mut v, line| {
-        match line {
-            Line::Vert(p1, p2) => {
-                let x  = std::iter::repeat(p1.0);
-                let dy = (p2.1 - p1.1).signum();
-                mark(zip(x, range(p1.1, p2.1, dy)), &mut pts);
-            },
-            Line::Horz(p1, p2) => {
-                let y  = std::iter::repeat(p1.1);
-                let dx = (p2.0 - p1.0).signum();
-                mark(zip(range(p1.0, p2.0, dx), y), &mut pts);
-            },
-            Line::Diag(_, _) => { v.push(line); }
-        };
-
-        v
-    });
-    let part1 = pts.values().filter(|&v| *v > 0).count();
-
-    diag.iter().for_each(|l| {
-        if let Line::Diag(p1, p2) = l {
-            let dx = (p2.0 - p1.0).signum();
-            let dy = (p2.1 - p1.1).signum();
-            mark(zip(range(p1.0, p2.0, dx), range(p1.1, p2.1, dy)), &mut pts);
-        }
-    });
-    let part2 = pts.values().filter(|&v| *v > 0).count();
-
-    (part1 as i32, part2 as i32)
-}
-
-fn mark<I: Iterator<Item = (i32, i32)>>(it: I, pts: &mut HashMap<(i32, i32), i32>) {
-    it.for_each(|pt| *pts.entry(pt).or_insert(-1) += 1 );
-}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
 
     #[test]
-    fn it_works() {
-        let lines = load(&fs::read_to_string("./input.txt").unwrap());
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 7085);
+    }
 
-        let (p1, p2) = doit(&lines);
-        assert_eq!(p1, 7085);
-        assert_eq!(p2, 20271);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 20271);
+    }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 5);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 12);
     }
 }

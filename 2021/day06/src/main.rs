@@ -1,80 +1,75 @@
-
-fn main() {
-    use std::fs;
+fn main()
+{
     use std::time::Instant;
 
-    let fish = load(&fs::read_to_string("./input.txt").unwrap());
+    let input = include_str!("../example.txt");
 
-    let t1 = Instant::now();
-    let population = doit(&fish, 80);
-    let t2 = Instant::now();
-    println!("Part 1: {} {:?}", population, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input, 80);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let t1 = Instant::now();
-    let population = doit(&fish, 256);
-    let t2 = Instant::now();
-    println!("Part 2: {} {:?}", population, t2 - t1);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn load(input: &str) -> Vec<i32> {
-    // A vector of number of fish at a given age where the index
-    // is the age and value is the count.
-    input.split(',').fold(vec![0i32;6], |mut v, s| {
-        v[s.parse::<usize>().unwrap()] += 1;
-        v
-    })
-}
+fn part_one(input: &str, days: usize) -> u64
+{
+    // Create a vector of the number of fish at each age.
+    let fish = input.split(',')
+        .flat_map(|s| s.parse::<usize>())
+        .fold([0;9], |mut v, i| { v[i] += 1; v });
 
-fn doit(fish: &[i32], days: usize) -> i64 {
-    use num::range_step_inclusive as range;
-
-    // Build a vector of total population value given a fish being
-    // "born" on a given day. We do this by walking backwards and
-    // building up previous totals from existing starting with any
-    // fish born in the last nine days. For those we know the total
-    // population is 1 since they don't have time to reproduce.
-    let population = (2..=days-9).rev()
-        .fold(vec![1i64; days+1], |mut v, n| {
-            v[n] = range(n + 9, days, 7).fold(1,
-                |acc, d| acc + v[d]
-            );
+    // Rotating the vector to the left one, moves the internal
+    // timer of each set of fish. The fish at position 8 are
+    // all the new fish spawned from the fish at time 0. Those
+    // fish then go to time 6.
+    (0..days)
+        .fold(fish, |mut v, _| {
+            v.rotate_left(1);
+            v[6] += v[8];
             v
-        });
-
-    // Build a vector of total population for a fish having a given
-    // age in the initial population. Build using the values from the
-    // "born on" vector for each day an initial fish will reproduce.
-    let fish_growth = (1..=5)
-        .fold(vec![0i64;6], |mut v, n| {
-            v[n] = range(n + 1, days, 7).fold(1,
-                |acc, d| acc + population[d]
-            );
-            v
-        });
-
-    // The final population is the sum of all the fish created from
-    // each initial fish. We only need to know how many of each age
-    // were in the initial population. The index is the age of the
-    // fish and the value is the number of fish that age.
-    fish.iter().enumerate()
-        .map(|(i, &n)| n as i64 * fish_growth[i])
+        })
+        .iter()
         .sum()
+}
+
+fn part_two(input: &str) -> u64
+{
+    part_one(input, 256)
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
 
     #[test]
-    fn it_works() {
-        let fish = load(&fs::read_to_string("./input.txt").unwrap());
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input, 80), 350917);
+    }
 
-        let population = doit(&fish, 80);
-        assert_eq!(population, 350917);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1592918715629);
+    }
 
-        let population = doit(&fish, 256);
-        assert_eq!(population, 1592918715629);
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input, 18), 26);
+        assert_eq!(part_one(input, 80), 5934);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 26984457539);
     }
 }

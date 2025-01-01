@@ -1,69 +1,91 @@
-
-fn main() {
-    use std::fs;
+fn main()
+{
     use std::time::Instant;
 
-    let lines = load(&fs::read_to_string("./input.txt").unwrap());
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let power = part_one(&lines);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", power, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input, 0xFFF);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let t1 = Instant::now();
-    let life_support = part_two(&lines);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", life_support, t2 - t1);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn load(input: &str) -> Vec<u32> {
-    input.lines()
-        .map(|s| u32::from_str_radix(s, 2).unwrap())
-        .collect()
-}
-
-fn part_one(nums: &[u32]) -> u32 {
-    let counts = get_counts(nums);
-    let gamma = counts.iter()
-        .fold(0, |result, &v| (result << 1) ^ ((v > 0) as u32));
-
-    // Flip the bits and only use the lower 12
-    let epsilon = !gamma & 0x00000FFF;
-
+fn part_one(input: &str, mask: u32) -> u32
+{
+    let gamma = input.lines()
+        .fold([0;12], |mut arr, s| {
+            s.chars()
+                .rev()
+                .enumerate()
+                .for_each(|(i, c)| arr[i] += if c == '1' { 1 } else { -1 });
+            arr
+        })
+        .iter()
+        .enumerate()
+        .filter(|(_, &n)| n > 0)
+        .fold(0, |acc, (i, _)| acc | (1 << i));
+    let epsilon = !gamma & mask;
+    
     gamma * epsilon
 }
 
-fn part_two(nums: &[u32]) -> u32 {
-    let mut i = 11;
-    let mut oxygen = nums.to_vec();
-    while oxygen.len() > 1 {
-        let b_cnt = get_counts(&oxygen);
-        let mcb = (b_cnt[11 - i] >= 0) as u32;
-        oxygen = oxygen.iter().cloned().filter(|&n| (n >> i) & 1 == mcb).collect();
-        i = i.wrapping_sub(1);
-    }
+fn part_two(input: &str) -> u32
+{
+    let nums = input.lines()
+        .map(|s| s.as_bytes())
+        .collect::<Vec<_>>();
 
-    i = 11;
-    let mut co2 = nums.to_vec();
-    while co2.len() > 1 {
-        let b_cnt = get_counts(&co2);
-        let lcb = (b_cnt[11 - i] < 0) as u32;
-        co2 = co2.iter().cloned().filter(|&n| (n >> i) & 1 == lcb).collect();
-        i -= 1;
-    }
-
-    oxygen[0] * co2[0]
+    gamma(&nums, 0) * epsilon(&nums, 0)
 }
 
-fn get_counts(nums: &[u32]) -> [i32;12] {
-    let mut counts: [i32;12] = [0;12];
-    nums.iter().for_each(|n|
-        (0..12).for_each(|i|
-            counts[11 - i] += if n & (1 << i) == 0 { -1 } else { 1 }
-        )
-    );
+fn gamma(nums: &[&[u8]], i: usize) -> u32
+{
+    if nums.len() == 1 {
+        to_num(nums[0])
+    } else {
+        let (ones, zeros) = nums.iter()
+            .fold((vec![], vec!{}), |(mut a, mut b), &v| {
+                if v[i] == b'1' { a.push(v) } else { b.push(v) };
+                (a, b)
+            });
 
-    counts
+        if ones.len() >= zeros.len() {
+            gamma(&ones, i + 1)
+        } else {
+            gamma(&zeros, i + 1)
+        }
+    }
+}
+
+fn epsilon(nums: &[&[u8]], i: usize) -> u32
+{
+    if nums.len() == 1 {
+        to_num(nums[0])
+    } else {
+        let (ones, zeros) = nums.iter()
+            .fold((vec![], vec!{}), |(mut a, mut b), &v| {
+                if v[i] == b'1' { a.push(v) } else { b.push(v) };
+                (a, b)
+            });
+
+        if zeros.len() <= ones.len() {
+            epsilon(&zeros, i + 1)
+        } else {
+            epsilon(&ones, i + 1)
+        }
+    }
+}
+
+fn to_num(bits: &[u8]) -> u32
+{
+    bits.iter()
+        .rev()
+        .enumerate()
+        .filter(|(_, &c)| c == b'1')
+        .fold(0, |n, (i, _)| n | (1 << i))
 }
 
 
@@ -72,13 +94,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let lines = load(include_str!("../input.txt"));
-
-        let power = part_one(&lines);
-        assert_eq!(power, 2583164);
-
-        let life_support = part_two(&lines);
-        assert_eq!(life_support, 2784375);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input, 0xFFF), 2583164);
     }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2784375);
+    }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input, 0x1F), 198);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 230);
+    }
+
 }

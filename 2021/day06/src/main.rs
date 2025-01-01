@@ -2,7 +2,7 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../example.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     let result = part_one(input, 80);
@@ -20,7 +20,7 @@ fn part_one(input: &str, days: usize) -> u64
         .flat_map(|s| s.parse::<usize>())
         .fold([0;9], |mut v, i| { v[i] += 1; v });
 
-    // Rotating the vector to the left one, moves the internal
+    // Rotating the vector to the left one moves the internal
     // timer of each set of fish. The fish at position 8 are
     // all the new fish spawned from the fish at time 0. Those
     // fish then go to time 6.

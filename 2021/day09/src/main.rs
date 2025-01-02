@@ -1,91 +1,138 @@
-
-fn main() {
-    use std::fs;
+fn main()
+{
     use std::time::Instant;
-    
-    let input   = fs::read_to_string("./input.txt").unwrap();
-    let heights = load(&input);
 
-    let t1 = Instant::now();
-    let risk = part_one(&heights);
-    let t2 = Instant::now();
-    println!("Part 1: {risk} {:?}", t2 - t1);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let basins = part_two(&heights);
-    let t2 = Instant::now();
-    println!("Part 2: {basins} {:?}", t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn load(input: &str) -> Vec<u32> {
-    input.lines().flat_map(|l|
-        l.chars().map(|c| c.to_digit(10).unwrap()).collect::<Vec<_>>()
-    ).collect()
-}
-
-fn part_one(heights: &[u32]) -> u32 {
-    heights.iter().enumerate()
-        .filter(|&(i, _)| is_lowest(heights, i))
-        .map(|(_, n)| n+1)
+fn part_one(input: &str) -> u32
+{
+    let (ncols, tubes) = load(input);
+    tubes.iter()
+        .enumerate()
+        .filter(|&(i, h)| heights(i, &tubes, ncols).iter().all(|n| h < n))
+        .map(|(_, h)| *h as u32 + 1)
         .sum()
 }
 
-fn part_two(heights: &[u32]) -> u32 {
-    let mut basins = (0..heights.len())
-        .filter(|i| is_lowest(heights, *i))
-        .map(|i| basin_size(heights, i))
-        .collect::<Vec<u32>>();
-    basins.sort_by(|a, b| b.cmp(a));
+fn part_two(input: &str) -> usize
+{
+    use std::collections::{HashSet, VecDeque};
 
+    let (ncols, tubes) = load(input);
+    let pts = tubes.iter()
+        .enumerate()
+        .filter(|&(i, h)| heights(i, &tubes, ncols).iter().all(|n| h < n))
+        .map(|(i, _)| i)
+        .collect::<Vec<_>>();
+
+    let mut basins = pts.iter()
+        .fold(vec![], |mut v, i| {
+            let mut q = VecDeque::from([(*i, tubes[*i])]);
+            let mut basin = HashSet::new();
+
+            while let Some((p, h)) = q.pop_front() {
+                if basin.insert(p) {
+                    neighbors(p, &tubes, ncols).iter()
+                        .filter(|(_, h1)| *h1 < 9 && *h1 > h )
+                        .for_each(|(p1, h1)| q.push_back((*p1, *h1)))
+                }
+            }
+            v.push(basin.len());
+            v
+        });
+
+    basins.sort_by(|a, b| b.cmp(a));
     basins.iter().take(3).product()
 }
 
-fn is_lowest(heights: &[u32], pos: usize) -> bool {
-    let value = heights[pos];
-    neighbors(heights, pos).iter().all(|(_, n)| *n > value)
+fn heights(pos: usize, tubes: &[u8], ncols: usize) -> [u8;4]
+{
+    let (pos, ncols) = (pos as i32, ncols as i32);
+    let (row, col)   = (pos / ncols, pos % ncols);
+    let rows = 0..tubes.len() as i32 / ncols;
+    let cols = 0..ncols;
+
+    let mut hts = [u8::MAX;4];
+    [(-1, 0), (0, -1), (0, 1), (1, 0)].iter()
+        .enumerate()
+        .map(|(i, (dr, dc))| (i, (row + dr, col + dc)))
+        .filter(|(_, (r, c))| rows.contains(r) && cols.contains(c))
+        .map(|(i, (r, c))| (i, r * ncols + c))
+        .for_each(|(i, p)| hts[i] = tubes[p as usize]);
+
+    hts
 }
 
-fn neighbors(heights: &[u32], pos: usize) -> [(usize, u32);4] {
-    const XDIM: usize = 100;
+fn neighbors(pos: usize, tubes: &[u8], ncols: usize) -> Vec<(usize, u8)>
+{
+    let (pos, ncols) = (pos as i32, ncols as i32);
+    let (row, col)   = (pos / ncols, pos % ncols);
+    let rows = 0..tubes.len() as i32 / ncols;
+    let cols = 0..ncols;
 
-    let above = if pos < XDIM { (usize::MAX, 9) } else { (pos - XDIM, heights[pos - XDIM]) };
-    let below = if pos > heights.len() - XDIM - 1 { (usize::MAX, 9) } else { (pos + XDIM, heights[pos + XDIM]) };
-    let left  = if pos % XDIM == 0 { (usize::MAX, 9) } else { (pos - 1, heights[pos - 1]) };
-    let right = if (pos + 1) % XDIM == 0 { (usize::MAX, 9) } else { (pos + 1, heights[pos + 1]) };
-
-    [above, below, left, right]
+    [(-1, 0), (0, -1), (0, 1), (1, 0)].iter()
+        .map(|(dr, dc)| (row + dr, col + dc))
+        .filter(|(r, c)| rows.contains(r) && cols.contains(c))
+        .map(|(r, c)| (r * ncols + c) as usize)
+        .map(|p| (p, tubes[p]))
+        .collect()
 }
 
-fn basin_size(heights: &[u32], pos: usize) -> u32 {
-    use std::collections::{HashSet, VecDeque};
+fn load(input: &str) -> (usize, Vec<u8>)
+{
+    let mut ncols = 0;
+    let hts = input.lines()
+        .map(|line| line.as_bytes())
+        .map(|bytes| bytes.iter().map(|c| c - b'0'))
+        .fold(vec![], |mut v, b| {
+            ncols = b.len();
+            v.extend(b);
+            v
+        });
 
-    let mut q = VecDeque::from([pos]);
-    let mut visited = HashSet::new();
-    while let Some(p) = q.pop_front() {
-        visited.insert(p);
-        neighbors(heights, p).iter()
-            .filter(|(i, n)| *n < 9 && !visited.contains(i))
-            .for_each(|(i, _)| q.push_back(*i));
-    }
-
-    visited.len() as u32
+    (ncols, hts)
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
 
     #[test]
-    fn it_works() {
-        let input   = fs::read_to_string("./input.txt").unwrap();
-        let heights = load(&input);
-
-        let risk = part_one(&heights);
-        assert_eq!(risk, 633);
-
-        let basins = part_two(&heights);
-        assert_eq!(basins, 1050192);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 633);
     }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1050192);
+    }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 15);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 1134);
+    }
+
 }

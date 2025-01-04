@@ -1,134 +1,135 @@
-fn main() {
-    use std::{fs, time::Instant};
+fn main()
+{
+    use std::time::Instant;
 
-    let input = fs::read_to_string("./input.txt").unwrap();
-    let program = load(&input);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let reg = part_one(&program);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", reg, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let t1 = Instant::now();
-    let reg = part_two(&program);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", reg, t2 - t1);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
+}
+
+fn part_one(input: &str) -> i32
+{
+    let program = load(input);
+
+    let mut ip  = 0;
+    let mut reg = [0;4];
+    while ip < program.len() {
+        ip = program[ip].exec(ip, &mut reg)
+    }
+
+    reg[0]
+}
+
+fn part_two(input: &str) -> i32
+{
+    
+    let program = load(input);
+
+    let mut ip  = 0;
+    let mut reg = [0, 0, 1, 0];
+    while ip < program.len() {
+        ip = program[ip].exec(ip, &mut reg)
+    }
+
+    reg[0]
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug)]
 enum Cmd {
-    cpy(i32, usize, bool),
+    cpn(usize, i32),
+    cpr(usize, usize),
     inc(usize),
     dec(usize),
-    jnz(i32, i32, bool),
+    jnz(usize, i32),
+    jmp(i32),
 }
 
 impl Cmd {
-    fn exec(&self, ip: usize, reg: &mut [i32;4]) -> usize {
+    fn exec(&self, ip: usize, reg: &mut [i32;4]) -> usize
+    {
         use Cmd::*;
-
-        match self {
-            inc(r) => { reg[*r] += 1; ip+1 },
-            dec(r) => { reg[*r] -= 1; ip+1 },
-            jnz(r, n, direct) => {
-                let x = if *direct { *r } else { reg[*r as usize] };
-                if x != 0 { (ip as i32 + n) as usize } else { ip+1 }
-            },
-            cpy(n, r, direct) => {
-                if *direct {
-                    reg[*r] = *n
-                } else {
-                    reg[*r] = reg[*n as usize]
-                }
-                ip+1
-            },
-        }
+        (ip as i32 + match self {
+            cpn(r, n) => { reg[*r] = *n; 1 },
+            cpr(a, b) => { reg[*b] = reg[*a]; 1 },
+            inc(r)    => { reg[*r] += 1; 1 },
+            dec(r)    => { reg[*r] -= 1; 1 },
+            jnz(r, n) => if reg[*r] != 0 { *n } else { 1 },
+            jmp(n)    => *n
+        }) as usize
     }
 }
 
-
-fn load(input: &str) -> Vec<Cmd> {
+fn load(input: &str) -> Vec<Cmd>
+{
     use Cmd::*;
 
-    input.lines().map(|s| {
-        let mut it = s.split(' ');
-        let cmd = it.next().unwrap();
-        let reg = it.next().unwrap();
-        match cmd {
-            "cpy" => {
-                let y = it.next().unwrap().chars().next().unwrap();
-                let r = (y as u8 - b'a') as usize;
-                if let Ok(x) = reg.parse::<i32>() {
-                    cpy(x, r, true)
-                } else {
-                    let x = reg.chars().next().unwrap();
-                    cpy(x as i32 - 'a' as i32, r, false)
-                }
-            },
-            "inc" => {
-                let x = reg.chars().next().unwrap();
-                let r = (x as u8 - b'a') as usize;
-                inc(r)
-            },
-            "dec" => {
-                let x = reg.chars().next().unwrap();
-                let r = (x as u8 - b'a') as usize;
-                dec(r)
-            },
-            "jnz" => {
-                let y = it.next().unwrap().parse::<i32>().unwrap();
-                if let Ok(x) = reg.parse::<i32>() {
-                    jnz(x, y, true)
-                } else {
-                    let x = reg.chars().next().unwrap();
-                    jnz(x as i32 - 'a' as i32, y, false)
-                }
+    input.lines()
+        .map(|line| {
+            let mut it = line.split(' ');
+            match it.next() {
+                Some("cpy") => {
+                    let a = it.next().unwrap();
+                    let b = it.next().map(|s| s.as_bytes()[0] - b'a').unwrap();
+                    if let Ok(n) = a.parse::<i32>() {
+                        cpn(b as usize, n)
+                    } else {
+                        let a = (a.as_bytes()[0] - b'a') as usize;
+                        cpr(a, b as usize)
+                    }
+                },
+                Some("inc") => {
+                    let r = it.next().map(|s| s.as_bytes()[0] - b'a').unwrap();
+                    inc(r as usize)
+                },
+                Some("dec") => {
+                    let r = it.next().map(|s| s.as_bytes()[0] - b'a').unwrap();
+                    dec(r as usize)
+                },
+                Some("jnz") => {
+                    let a = it.next().unwrap();
+                    let b = it.next().and_then(|s| s.parse::<i32>().ok());
+                    if a.parse::<i32>().is_ok() {
+                        jmp(b.unwrap())
+                    } else {
+                        let a = (a.as_bytes()[0] - b'a') as usize;
+                        jnz(a, b.unwrap())
+                    }
+                },
+                _ => unreachable!()
             }
-            _ => panic!("Unknown command: {cmd}")
-        }
-        
-    })
-    .collect()
-}
-
-fn part_one(program: &[Cmd]) -> i32 {
-    let mut ip  = 0;
-    let mut reg = [0i32;4];
-
-    while ip < program.len() {
-        ip = program[ip].exec(ip, &mut reg);
-    }
-
-    reg[0]
-}
-
-fn part_two(program: &[Cmd]) -> i32 {
-    let mut ip  = 0;
-    let mut reg = [0, 0, 1, 0];
-
-    while ip < program.len() {
-        ip = program[ip].exec(ip, &mut reg);
-    }
-
-    reg[0]
+        })
+        .collect()
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
 
     #[test]
-    fn it_works() {
-        let input = fs::read_to_string("./input.txt").unwrap();
-        let program = load(&input);
-    
-        let reg = part_one(&program);
-        assert_eq!(reg, 318083);
-    
-        let reg = part_two(&program);
-        assert_eq!(reg, 9227737);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 318083);
+    }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 9227737);
+    }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 42);
     }
 }

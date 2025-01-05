@@ -1,28 +1,29 @@
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let t1 = Instant::now();
-    let index = part_one("ihaygndm");
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", index, t2 - t1);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let index = part_two("ihaygndm");
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", index, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(salt: &str) -> usize {
-    get_keys(salt, 1)
+fn part_one(input: &str) -> usize {
+    get_keys(input, 1)
 }
 
-fn part_two(salt: &str) -> usize {
-    get_keys(salt, 2017)
+fn part_two(input: &str) -> usize {
+    get_keys(input, 2017)
 }
 
 fn get_keys(salt: &str, n: i32) -> usize {
-    let mut keys = Vec::new();
-    let mut candidates: Vec<(char, usize)> = vec![];
+    let mut keys = vec![];
+    let mut candidates = vec![];
 
     let mut index = 0;
     while keys.len() < 64 {
@@ -30,13 +31,10 @@ fn get_keys(salt: &str, n: i32) -> usize {
         let hash = mash(key.clone(), n);
 
         if let Some(c1) = check5(&hash) {
-            candidates.iter().for_each(|(c2, ix)|
-                if (index - ix) <= 1000 && c1 == *c2 {
-                    keys.push(*ix);
-                }
-            );
+            candidates.iter()
+                .filter(|(c2, ix)| (index - ix) <= 1000 && c1 == *c2)
+                .for_each(|(_, ix)| keys.push(*ix));
         }
-
         if let Some(c) = check3(&hash) {
             candidates.push((c, index));
         }
@@ -86,20 +84,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let index = part_one("ihaygndm");
-        assert_eq!(index, 15035);
-
-        let index = part_two("ihaygndm");
-        assert_eq!(index, 19968);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 15035);
     }
 
     #[test]
-    fn samples() {
-        let index = part_one("abc");
-        assert_eq!(index, 22728);
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 19968);
+    }
 
-        let index = part_two("abc");
-        assert_eq!(index, 22551);
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 22728);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 22551);
     }
 }

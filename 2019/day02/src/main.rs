@@ -1,99 +1,90 @@
-use itertools::Itertools;
+fn main()
+{
+    use std::time::Instant;
 
-fn main() {
-    let program = include_str!("./program.txt")
-      .split(',')
-      .map(|s| s.parse::<usize>())
-      .map(Result::unwrap)
-      .collect::<Vec<_>>();
+    let input = include_str!("../input.txt");
 
-    let (_, n, v) = (0..=99).permutations(2)
-      .map(|v| {
-        let noun = v[0];
-        let verb = v[1];
-        let result = exec(&program, noun, verb);
-        (result[0], noun, verb)
-      }
-    ).find(|&r| r.0 == 19690720).unwrap();
+    let t = Instant::now();
+    let result = part_one(input, true);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let result = exec(&program, n, v);
-    println!("{}", result[0]);
-
-    println!("Result: {}", n * 100 + v);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn exec(program: &[usize], noun: usize, verb: usize) -> Vec<usize> {
-    let mut p = program.to_owned();
-    p[1] = noun;
-    p[2] = verb;
-
-    let mut ip = 0;
-    while ip < p.len() {
-        match p[ip] {
-            1 => {
-                let pos = p[ip + 1];
-                let a   = p[pos];
-                let pos = p[ip + 2];
-                let b   = p[pos];
-                let pos = p[ip + 3];
-                p[pos] = a + b;
-            },
-            2  => {
-                let pos = p[ip + 1];
-                let a   = p[pos];
-                let pos = p[ip + 2];
-                let b   = p[pos];
-                let pos = p[ip + 3];
-                p[pos] = a * b;
-            },
-            99 => break,
-            _  => panic!("Unknown opcode encountered: {}", p[ip]), 
-        }
-
-        ip += 4;
+fn part_one(input: &str, alarm: bool) -> usize
+{
+    let mut program = input.split(',')
+        .flat_map(|s| s.parse::<usize>())
+        .collect::<Vec<_>>();
+    if alarm {
+        program[1] = 12;
+        program[2] = 2;
     }
 
-    p
+    execute(&mut program)
+}
+
+fn part_two(input: &str) -> usize
+{
+    let program = input.split(',')
+        .flat_map(|s| s.parse::<usize>())
+        .collect::<Vec<_>>();
+
+    for noun in 0..100 {
+        for verb in 0..100 {
+            let mut p = program.clone();
+            p[1] = noun;
+            p[2] = verb;
+            if execute(&mut p) == 19690720 {
+                return 100 * noun + verb
+            }
+        }
+    }
+
+    0
+}
+
+fn execute(program: &mut [usize]) -> usize
+{
+    for i in (0..program.len()).step_by(4) {
+        if program[i] == 99 { break; }
+        let (a, b, c) = (program[i+1], program[i+2], program[i+3]);
+        program[c] = match program[i] {
+            1 => program[a] + program[b],
+            2 => program[a] * program[b],
+            _ => unreachable!()
+        }
+    }
+
+    program[0]
 }
 
 
-/** Unit Tests */
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn it_works1() {
-        let program = vec![1,9,10,3,2,3,11,0,99,30,40,50];
-        let result  = exec(&program, 9, 10);
-        assert_eq!(result, vec![3500,9,10,70,2,3,11,0,99,30,40,50]);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input, true), 3850704);
     }
 
     #[test]
-    fn it_works2() {
-        let program = vec![1,0,0,0,99];
-        let result  = exec(&program, 0, 0);
-        assert_eq!(result, vec![2,0,0,0,99]);
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 6718);
     }
 
     #[test]
-    fn it_works3() {
-        let program = vec![2,3,0,3,99];
-        let result  = exec(&program, 3, 0);
-        assert_eq!(result, vec![2,3,0,6,99]);
-    }
-
-    #[test]
-    fn it_works4() {
-        let program = vec![2,4,4,5,99,0];
-        let result  = exec(&program, 4, 4);
-        assert_eq!(result, vec![2,4,4,5,99,9801]);
-    }
-
-    #[test]
-    fn it_works5() {
-        let program = vec![1,1,1,4,99,5,6,0,99];
-        let result  = exec(&program, 1, 1);
-        assert_eq!(result, vec![30,1,1,4,2,5,6,0,99]);
+    fn example_part_one()
+    {
+        assert_eq!(part_one("1,0,0,0,99", false), 2);
+        assert_eq!(part_one("1,1,1,4,99,5,6,0,99", false), 30);
+        assert_eq!(part_one("1,9,10,3,2,3,11,0,99,30,40,50", false), 3500);
     }
 }

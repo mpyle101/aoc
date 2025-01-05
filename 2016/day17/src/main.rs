@@ -8,11 +8,15 @@ fn main()
 {
     use std::time::Instant;
 
-    let t = Instant::now();
-    println!("Part 1: {} ({:?})", part_one("veumntbg"), t.elapsed());
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    println!("Part 2: {} ({:?})", part_two("veumntbg"), t.elapsed());
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 type State = ((i8, i8), Vec<u8>);
@@ -127,12 +131,14 @@ mod tests {
     #[test]
     fn input_part_one()
     {
-        assert_eq!(part_one("veumntbg"), "DDRRULRDRD");
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), "DDRRULRDRD");
     }
 
     #[test]
     fn input_part_two()
     {
-        assert_eq!(part_two("veumntbg"), 536);
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 536);
     }
 }

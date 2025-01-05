@@ -28,14 +28,14 @@ fn get_keys(salt: &str, n: i32) -> usize {
     let mut index = 0;
     while keys.len() < 64 {
         let key  = format!("{salt}{index}");
-        let hash = mash(key.clone(), n);
+        let hash = mash(key, n);
 
-        if let Some(c1) = check5(&hash) {
+        if let Some(c1) = check_hash(&hash, 5) {
             candidates.iter()
                 .filter(|(c2, ix)| (index - ix) <= 1000 && c1 == *c2)
                 .for_each(|(_, ix)| keys.push(*ix));
         }
-        if let Some(c) = check3(&hash) {
+        if let Some(c) = check_hash(&hash, 3) {
             candidates.push((c, index));
         }
 
@@ -54,24 +54,10 @@ fn mash(key: String, n: i32) -> Vec<char> {
     result.chars().collect::<Vec<char>>()
 }
 
-fn check3(hash: &[char]) -> Option<char> {
-    for i in 0..hash.len() - 2 {
-        if hash[i] == hash[i+1] &&
-           hash[i] == hash[i+2] {
-            return Some(hash[i])
-        }
-    }
-
-    None
-}
-
-fn check5(hash: &[char]) -> Option<char> {
-    for i in 0..hash.len() - 4 {
-        if hash[i] == hash[i+1] &&
-           hash[i] == hash[i+2] && 
-           hash[i] == hash[i+3] && 
-           hash[i] == hash[i+4] {
-            return Some(hash[i])
+fn check_hash(hash: &[char], i: usize) -> Option<char> {
+    for w in hash.windows(i) {
+        if w[1..].iter().all(|n| *n == w[0]) {
+            return Some(w[0])
         }
     }
 

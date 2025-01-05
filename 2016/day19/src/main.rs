@@ -1,19 +1,21 @@
-
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let t1 = Instant::now();
-    let elf = part_one(3012210);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", elf, t2 - t1);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let elf = part_two(3012210);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", elf, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(mut elves: i32) -> i32 {
+fn part_one(input: &str) -> i32
+{
+    let mut elves = input.parse::<i32>().unwrap();
     let mut elf = 1;
 
     elves /= 2;
@@ -29,7 +31,9 @@ fn part_one(mut elves: i32) -> i32 {
     elf
 }
 
-fn part_two(elves: usize) -> usize {
+fn part_two(input: &str) -> usize {
+    let elves = input.parse::<usize>().unwrap();
+
     // Needed to look for the pattern for the first 100 inputs or so.
     let mut elf = 1;
 
@@ -46,11 +50,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let elf = part_one(3012210);
-        assert_eq!(elf, 1830117);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1830117);
+    }
 
-        let elf = part_two(3012210);
-        assert_eq!(elf, 1417887);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1417887);
     }
 }

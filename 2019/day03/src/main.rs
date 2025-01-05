@@ -1,204 +1,121 @@
-// For each wire, create an in-order vector of all the points it
-// runs through following the direction instructions. Also, for
-// each wire, generate a hashset from of the points to remove
-// crossovers and have a set object.
-// Get the intersection of the sets to find where the wires cross.
-// Use the vectors to find the number of steps to the intersection
-// points and take the smallest.
+fn main()
+{
+    use std::time::Instant;
 
-use anyhow::{bail, Result};
-use std::collections::HashSet;
+    let input = include_str!("../input.txt");
 
-fn main() {
-    let mut wires = include_str!("./wires.txt").lines();
-    let a = parse_path(wires.next().unwrap());
-    let b = parse_path(wires.next().unwrap());
-    let (path_a, pts_a) = calc_steps(&a);
-    let (path_b, pts_b) = calc_steps(&b);
-    let vec_x = find_x_steps(&path_a, &pts_a, &path_b, &pts_b);
-    let min_x = vec_x.iter().min();
-    
-    println!("{min_x:#?}");
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-#[derive(Debug, PartialEq)]
-enum Path {
-    Up(i32),
-    Down(i32),
-    Left(i32),
-    Right(i32),
+fn part_one(input: &str) -> u32
+{
+    use std::iter::FromIterator;
+    use std::collections::HashSet;
+    type Path = HashSet<(i32, i32)>;
+
+    let (s1, s2) = input.split_once('\n').unwrap();
+    let a = Path::from_iter(generate_path(s1));
+    let b = Path::from_iter(generate_path(s2));
+
+    (&a & &b).iter()
+        .map(|p| md(*p, (0, 0)))
+        .min()
+        .unwrap()
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Point {
-    x: i32,
-    y: i32
+fn part_two(input: &str) -> usize
+{
+    use std::iter::FromIterator;
+    use std::collections::HashSet;
+    type Path = HashSet<(i32, i32)>;
+
+    let (s1, s2) = input.split_once('\n').unwrap();
+    let w1 = generate_path(s1);
+    let w2 = generate_path(s2);
+    let a = Path::from_iter(w1.clone());
+    let b = Path::from_iter(w2.clone());
+
+    (&a & &b).iter()
+        .flat_map(|p| w1.iter().position(|p1| p1 == p).map(|i| (p, i + 1)))
+        .flat_map(|(p, i)| w2.iter().position(|p1| p1 == p).map(|j| i + j + 1))
+        .min()
+        .unwrap()
 }
 
-fn parse_path(path: &str) -> Vec<Path> {
-    path.split(',').map(to_path).map(Result::unwrap).collect()
+fn md((x1, y1): (i32, i32), (x2, y2): (i32, i32)) -> u32
+{
+    x2.abs_diff(x1) + y2.abs_diff(y1)
 }
 
-fn calc_steps(path: &[Path]) -> (Vec<Point>, HashSet<Point>) {
-    let mut start = Point { x: 0, y: 0 };
-    let steps: Vec<Point> = path.iter().flat_map(|p| calc_points(&mut start, p)).collect();
-    let points: HashSet<Point> = steps.clone().into_iter().collect();
-
-    (steps, points)
-}
-
-fn find_x_steps(
-    path_a: &[Point],
-    pts_a: &HashSet<Point>,
-    path_b: &[Point],
-    pts_b: &HashSet<Point>
-) -> Vec<usize> {
-    pts_a.intersection(pts_b)
-        .map(|pt| {
-        let steps_a = path_a.iter().position(|&a| a == *pt).unwrap();
-        let steps_b = path_b.iter().position(|&b| b == *pt).unwrap();
-            
-        // Account for step from central port
-        steps_a + steps_b + 2
+fn generate_path(wire: &str) -> Vec<(i32, i32)>
+{
+    let mut path = vec![];
+    wire.split(',')
+        .map(|s| {
+            let (dx, dy) = match s.chars().next() {
+                Some('R') => ( 1,  0),
+                Some('L') => (-1,  0),
+                Some('U') => ( 0, -1),
+                Some('D') => ( 0,  1),
+                _ => unreachable!()
+            };
+            let n = s[1..].parse::<i32>().unwrap();
+            (dx, dy, n)
         })
-        .collect()
-}
+        .fold((0, 0), |(mut x, mut y), (dx, dy, n)| {
+            (0..n).for_each(|_| {
+                x += dx; y += dy;
+                path.push((x, y));
+            });
+            (x, y)
+        });
 
-fn to_path(s: &str) -> Result<Path> {
-    let dir = s.chars().next();
-    if dir.is_none() {
-        bail!("Path is empty")
-    }
-    let len = s[1..].parse::<i32>()?;
-
-    let path = match dir {
-        Some('U') => Path::Up(len),
-        Some('D') => Path::Down(len),
-        Some('L') => Path::Left(len),
-        Some('R') => Path::Right(len),
-        Some(_)   => bail!("Invalid path direction: {}", s),
-        None      => bail!("Path direction not found")
-    };
-
-    Ok(path)
-}
-
-fn calc_points(start: &mut Point, path: &Path) -> Vec<Point> {
-    let points: Vec<_> = match path {
-        Path::Up(len)    => (start.y + 1..=start.y + len).map(|y| Point { x:start.x, y }).collect(),
-        Path::Down(len)  => (start.y - len..=start.y - 1).map(|y| Point { x:start.x, y }).rev().collect(),
-        Path::Left(len)  => (start.x - len..=start.x - 1).map(|x| Point { x, y:start.y }).rev().collect(),
-        Path::Right(len) => (start.x + 1..=start.x + len).map(|x| Point { x, y:start.y }).collect(),
-    };
-
-    *start = *points.last().unwrap();
-    points
+    path
 }
 
 
-/** Unit Tests */
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        assert_eq!(to_path("U5").unwrap(), Path::Up(5));
-        assert_eq!(to_path("D243").unwrap(), Path::Down(243));
-        assert_eq!(to_path("R1009").unwrap(), Path::Right(1009));
-        assert_eq!(to_path("L37").unwrap(), Path::Left(37));
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 386);
     }
 
     #[test]
-    fn unknown_direction() {
-        assert!(to_path("G5").is_err());
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 6484);
     }
 
     #[test]
-    fn empty_path() {
-        assert!(to_path("").is_err());
+    fn example_part_one()
+    {
+        let input = include_str!("../example1.txt");
+        assert_eq!(part_one(input), 159);
+
+        let input = include_str!("../example2.txt");
+        assert_eq!(part_one(input), 135);
     }
 
     #[test]
-    fn bad_length() {
-        assert!(to_path("U5x4").is_err());
+    fn example_part_two()
+    {
+        let input = include_str!("../example1.txt");
+        assert_eq!(part_two(input), 610);
+
+        let input = include_str!("../example2.txt");
+        assert_eq!(part_two(input), 410);
     }
 
-    #[test]
-    fn path_points_up() {
-        let mut start = Point { x: 0, y: 0 };
-        let path = to_path("U3").unwrap();
-        let pts  = calc_points(&mut start, &path);
-        let points = vec![Point { x: 0, y: 1 }, Point { x: 0, y: 2 }, Point { x: 0, y: 3 }];
-
-        assert_eq!(pts, points);
-    }
-
-    #[test]
-    fn path_points_down() {
-        let mut start = Point { x: 0, y: 0 };
-        let path = to_path("D3").unwrap();
-        let pts  = calc_points(&mut start, &path);
-        let points = vec![Point { x: 0, y: -1 }, Point { x: 0, y: -2 }, Point { x: 0, y: -3 }];
-
-        assert_eq!(pts, points);
-    }
-
-    #[test]
-    fn path_points_left() {
-        let mut start = Point { x: 0, y: 0 };
-        let path = to_path("L3").unwrap();
-        let pts  = calc_points(&mut start, &path);
-        let points = vec![Point { x: -1, y: 0 }, Point { x: -2, y: 0 }, Point { x: -3, y: 0 }];
-
-        assert_eq!(pts, points);
-    }
-
-    #[test]
-    fn path_points_right() {
-        let mut start = Point { x: 0, y: 0 };
-        let path = to_path("R3").unwrap();
-        let pts  = calc_points(&mut start, &path);
-        let points = vec![Point { x: 1, y: 0 }, Point { x: 2, y: 0 }, Point { x: 3, y: 0 }];
-
-        assert_eq!(pts, points);
-    }
-
-    #[test]
-    fn path_points_all() {
-        let a = parse_path("U3,R3,D3,L3");
-        let (pts, _) = calc_steps(&a);
-        let points = vec![
-        Point { x: 0, y: 1 }, Point { x: 0, y: 2 }, Point { x: 0, y: 3 },
-        Point { x: 1, y: 3 }, Point { x: 2, y: 3 }, Point { x: 3, y: 3 },
-        Point { x: 3, y: 2 }, Point { x: 3, y: 1 }, Point { x: 3, y: 0 },
-        Point { x: 2, y: 0 }, Point { x: 1, y: 0 }, Point { x: 0, y: 0 }
-        ];
-
-        assert_eq!(pts, points);
-    }
-
-    #[test]
-    fn min_steps1() {
-        let a = parse_path("R75,D30,R83,U83,L12,D49,R71,U7,L72");
-        let b = parse_path("U62,R66,U55,R34,D71,R55,D58,R83");
-        let (path_a, pts_a) = calc_steps(&a);
-        let (path_b, pts_b) = calc_steps(&b);
-        let vec_x = find_x_steps(&path_a, &pts_a, &path_b, &pts_b);
-        let min_x = vec_x.iter().min();
-
-        assert_eq!(*min_x.unwrap(), 610_usize);
-    }
-
-    #[test]
-    fn min_steps2() {
-        let a = parse_path("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51");
-        let b = parse_path("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7");
-        let (path_a, pts_a) = calc_steps(&a);
-        let (path_b, pts_b) = calc_steps(&b);
-        let vec_x = find_x_steps(&path_a, &pts_a, &path_b, &pts_b);
-        let min_x = vec_x.iter().min();
-
-        assert_eq!(*min_x.unwrap(), 410_usize);
-    }
 }

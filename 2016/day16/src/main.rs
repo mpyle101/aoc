@@ -1,16 +1,24 @@
-
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let t1 = Instant::now();
-    let checksum = calc_checksum("01110110101001000", 272);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", checksum, t2 - t1);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let checksum = calc_checksum("01110110101001000", 35651584);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", checksum, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
+}
+
+fn part_one(input: &str) -> String {
+    calc_checksum(input, 272)
+}
+
+fn part_two(input: &str) -> String {
+    calc_checksum(input, 35651584)
 }
 
 fn calc_checksum(state: &str, len: usize) -> String {
@@ -40,11 +48,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let checksum = calc_checksum("01110110101001000", 272);
-        assert_eq!(checksum, "11100111011101111");
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), "11100111011101111");
+    }
 
-        let checksum = calc_checksum("01110110101001000", 35651584);
-        assert_eq!(checksum, "10001110010000110");
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), "10001110010000110");
     }
 }

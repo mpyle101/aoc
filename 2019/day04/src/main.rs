@@ -41,10 +41,10 @@ fn part_two(input: &str) -> usize
 
 fn digits(mut val: u32) -> [u32;6]
 {
-    let mut i = 5;
+    let mut i = 5i32;
     let mut arr = [0;6];
     while val > 0 {
-        arr[i] = val % 10;
+        arr[i as usize] = val % 10;
         val /= 10;
         i -= 1
     }

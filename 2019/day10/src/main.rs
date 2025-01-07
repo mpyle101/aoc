@@ -1,472 +1,160 @@
-// Create a list of x,y locations containing asteriods.
-// For each element in the list, create a "line" to every other asteriod.
-// Each line contains a reduced slope value (rise over run reduced by gcd)
-// and put them into a hash set. This gives us the number of asteroids
-// visible from each potential base since multiple lines with the same
-// slope mean multiple asteroids on the same line and only one would be
-// visible.
-// Use the line count for each site to compare them and take the one with
-// the most lines as the max. This is the answer to Part 1.
-// For part 2, create a queue of vectors with each vector containing all
-// asteroids with the same slope in vaporization order (distance from site).
-// Run through the queue popping vectors off the front, grabbing the first
-// element as the vaporized rock and adding the vector onto the back of the
-// queue if there are any more rocks in it. When the queue is finally empty,
-// you've vaporized all the asteriods in order.
+fn main()
+{
+    use std::time::Instant;
 
-use gcd::Gcd;
-use std::cmp::Ordering;
-use std::collections::{HashSet, VecDeque};
-use std::f64::consts::PI;
-use std::hash::{Hash, Hasher};
+    let input = include_str!("../input.txt");
 
-fn main() {
-    let coords = load(include_str!("./asteroids.txt"));
-    let site = process(&coords).unwrap();
-    println!("{site:?}");
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let mut lines = coords.iter()
-        .map(|dst| Line::new(&site.loc, dst))
-        .collect::<Vec<Line>>();
-    // sort by angle from x axis and then length
-    radsort::sort_by_key(&mut lines, |l| (l.angle, l.length));
-    lines.remove(0);
-
-    let target = vaporize(&lines)[200];
-    println!("{} {:#?}", target.dst.x * 100 + target.dst.y, target);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn load(program: &str) -> Vec<Coord> {
-    program.lines()
-        .enumerate()
-        .flat_map(|(y, s)| s.as_bytes().iter()
-            .enumerate()
-            .filter(|(_, &c)| c as char == '#')
-            .map(|(x, _)| Coord { x, y })
-            .collect::<Vec<_>>()
-        )
-        .collect::<Vec<Coord>>()
+fn part_one(input: &str) -> usize
+{
+    let asteroids = load(input);
+    let (_, count) = locate_station(&asteroids);
+    count
 }
 
-fn process(coords: &[Coord]) -> Option<Site> {
-    coords.iter().map(|src| {
-        let lines = coords.iter()
-            .map(|dst| Line::new(src, dst))
-            .fold(HashSet::new(), |mut lines, line| { lines.insert(line); lines });
-        // Minus 1 for same location
-        Site { loc: *src, lines: lines.len() - 1 }
-    }).max()
-}
+fn part_two(input: &str) -> i32
+{
+    use std::collections::HashMap;
+    use gcd::Gcd;
 
-fn vaporize(lines: &[Line]) -> Vec<Line> {
-    // So the indexes match the count
-    let mut vaporized = vec![Line {
-        src: Coord { x: 0, y: 0, },
-        dst: Coord { x: 0, y: 0,  },
-        slope: Slope { rise: 0, run: 0, },
-        angle: 0f64,
-        length: 0f64,
-    }];
+    type Targets = HashMap<(i32, i32), Vec<(i32, i32)>>;
 
-    let mut idx = 1;
-    let mut rocks = VecDeque::<Vec<Line>>::new();
-    while idx < lines.len() {
-        let mut v = Vec::<Line>::new();
-        let slope = lines[idx].slope;
-        while idx < lines.len() && lines[idx].slope == slope {
-            v.push(lines[idx]);
-            idx += 1;
+    let gcd = |a: i32, b: i32| (a.unsigned_abs()).gcd(b.unsigned_abs());
+
+    // Get the station location and the slope of all the other asteriods
+    // putting their locations in a map based on the reduced slope.
+    let asteroids = load(input);
+    let ((x1, y1), _) = locate_station(&asteroids);
+    let mut targets = asteroids.iter()
+        .filter(|(x2, y2)| *x2 != x1 || *y2 != y1)
+        .map(|(x2, y2)| (x2, y2, *y2 - y1, *x2 - x1))
+        .fold(Targets::new(), |mut m, (&x2, &y2, dy, dx)| {
+            let mut d = gcd(dy, dx) as i32;
+            if d == 0 { d = 1 }
+            m.entry((dy / d, dx / d)).or_default().push((x2, y2));
+            m
+        });
+
+    // Sort the slope vectors by manhattan distance so we can vaporize
+    // them in order. Sort the slope keys by angle. We need to flip the
+    // sign of the rise because the locations are positive y down but
+    // the angles are positive y up.
+    targets.iter_mut().for_each(|(_, v)| v.sort_by_key(|p| md((x1, y1), *p)) );
+    let mut keys = targets.keys().cloned().collect::<Vec<_>>();
+    keys.sort_by(|(dy1, dx1), (dy2, dx2)| {
+        let a = angle(*dx1 as f64, -*dy1 as f64);
+        let b = angle(*dx2 as f64, -*dy2 as f64);
+        a.partial_cmp(&b).unwrap()
+    });
+
+    // Cycle through the keys, vaporizing asteriods from the associated
+    // vectors until we've zapped 200.
+    let mut last = (0, 0);
+    let mut count = 0;
+    for (dy, dx) in keys.iter().cycle() {
+        if let Some(v) = targets.get_mut(&(*dy, *dx)) {
+            if !v.is_empty() {
+                last = v.remove(0);
+                count += 1;
+            }
+            if v.is_empty() {
+                targets.remove(&(*dy, *dx));
+            }
         }
-        rocks.push_back(v);
+        if count == 200 { break }
     }
 
-    while let Some(mut v) = rocks.pop_front() {
-        vaporized.push(v.remove(0));
-        if !v.is_empty() {
-            rocks.push_back(v);
-        }
-    }
-
-    vaporized
+    last.0 * 100 + last.1
 }
 
-fn angle(x: f64, y: f64) -> f64 {
-    let mut degrees = x.atan2(y) * 180f64 / PI;
-    if x < 0f64 { degrees += 360f64 }
-    degrees
+fn angle(x: f64, y: f64) -> f64
+{
+    use std::f64::consts::PI;
+
+    let degrees = x.atan2(y) * 180f64 / PI;
+    degrees + if x < 0f64 { 360f64 } else { 0f64}
 }
 
-#[derive(Debug)]
-struct Site {
-    pub loc: Coord,
-    lines: usize,
+fn md((x1, y1): (i32, i32), (x2, y2): (i32, i32)) -> u32
+{
+    x2.abs_diff(x1) + y2.abs_diff(y1)
 }
 
-impl Eq for Site {}
+fn locate_station(asteroids: &[(i32, i32)]) -> ((i32, i32), usize)
+{
+    use std::collections::HashSet;
+    use gcd::Gcd;
 
-impl PartialEq for Site {
-    fn eq(&self, other: &Self) -> bool {
-        self.lines.eq(&other.lines)
-    }
+    let gcd = |a: i32, b: i32| (a.unsigned_abs()).gcd(b.unsigned_abs());
+
+    asteroids.iter()
+        .map(|(x1, y1)| {
+            let count = asteroids.iter()
+                .filter(|(x2, y2)| x2 != x1 || y2 != y1)
+                .map(|(x2, y2)| (y2 - y1, x2 - x1))
+                .fold(HashSet::new(), |mut set, (dy, dx)| {
+                    let mut d = gcd(dy, dx) as i32;
+                    if d == 0 { d = 1 }
+                    set.insert((dy / d, dx / d));
+                    set
+                })
+                .len();
+            ((*x1, *y1), count)
+        })
+        .max_by(|(_, a), (_, b)| a.cmp(b) )
+        .unwrap()
 }
 
-impl PartialOrd for Site {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.lines.cmp(&other.lines))
-    }
+fn load(input: &str) -> Vec<(i32, i32)>
+{
+    input.lines()
+        .zip(0..)
+        .flat_map(|(line, y)| {
+            line.chars()
+                .zip(0..)
+                .filter(|(c, _)| *c == '#')
+                .map(move |(_, x)| (x, y))
+        })
+        .collect()
 }
-
-impl Ord for Site {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.lines.cmp(&other.lines)
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct Coord {
-    x: usize,
-    y: usize,
-}
-
-#[derive(Clone, Copy, Debug, Hash, PartialEq)]
-struct Slope {
-    rise: i8,
-    run: i8,
-}
-
-impl Slope {
-    pub fn new(rise: i8, run: i8) -> Self {
-        let p_run  = run.unsigned_abs();
-        let p_rise = rise.unsigned_abs();
-        let gcd = p_run.gcd(p_rise) as i8;
-
-        if gcd == 0 {
-            Slope { rise, run }
-        } else {
-            Slope { rise: rise / gcd, run: run / gcd }
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn from(src: &Coord, dst: &Coord) ->Self {
-        let run  = dst.x as i8 - src.x as i8;
-        let rise = dst.y as i8 - src.y as i8;
-        Slope::new(rise, run)
-    }
-}
-
-#[allow(dead_code)]
-#[derive(Clone, Copy, Debug)]
-struct Line {
-    src: Coord,
-    dst: Coord,
-    slope: Slope,
-    angle: f64,
-    length: f64,
-}
-
-impl Line {
-    pub fn new(src: &Coord, dst: &Coord) -> Self {
-        let run  = dst.x as i8 - src.x as i8;
-        let rise = src.y as i8 - dst.y as i8;
-        let angle = angle(run as f64, rise as f64);
-        let slope = Slope::new(rise, run);
-        let length = (run as f64).powi(2) + (rise as f64).powi(2);
-        let length = length.sqrt();
-
-        Line { src: *src, dst: *dst, slope, angle, length }
-    }
-}
-
-impl Eq for Line {}
-
-impl PartialEq for Line {
-    fn eq(&self, other: &Self) -> bool {
-        self.angle.eq(&other.angle)
-    }
-}
-
-impl Hash for Line {
-    fn hash<H: Hasher>(&self, hasher: &mut H) {
-        self.slope.hash(hasher);
-    }
-}
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let asteroids = load(include_str!("./asteroids.txt"));
-        let site = process(&asteroids);
-
-        let best = Site {
-        loc: Coord { x: 17, y: 22 },
-        lines: 288,
-        };
-
-        assert_eq!(site, Some(best));
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 288);
     }
 
     #[test]
-    fn it_works2() {
-        let coords = load(include_str!("./asteroids.txt"));
-        let site = process(&coords).unwrap();
-        let mut lines = coords.iter()
-        .map(|dst| Line::new(&site.loc, dst))
-        .collect::<Vec<Line>>();
-        // sort by angle from x axis and then length
-        radsort::sort_by_key(&mut lines, |l| (l.angle, l.length));
-        lines.remove(0);
-
-        let target = vaporize(&lines)[200];
-        let two_hundred = Coord { x: 6, y: 16 };
-
-        assert_eq!(target.dst, two_hundred);
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 616);
     }
 
     #[test]
-    fn small() {
-        let program = load(
-        ".#..#\n\
-        .....\n\
-        #####\n\
-        ....#\n\
-        ...##",
-        );
-        let site = process(&program);
-        let best = Site {
-        loc: Coord { x: 3, y: 4 },
-        lines: 8,
-        };
-
-        assert_eq!(site, Some(best));
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 210);
     }
 
     #[test]
-    fn medium1() {
-        let program = load(
-        "......#.#.\n\
-        #..#.#....\n\
-        ..#######.\n\
-        .#.#.###..\n\
-        .#..#.....\n\
-        ..#....#.#\n\
-        #..#....#.\n\
-        .##.#..###\n\
-        ##...#..#.\n\
-        .#....####",
-        );
-        let site = process(&program);
-        let best = Site {
-        loc: Coord { x: 5, y: 8 },
-        lines: 33,
-        };
-
-        assert_eq!(site, Some(best));
-    }
-
-    #[test]
-    fn medium2() {
-        let program = load(
-        "#.#...#.#.\n\
-        .###....#.\n\
-        .#....#...\n\
-        ##.#.#.#.#\n\
-        ....#.#.#.\n\
-        .##..###.#\n\
-        ..#...##..\n\
-        ..##....##\n\
-        ......#...\n\
-        .####.###."
-        );
-        let site = process(&program);
-        let best = Site {
-        loc: Coord { x: 1, y: 2 },
-        lines: 35,
-        };
-
-        assert_eq!(site, Some(best));
-    }
-
-    #[test]
-    fn medium3() {
-        let program = load(
-        ".#..#..###\n\
-        ####.###.#\n\
-        ....###.#.\n\
-        ..###.##.#\n\
-        ##.##.#.#.\n\
-        ....###..#\n\
-        ..#.#..#.#\n\
-        #..#.#.###\n\
-        .##...##.#\n\
-        .....#.#.."
-        );
-        let site = process(&program);
-        let best = Site {
-        loc: Coord { x: 6, y: 3 },
-        lines: 41,
-        };
-
-        assert_eq!(site, Some(best));
-    }
-
-    #[test]
-    fn large_vaporize() {
-        let program = 
-        ".#..##.###...#######\n\
-        ##.############..##.\n\
-        .#.######.########.#\n\
-        .###.#######.####.#.\n\
-        #####.##.#.##.###.##\n\
-        ..#####..#.#########\n\
-        ####################\n\
-        #.####....###.#.#.##\n\
-        ##.#################\n\
-        #####.##.###..####..\n\
-        ..######..##.#######\n\
-        ####.##.####...##..#\n\
-        .#####..#.######.###\n\
-        ##...#.##########...\n\
-        #.##########.#######\n\
-        .####.#.###.###.#.##\n\
-        ....##.##.###..#####\n\
-        .#.#.###########.###\n\
-        #.#.#.#####.####.###\n\
-        ###.##.####.##.#..##";
-        let coords = load(program);
-        let site = process(&coords).unwrap();
-        let mut lines = coords.iter()
-        .map(|dst| Line::new(&site.loc, dst))
-        .collect::<Vec<Line>>();
-
-        // sort by angle from x axis and then length
-        radsort::sort_by_key(&mut lines, |l| (l.angle, l.length));
-
-        let order = vaporize(&lines);
-        println!("  1: {:?}", order[1].dst);
-        println!("  2: {:?}", order[2].dst);
-        println!("  3: {:?}", order[3].dst);
-        println!(" 10: {:?}", order[10].dst);
-        println!(" 20: {:?}", order[20].dst);
-        println!(" 50: {:?}", order[50].dst);
-        println!("100: {:?}", order[100].dst);
-        println!("199: {:?}", order[199].dst);
-        println!("200: {:?}", order[200].dst);
-        println!("201: {:?}", order[201].dst);
-
-        assert_eq!(order[1].dst, Coord { x: 11, y: 12, });
-        assert_eq!(order[2].dst, Coord { x: 12, y: 1, });
-        assert_eq!(order[3].dst, Coord { x: 12, y: 2, });
-        assert_eq!(order[10].dst, Coord { x: 12, y: 8, });
-        assert_eq!(order[20].dst, Coord { x: 16, y: 0, });
-        assert_eq!(order[50].dst, Coord { x: 16, y: 9, });
-        assert_eq!(order[100].dst, Coord { x: 10, y: 16, });
-        assert_eq!(order[199].dst, Coord { x: 9, y: 6, });
-        assert_eq!(order[200].dst, Coord { x: 8, y: 2, });
-        assert_eq!(order[201].dst, Coord { x: 10, y: 9, });
-        assert_eq!(order[299].dst, Coord { x: 11, y: 1, });
-    }
-
-    #[test]
-    fn large() {
-        let program = load(
-        ".#..##.###...#######\n\
-        ##.############..##.\n\
-        .#.######.########.#\n\
-        .###.#######.####.#.\n\
-        #####.##.#.##.###.##\n\
-        ..#####..#.#########\n\
-        ####################\n\
-        #.####....###.#.#.##\n\
-        ##.#################\n\
-        #####.##.###..####..\n\
-        ..######..##.#######\n\
-        ####.##.####...##..#\n\
-        .#####..#.######.###\n\
-        ##...#.##########...\n\
-        #.##########.#######\n\
-        .####.#.###.###.#.##\n\
-        ....##.##.###..#####\n\
-        .#.#.###########.###\n\
-        #.#.#.#####.####.###\n\
-        ###.##.####.##.#..##"
-        );
-        let site = process(&program);
-        let best = Site {
-        loc: Coord { x: 11, y: 13 },
-        lines: 210,
-        };
-
-        assert_eq!(site, Some(best));
-    }
-
-    #[test]
-    fn compare_slopes1() {
-        let b1 = Coord { x: 0, y: 0 };
-        let d1 = Coord { x: 3, y: 9 };
-        let d2 = Coord { x: 6, y: 18 };
-        let s1 = Slope::from(&b1, &d1);
-        let s2 = Slope::from(&b1, &d2);
-
-        assert_eq!(s1, s2);
-    }
-
-    #[test]
-    fn compare_slopes2() {
-        let b1 = Coord { x: 1, y: 1 };
-        let d1 = Coord { x: 3, y: 9 };
-        let d2 = Coord { x: 5, y: 17 };
-        let s1 = Slope::from(&b1, &d1);
-        let s2 = Slope::from(&b1, &d2);
-
-        assert_eq!(s1, s2);
-    }
-
-    #[test]
-    fn compare_slopes3() {
-        let b1 = Coord { x: 5, y: 17 };
-        let d1 = Coord { x: 3, y: 9 };
-        let d2 = Coord { x: 1, y: 1 };
-        let s1 = Slope::from(&b1, &d1);
-        let s2 = Slope::from(&b1, &d2);
-
-        assert_eq!(s1, s2);
-    }
-
-    #[test]
-    fn compare_lines1() {
-        let b1 = Coord { x: 0, y: 0 };
-        let d1 = Coord { x: 3, y: 9 };
-        let d2 = Coord { x: 6, y: 18 };
-        let l1 = Line::new(&b1, &d1);
-        let l2 = Line::new(&b1, &d2);
-
-        assert_eq!(l1, l2);
-    }
-
-    #[test]
-    fn compare_lines2() {
-        let b1 = Coord { x: 1, y: 1 };
-        let d1 = Coord { x: 3, y: 9 };
-        let d2 = Coord { x: 5, y: 17 };
-        let l1 = Line::new(&b1, &d1);
-        let l2 = Line::new(&b1, &d2);
-
-        assert_eq!(l1, l2);
-    }
-
-    #[test]
-    fn compare_lines3() {
-        let b1 = Coord { x: 5, y: 17 };
-        let d2 = Coord { x: 1, y: 1 };
-        let d1 = Coord { x: 3, y: 9 };
-        let l1 = Line::new(&b1, &d1);
-        let l2 = Line::new(&b1, &d2);
-
-        assert_eq!(l1, l2);
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 802);
     }
 }

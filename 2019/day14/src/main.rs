@@ -5,7 +5,7 @@ type SpecMap<'a> = HashMap<&'a str, Spec<'a>>;
 const PHANTOM: &str = "****";
 
 fn main() {
-    let specs = load(include_str!("./formulas.txt")).unwrap();
+    let specs = load(include_str!("../input.txt")).unwrap();
     let ore = calc_min_ore("FUEL", &specs).unwrap();
     println!("Part 1: {ore}");
 
@@ -148,7 +148,7 @@ mod tests {
 
     #[test]
     fn part_one_works() {
-        let specs = load(include_str!("./formulas.txt")).unwrap();
+        let specs = load(include_str!("../input.txt")).unwrap();
         let ore = calc_min_ore("FUEL", &specs).unwrap();
 
         assert_eq!(ore, 1967319)
@@ -156,7 +156,7 @@ mod tests {
 
     #[test]
     fn part_two_works() {
-        let specs = load(include_str!("./formulas.txt")).unwrap();
+        let specs = load(include_str!("../input.txt")).unwrap();
         let ore = calc_max_fuel(&specs).unwrap();
 
         assert_eq!(ore, 1122036)

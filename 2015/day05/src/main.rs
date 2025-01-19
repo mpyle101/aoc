@@ -1,22 +1,30 @@
-
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let input = include_str!("./input.txt");
+    let input = include_str!("../input.txt");
 
-	let t = Instant::now();
-    println!("Part 1: {} ({:?})", part_one(input), t.elapsed());
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-	let t = Instant::now();
-    println!("Part 2: {} ({:?})", part_two(input), t.elapsed());
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(words: &str) -> u32 {
-    words.lines().fold(0, |acc, word| acc + nice(word) as u32)
+fn part_one(input: &str) -> usize
+{
+    input.lines()
+        .filter(|word| nice(word))
+        .count()
 }
 
-fn part_two(words: &str) -> u32 {
-    words.lines().fold(0, |acc, word| acc + nicer(word) as u32)
+fn part_two(input: &str) -> usize
+{
+    input.lines()
+        .filter(|word| nicer(word))
+        .count()
 }
 
 fn nice(word: &str) -> bool {
@@ -56,7 +64,8 @@ fn nicer(word: &str) -> bool {
     *pairs.values().max().unwrap() > 1 && repeats > 0
 }
 
-fn is_vowel(c: u8) -> bool {
+fn is_vowel(c: u8) -> bool
+{
     c == b'a' || c == b'e' || c == b'i' || c == b'o' || c == b'u'
 }
 
@@ -67,13 +76,13 @@ mod tests {
 
     #[test]
     fn input_part_one() {
-        let input = include_str!("./input.txt");
+        let input = include_str!("../input.txt");
         assert_eq!(part_one(input), 258);
     }
 
     #[test]
     fn input_part_two() {
-        let input = include_str!("./input.txt");
+        let input = include_str!("../input.txt");
         assert_eq!(part_two(input), 53);
     }
 

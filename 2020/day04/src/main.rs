@@ -64,7 +64,7 @@ fn part_two(input: &str) -> usize
 
 fn in_range(v: &str, range: std::ops::RangeInclusive<u32>) -> bool
 {
-    v.parse::<u32>().map_or(false, |n| range.contains(&n))
+    v.parse::<u32>().is_ok_and(|n| range.contains(&n))
 }
 
 #[cfg(test)]

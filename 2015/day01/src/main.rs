@@ -1,39 +1,53 @@
-fn main() {
-    let input = include_str!("./input.txt");
+fn main()
+{
+    use std::time::Instant;
 
-    let floor = part_one(input);
-    println!("Part 1: {floor}");
+    let input = include_str!("../input.txt");
 
-    let pos = part_two(input);
-    println!("Part 2: {pos}");
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> i32 {
-    input.chars().fold(0, |acc, c| acc + if c == '(' { 1 } else { -1 })
-}
-
-fn part_two(input: &str) -> usize {
-    let mut floor = 0;
+fn part_one(input: &str) -> i32
+{
     input.chars()
-        .enumerate()
-        .map(|(i, c)| { floor += if c == '(' { 1 } else { -1 }; (i, floor) })
-        .find_map(|(i, f)| (f < 0).then_some(i+1))
-        .unwrap()
+        .map(|c| if c == '(' { 1 } else { -1 })
+        .sum()
+}
+
+fn part_two(input: &str) -> usize
+{
+    input.chars()
+        .zip(1..)
+        .scan(0, |st, (c, i)| {
+            *st += if c == '(' { 1 } else { -1 };
+            if *st == -1 { None } else { Some(i) }
+        })
+        .last()
+        .unwrap() + 1
 }
 
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let input = include_str!("./input.txt");
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 280);
+    }
 
-    let floor = part_one(input);
-    assert_eq!(floor, 280);
-
-    let pos = part_two(input);
-    assert_eq!(pos, 1797);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1797);
+    }
 }

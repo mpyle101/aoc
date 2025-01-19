@@ -1,35 +1,46 @@
-fn main() {
-    let gifts = load(include_str!("./input.txt"));
+fn main()
+{
+    use std::time::Instant;
 
-    let paper = part_one(&gifts);
-    println!("Part 1: {paper}");
+    let input = include_str!("../input.txt");
 
-    let ribbon = part_two(&gifts);
-    println!("Part 2: {ribbon}");
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(gifts: &[[u32;3]]) -> u32 {
+fn part_one(input: &str) -> u32
+{
+    let gifts = load(input);
     gifts.iter()
-        .fold(0, |acc, v| {
+        .map(|v| {
             let a = [v[0]*v[1], v[1]*v[2], v[0]*v[2]];
-            acc + (2 * a.iter().sum::<u32>()) + a.iter().min().unwrap()
+            (2 * a.iter().sum::<u32>()) + a.iter().min().unwrap()
         })
+        .sum()
 }
 
-fn part_two(gifts: &[[u32;3]]) -> u32 {
+fn part_two(input: &str) -> u32
+{
+    let gifts = load(input);
     gifts.iter()
         .map(|t| (t[0]*t[1]*t[2], [2*(t[0]+t[1]), 2*(t[1]+t[2]), 2*(t[0]+t[2])]))
         .map(|(p, v)| p + v.iter().min().unwrap())
         .sum()
 }
 
-fn load(input: &str) -> Vec<[u32;3]> {
+fn load(input: &str) -> Vec<[u32;3]>
+{
     input.lines()
-        .map(|s| s.split('x').collect::<Vec<_>>())
-        .map(|v| [
-            v[0].parse::<u32>().unwrap(),
-            v[1].parse::<u32>().unwrap(),
-            v[2].parse::<u32>().unwrap()
+        .map(|s| s.split('x'))
+        .map(|mut iter| [
+            iter.next().unwrap().parse::<u32>().unwrap(),
+            iter.next().unwrap().parse::<u32>().unwrap(),
+            iter.next().unwrap().parse::<u32>().unwrap(),
         ])
         .collect()
 }
@@ -37,16 +48,19 @@ fn load(input: &str) -> Vec<[u32;3]> {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let gifts = load(include_str!("./input.txt"));
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1586300);
+    }
 
-    let paper = part_one(&gifts);
-    assert_eq!(paper, 1586300);
-
-    let ribbon = part_two(&gifts);
-    assert_eq!(ribbon, 3737498);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 3737498);
+    }
 }

@@ -25,10 +25,10 @@ fn part_one(cucumbers: &Matrix<char>) -> i32 {
 
     while moved { 
         steps += 1;
-        moved = step_east(&m).map_or(false, |m1| { m = m1; true });
+        moved = step_east(&m).is_some_and(|m1| { m = m1; true });
         moved = step_south(&m).map_or(moved, |m1| { m = m1; true });
     }
-    
+
     steps
 }
 
@@ -37,10 +37,10 @@ fn step_east(mat: &Matrix<char>) -> Option<Matrix<char>> {
 
     let mut moved = false;
     mat.indices()
-        .filter(|&rc| mat.get(rc).map_or(false, |v| *v == '>'))
+        .filter(|&rc| mat.get(rc).is_some_and(|v| *v == '>'))
         .for_each(|rc| {
             let rc1 = (rc.0, (rc.1 + 1) % m.columns);
-            if mat.get(rc1).map_or(false, |v| *v == '.') { 
+            if mat.get(rc1).is_some_and(|v| *v == '.') { 
                 moved = true;
                 if let Some(v) = m.get_mut(rc)  { *v = '.' };
                 if let Some(v) = m.get_mut(rc1) { *v = '>' };
@@ -55,10 +55,10 @@ fn step_south(mat: &Matrix<char>) -> Option<Matrix<char>> {
 
     let mut moved = false;
     mat.indices()
-        .filter(|&rc| mat.get(rc).map_or(false, |v| *v == 'v'))
+        .filter(|&rc| mat.get(rc).is_some_and(|v| *v == 'v'))
         .for_each(|rc| {
             let rc1 = ((rc.0 + 1) % m.rows, rc.1);
-            if mat.get(rc1).map_or(false, |v| *v == '.') { 
+            if mat.get(rc1).is_some_and(|v| *v == '.') { 
                 moved = true;
                 if let Some(v) = m.get_mut(rc)  { *v = '.' };
                 if let Some(v) = m.get_mut(rc1) { *v = 'v' };

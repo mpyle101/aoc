@@ -1,13 +1,23 @@
 use ndarray::{Array2, SliceInfo, SliceInfoElem, Dim};
 
-fn main() {
-    let cmds = load(include_str!("./input.txt"));
+fn main()
+{
+    use std::time::Instant;
 
-    println!("Part 1: {}", part_one(&cmds));
-    println!("Part 2: {}", part_two(&cmds));
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(cmds: &[Cmd]) -> i32 {
+fn part_one(input: &str) -> i32
+{
+    let cmds = load(input);
     cmds.iter()
         .map(|cmd| (cmd, cmd.slice()))
         .fold(
@@ -24,7 +34,9 @@ fn part_one(cmds: &[Cmd]) -> i32 {
         .fold(0, |acc, &v| acc + v as i32)
 }
 
-fn part_two(cmds: &[Cmd]) -> i32 {
+fn part_two(input: &str) -> i32
+{
+    let cmds = load(input);
     cmds.iter()
         .map(|cmd| (cmd, cmd.slice()))
         .fold(
@@ -51,7 +63,8 @@ enum Cmd {
 }
 
 impl Cmd {
-    fn slice(&self) -> Slice {
+    fn slice(&self) -> Slice
+    {
         use ndarray::s;
 
         match self {
@@ -62,7 +75,8 @@ impl Cmd {
     }
 }
 
-fn load(input: &str) -> Vec<Cmd> {
+fn load(input: &str) -> Vec<Cmd>
+{
     input.lines()
         .map(|line| line.split(' ').collect::<Vec<_>>())
         .map(|v| match v[1] {
@@ -73,7 +87,8 @@ fn load(input: &str) -> Vec<Cmd> {
         .collect()
 }
 
-fn make_rect(pt1: &str, pt2: &str) -> Rect {
+fn make_rect(pt1: &str, pt2: &str) -> Rect
+{
     let v1: Vec<_> = pt1.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
     let v2: Vec<_> = pt2.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
     ((v1[0], v1[1]), (v2[0], v2[1]))
@@ -82,16 +97,17 @@ fn make_rect(pt1: &str, pt2: &str) -> Rect {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let cmds = load(include_str!("./input.txt"));
+    #[test]
+    fn input_part_one() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 543903);
+    }
 
-    let lights = part_one(&cmds);
-    assert_eq!(lights, 543903);
-
-    let brightness = part_two(&cmds);
-    assert_eq!(brightness, 14687245);
-  }
+    #[test]
+    fn input_part_two() {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 14687245);
+    }
 }

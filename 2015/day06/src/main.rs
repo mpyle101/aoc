@@ -1,4 +1,7 @@
-use ndarray::{Array2, SliceInfo, SliceInfoElem, Dim};
+use ndarray::Array2;
+
+type Rect = (i32, i32, i32, i32);
+type Cmd  = (char, Rect);
 
 fn main()
 {
@@ -17,18 +20,24 @@ fn main()
 
 fn part_one(input: &str) -> i32
 {
+    use ndarray::s;
+
+    let to_slice = |(x1, y1, x2, y2): Rect| s![x1..=x2, y1..=y2];
+
     let cmds = load(input);
     cmds.iter()
-        .map(|cmd| (cmd, cmd.slice()))
+        .map(|(c, r)| (c, to_slice(*r)))
         .fold(
             Array2::<u8>::zeros((1000, 1000)),
-            |mut m, (cmd, sl)| {
+            |mut m, (c, sl)| {
                 let mut n = m.slice_mut(sl);
-                match cmd {
-                    Cmd::On(_)  => { n.iter_mut().for_each(|v| *v = 1); m },
-                    Cmd::Off(_) => { n.iter_mut().for_each(|v| *v = 0); m },
-                    Cmd::Tog(_) => { n.iter_mut().for_each(|v| *v = (*v + 1) % 2); m },
-                }
+                match c {
+                    '+' => n.iter_mut().for_each(|v| *v = 1),
+                    '!' => n.iter_mut().for_each(|v| *v = 0),
+                    '-' => n.iter_mut().for_each(|v| *v = (*v + 1) % 2),
+                     _  => unreachable!()
+                };
+                m
             }
         )
         .fold(0, |acc, &v| acc + v as i32)
@@ -36,62 +45,62 @@ fn part_one(input: &str) -> i32
 
 fn part_two(input: &str) -> i32
 {
+    use ndarray::s;
+
+    let to_slice = |(x1, y1, x2, y2): Rect| s![x1..=x2, y1..=y2];
+
     let cmds = load(input);
     cmds.iter()
-        .map(|cmd| (cmd, cmd.slice()))
+        .map(|(c, r)| (c, to_slice(*r)))
         .fold(
             Array2::<u8>::zeros((1000, 1000)),
-            |mut m, (cmd, sl)| {
+            |mut m, (c, sl)| {
                 let mut n = m.slice_mut(sl);
-                match cmd {
-                    Cmd::On(_)  => { n.iter_mut().for_each(|v| *v += 1); m }
-                    Cmd::Tog(_) => { n.iter_mut().for_each(|v| *v += 2); m },
-                    Cmd::Off(_) => { n.iter_mut().for_each(|v| if *v > 0 { *v -= 1 }); m },
-                }
+                match c {
+                    '+' => n.iter_mut().for_each(|v| *v += 1),
+                    '!' => n.iter_mut().for_each(|v| *v += 2),
+                    '-' => n.iter_mut().for_each(|v| if *v > 0 { *v -= 1 }),
+                     _  => unreachable!()
+                };
+                m
             }
         )
         .fold(0, |acc, &v| acc + v as i32)
 }
 
-type Rect = ((i32, i32), (i32, i32));
-type Slice = SliceInfo<[SliceInfoElem; 2], Dim<[usize; 2]>, Dim<[usize; 2]>>;
-
-enum Cmd {
-    On(Rect),
-    Off(Rect),
-    Tog(Rect),
-}
-
-impl Cmd {
-    fn slice(&self) -> Slice
-    {
-        use ndarray::s;
-
-        match self {
-            Cmd::On((p1, p2))  => s![p1.0..=p2.0, p1.1..=p2.1],
-            Cmd::Off((p1, p2)) => s![p1.0..=p2.0, p1.1..=p2.1],
-            Cmd::Tog((p1, p2)) => s![p1.0..=p2.0, p1.1..=p2.1],
-        }
-    }
-}
-
 fn load(input: &str) -> Vec<Cmd>
 {
     input.lines()
-        .map(|line| line.split(' ').collect::<Vec<_>>())
-        .map(|v| match v[1] {
-            "on"  => Cmd::On(make_rect(v[2], v[4])),
-            "off" => Cmd::Off(make_rect(v[2], v[4])),
-            _     => Cmd::Tog(make_rect(v[1], v[3])),
+        .map(|line| line.split(' '))
+        .map(|mut iter| {
+            if let Some("turn") = iter.next() {
+                match iter.next() {
+                    Some("on")  => ('+', get_rect(iter)),
+                    Some("off") => ('-', get_rect(iter)),
+                    _ => unreachable!()
+                }
+            } else {
+                ('!', get_rect(iter))
+            }
         })
         .collect()
 }
 
-fn make_rect(pt1: &str, pt2: &str) -> Rect
+fn get_rect<'a>(mut iter: impl Iterator<Item=&'a str>) -> Rect
 {
-    let v1: Vec<_> = pt1.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
-    let v2: Vec<_> = pt2.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
-    ((v1[0], v1[1]), (v2[0], v2[1]))
+    let s = iter.next().unwrap();
+    let (x1, y1) = s.split_once(',').unwrap();
+    let x1 = x1.parse::<i32>().unwrap();
+    let y1 = y1.parse::<i32>().unwrap();
+
+    iter.next();    // "through"
+
+    let s = iter.next().unwrap();
+    let (x2, y2) = s.split_once(',').unwrap();
+    let x2 = x2.parse::<i32>().unwrap();
+    let y2 = y2.parse::<i32>().unwrap();
+
+    (x1, y1, x2, y2)
 }
 
 

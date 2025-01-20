@@ -1,117 +1,115 @@
 use std::collections::HashMap;
 
-fn main() {
-    let mut wires = load(include_str!("./input.txt"));
+type Gates<'a>   = HashMap<&'a str, Gate<'a>>;
+type Signals<'a> = HashMap<&'a str, i32>;
 
-    println!("Part 1: {}", part_one(&wires));
-    println!("Part 2: {}", part_two(&mut wires));
+fn main()
+{
+    use std::time::Instant;
+
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(wires: &HashMap<&str, Wire>) -> u32 {
-    process(wires)
+fn part_one(input: &str) -> i32
+{
+    let gates = load(input);
+    let mut signals = Signals::new();
+
+    eval("a", &gates, &mut signals)
 }
 
-fn part_two(wires: &mut HashMap<&str, Wire>) -> u32 {
-    let b = wires.get_mut("b").unwrap();
-    *b = Wire::Set(16076);
+fn part_two(input: &str) -> i32
+{
+    let gates = load(input);
+    let mut signals = Signals::new();
+    let a = eval("a", &gates, &mut signals);
+    let mut signals = Signals::from([("b", a)]);
 
-    process(wires)
+    eval("a", &gates, &mut signals)
 }
 
-fn process(wires: &HashMap<&str, Wire>) -> u32 {
-    let mut signals = HashMap::new();
-    let mut q = vec!["a"];
+#[allow(non_camel_case_types)]
+enum Gate<'a> {
+    set(i32),
+    sig(&'a str),
+    not(&'a str),
+    or(&'a str, &'a str),
+    and(&'a str, &'a str),
+    lsh(&'a str, i32),
+    rsh(&'a str, i32),
+    iand(&'a str, i32),
+}
 
-    while let Some(w) = q.pop() {
-        let wire = wires.get(w).unwrap();
-        match wire {
-            Wire::Set(v) => { signals.insert(w, *v); },
-            Wire::Not(a) => 
-                if let Some(&v) = signals.get(a) {
-                    signals.insert(w, !v);
-                } else {
-                    q.push(w);
-                    q.push(a);
-                },
-            Wire::SetW(a) =>                 
-                if let Some(&v) = signals.get(a) {
-                    signals.insert(w, v);
-                } else {
-                    q.push(w);
-                    q.push(a);
-                },
-            Wire::And1(a) =>
-                if let Some(&v) = signals.get(a) {
-                    signals.insert(w, v & 1);
-                } else {
-                    q.push(w);
-                    q.push(a);
-                },
-            Wire::Or(a, b) => {
-                    let w_a = signals.get(a).cloned();
-                    let w_b = signals.get(b).cloned();
-                    if let (Some(s1), Some(s2)) = (w_a, w_b) {
-                        signals.insert(w, s1 | s2);
-                    } else {
-                        q.push(w);
-                        if w_a.is_none() { q.push(a); }
-                        if w_b.is_none() { q.push(b); }
-                    }
-                },
-            Wire::And(a, b) =>{
-                    let w_a = signals.get(a).cloned();
-                    let w_b = signals.get(b).cloned();
-                    if let (Some(s1), Some(s2)) = (w_a, w_b) {
-                        signals.insert(w, s1 & s2);
-                    } else {
-                        q.push(w);
-                        if w_a.is_none() { q.push(a); }
-                        if w_b.is_none() { q.push(b); }
-                    }
-                },
-            Wire::LShift(a, c) =>
-                if let Some(&v) = signals.get(a) {
-                    signals.insert(w, v << c);
-                } else {
-                    q.push(w);
-                    q.push(a);
-                },
-            Wire::RShift(a, c) => 
-                if let Some(&v) = signals.get(a) {
-                    signals.insert(w, v >> c);
-                } else {
-                    q.push(w);
-                    q.push(a);
-                },
-        };
+impl<'a> Gate<'a> {
+    fn eval(&self, gates: &Gates<'a>, signals: &mut Signals<'a>) -> i32
+    {
+        use Gate::*;
+
+        match self {
+            set(n)     => *n,
+            sig(a)     => eval(a, gates, signals),
+            not(a)     => !eval(a, gates, signals),
+            or(a, b)   => eval(a, gates, signals) | eval(b, gates, signals),
+            and(a, b)  => eval(a, gates, signals) & eval(b, gates, signals),
+            lsh(a, n)  => eval(a, gates, signals) << n,
+            rsh(a, n)  => eval(a, gates, signals) >> n,
+            iand(a, n) => eval(a, gates, signals) & n
+        }
     }
-
-    *signals.get("a").unwrap()
 }
 
-#[derive(Debug)]
-enum Wire<'a> {
-    Set(u32),
-    Not(&'a str),
-    SetW(&'a str),
-    Or(&'a str, &'a str),
-    And(&'a str, &'a str),
-    And1(&'a str),
-    LShift(&'a str, u32),
-    RShift(&'a str, u32),
+fn eval<'a>(w: &'a str, gates: &Gates<'a>, signals: &mut Signals<'a>) -> i32
+{
+    if let Some(n) = signals.get(w) {
+        *n
+    } else {
+        let g = gates.get(w).unwrap();
+        let n = g.eval(gates, signals);
+        signals.insert(w, n);
+        n
+    }
 }
 
-fn load(input: &str) -> HashMap<&str, Wire> {
+fn load(input: &str) -> Gates
+{
+    use Gate::*;
+
     input.lines()
-        .map(|s| s.split(' ').collect::<Vec<_>>())
-        .map(|v| match (v[0], v[1]) {
-            ("NOT", _)    => (v[3], Wire::Not(v[1])),
-            ("1", "AND")  => (v[4], Wire::And1(v[2])),
-            (_, "OR")     => (v[4], Wire::Or(v[0], v[2])),
-            (_, "AND")    => (v[4], Wire::And(v[0], v[2])),
-            (_, "LSHIFT") => (v[4], Wire::LShift(v[0], v[2].parse::<u32>().unwrap())),
-            (_, "RSHIFT") => (v[4], Wire::RShift(v[0], v[2].parse::<u32>().unwrap())),
-                        _ => (v[2], v[0].parse::<u32>().map_or(Wire::SetW(v[0]), Wire::Set)),
+        .flat_map(|line| line.split_once(" -> "))
+        .map(|(s, w)| {
+            let v = s.split(' ').collect::<Vec<_>>();
+            let g = if v.len() == 1 {
+                if let Ok(n) = v[0].parse::<i32>() {
+                    set(n)
+                } else {
+                    sig(v[0])
+                }
+            } else if v.len() == 2 {
+                not(v[1])
+            } else {
+                match v[1] {
+                    "OR"     => or(v[0], v[2]),
+                    "AND"    => if v[0] == "1" { iand(v[2], 1) } else { and(v[0], v[2]) },
+                    "LSHIFT" => {
+                        let n = v[2].parse::<i32>().unwrap();
+                        lsh(v[0], n)
+                    },
+                    "RSHIFT" => {
+                        let n = v[2].parse::<i32>().unwrap();
+                        rsh(v[0], n)
+                    },
+                    _ => unreachable!()
+                }
+            };
+            (w, g)
         })
         .collect()
 }
@@ -119,16 +117,19 @@ fn load(input: &str) -> HashMap<&str, Wire> {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let mut wires = load(include_str!("./input.txt"));
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 16076);
+    }
 
-    let signal = part_one(&wires);
-    assert_eq!(signal, 16076);
-
-    let signal = part_two(&mut wires);
-    assert_eq!(signal, 2797);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2797);
+    }
 }

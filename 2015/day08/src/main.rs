@@ -1,55 +1,73 @@
-fn main() {
-    let strings = include_str!("./input.txt");
+fn main()
+{
+    use std::time::Instant;
 
-    println!("Part 1: {}", part_one(strings));
-    println!("Part 2: {}", part_two(strings));
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(strings: &str) -> usize {
-    strings.lines().fold(0, |acc, s| {
-        let bytes = s.as_bytes();
-        let mut chars = 0;
-        let mut i = 1;
-        while i < bytes.len() - 1 {
-            i = match (bytes[i] as char, bytes[i+1] as char) {
-                ('\\', '"')  => { chars += 1; i + 2 },
-                ('\\', '\\') => { chars += 1; i + 2 },
-                ('\\', 'x')  => { chars += 1; i + 4 },
-                           _ => { chars += 1; i + 1 },
+fn part_one(input: &str) -> usize
+{
+    input.lines()
+        .map(|s| {
+            let bytes = s.as_bytes();
+            let mut chars = 0;
+            let mut i = 1;
+            while i < bytes.len() - 1 {
+                i = match (bytes[i] as char, bytes[i+1] as char) {
+                    ('\\', '"')  => { chars += 1; i + 2 },
+                    ('\\', 'x')  => { chars += 1; i + 4 },
+                    ('\\', '\\') => { chars += 1; i + 2 },
+                    _            => { chars += 1; i + 1 },
+                }
             }
-        }
 
-        acc + bytes.len() - chars
-    })
+            bytes.len() - chars
+        })
+        .sum()
 }
 
-fn part_two(strings: &str) -> usize {
-    strings.lines().fold(0, |acc, s| {
-        let bytes = s.as_bytes();
-        let chars = bytes.iter().flat_map(|&b| 
-            match b as char {
-                '"'  => vec!['\\', '"'],
-                '\\' => vec!['\\', '\\'],
-                  c  => vec![c]
-            });
+fn part_two(input: &str) -> usize
+{
+    input.lines()
+        .map(|s| {
+            let bytes = s.as_bytes();
+            let chars = bytes.iter()
+                .flat_map(|&b| 
+                    match b as char {
+                        '"'  => vec!['\\', '"'],
+                        '\\' => vec!['\\', '\\'],
+                        c    => vec![c]
+                    });
 
-        acc + chars.count() - bytes.len() + 2
-    })
+            chars.count() - bytes.len() + 2
+        })
+        .sum()
 }
 
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let strings = include_str!("./input.txt");
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1342);
+    }
 
-    let diff = part_one(strings);
-    assert_eq!(diff, 1342);
-
-    let diff = part_two(strings);
-    assert_eq!(diff, 2074);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2074);
+    }
 }

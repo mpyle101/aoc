@@ -1,62 +1,137 @@
-use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
-fn main() {
-    let routes = load(include_str!("./input.txt"));
-
-    println!("Part 1: {}", part_one(&routes));
-    println!("Part 2: {}", part_two(&routes));
-}
-
-fn part_one(routes: &Routes) -> u32 {
-    let cities: HashSet<_> = routes.keys().map(|(a, _)| a).collect();
-    cities.iter().permutations(cities.len())
-        .map(|v| {
-            (0..v.len()-1).fold(0, |acc, i| {
-                let r = if let Some(d) = routes.get(&(v[i], v[i+1])) { *d } else { 1000 };
-                acc + r
-            })
-        }).min().unwrap()
-}
-
-
-fn part_two(routes: &Routes) -> u32 {
-    let cities: HashSet<_> = routes.keys().map(|(a, _)| a).collect();
-    cities.iter().permutations(cities.len())
-        .map(|v| {
-            (0..v.len()-1).fold(0, |acc, i| {
-                let r = if let Some(d) = routes.get(&(v[i], v[i+1])) { *d } else { 0 };
-                acc + r
-            })
-        }).max().unwrap()
-}
-
-type Route<'a> = (&'a str, &'a str);
+type Cities<'a> = HashSet<&'a str>;
+type Route<'a>  = (&'a str, &'a str);
 type Routes<'a> = HashMap<Route<'a>, u32>;
 
-fn load(input: &str) -> Routes {
+fn main()
+{
+    use std::time::Instant;
+
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
+}
+
+fn part_one(input: &str) -> u32
+{
+    let routes = load(input);
+    let cities = routes.keys()
+        .map(|(a, _)| *a)
+        .collect::<HashSet<_>>();
+
+    cities.iter()
+        .map(|c| {
+            let mut left = cities.clone();
+            left.remove(c);
+            shortest_path(c, &mut left, &routes)
+        })
+        .min()
+        .unwrap()
+}
+
+fn part_two(input: &str) -> u32
+{
+    let routes = load(input);
+    let cities = routes.keys()
+        .map(|(a, _)| *a)
+        .collect::<HashSet<_>>();
+
+    cities.iter()
+        .map(|c| {
+            let mut left = cities.clone();
+            left.remove(c);
+            longest_path(c, &mut left, &routes)
+        })
+        .max()
+        .unwrap()
+}
+
+fn shortest_path<'a>(city: &str, cities: &mut Cities<'a>, routes: &Routes<'a>) -> u32
+{
+    if cities.is_empty() {
+        0
+    } else {
+        cities.iter()
+            .flat_map(|&c| routes.get(&(city, c)).map(|n| (c, *n)))
+            .map(|(c, n)| {
+                let mut left = cities.clone();
+                left.remove(c);
+                n + shortest_path(c, &mut left, routes)
+            })
+            .min()
+            .unwrap_or(u32::MAX)
+    }
+}
+
+fn longest_path<'a>(city: &str, cities: &mut Cities<'a>, routes: &Routes<'a>) -> u32
+{
+    if cities.is_empty() {
+        0
+    } else {
+        cities.iter()
+            .flat_map(|&c| routes.get(&(city, c)).map(|n| (c, *n)))
+            .map(|(c, n)| {
+                let mut left = cities.clone();
+                left.remove(c);
+                n + longest_path(c, &mut left, routes)
+            })
+            .max()
+            .unwrap_or(0)
+    }
+}
+
+fn load(input: &str) -> Routes
+{
     input.lines()
-        .map(|s| s.split(' ').collect::<Vec<_>>())
-        .flat_map(|v| vec![
-            ((v[0], v[2]), v[4].parse::<u32>().unwrap()),
-            ((v[2], v[0]), v[4].parse::<u32>().unwrap()),
-        ])
+        .map(|line| line.split(' '))
+        .flat_map(|mut iter| {
+            let c1 = iter.next().unwrap();
+            iter.next();    // to
+            let c2 = iter.next().unwrap();
+            iter.next();    // =
+            let n = iter.next().unwrap().parse::<u32>().unwrap();
+            [((c1, c2), n), ((c2, c1), n)]
+        })
         .collect()
 }
 
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let routes = load(include_str!("./input.txt"));
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 141);
+    }
 
-    let shortest = part_one(&routes);
-    assert_eq!(shortest, 141);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 736);
+    }
 
-    let longest = part_two(&routes);
-    assert_eq!(longest, 736);
-  }
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 605);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 982);
+    }
 }

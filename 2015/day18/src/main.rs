@@ -29,7 +29,7 @@ fn part_one(map: &Matrix<char>) -> usize {
             let cnt = mat.neighbours(p, true)
                 .filter_map(|p| mat.get(p).filter(|&v| *v == '#'))
                 .count();
-            if cnt == 3 || (cnt == 2 && mat.get(p).map_or(false, |v| *v == '#')) {
+            if cnt == 3 || (cnt == 2 && mat.get(p).is_some_and(|v| *v == '#')) {
                 if let Some(v) = m.get_mut(p) { *v = '#' };
             }
         });
@@ -58,7 +58,7 @@ fn part_two(map: &Matrix<char>) -> usize {
             let cnt = m1.neighbours(p, true)
                 .filter_map(|p| m1.get(p).filter(|&v| *v == '#'))
                 .count();
-            if cnt == 3 || (cnt == 2 && m1.get(p).map_or(false, |v| *v == '#')) {
+            if cnt == 3 || (cnt == 2 && m1.get(p).is_some_and(|v| *v == '#')) {
                 if let Some(v) = m.get_mut(p) { *v = '#' };
             }
         });

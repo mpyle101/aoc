@@ -1,39 +1,25 @@
-use std::collections::HashSet;
-
 type Rules<'a> = Vec<(&'a str, &'a str)>;
 
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let (rules, molecule) = load(include_str!("./input.txt"));
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let count = part_one(molecule, &rules);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", count, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let t1 = Instant::now();
-    let steps = part_two(molecule, &rules);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", steps, t2 - t1);
-
-    // 207
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn load(input: &str) -> (Rules, &str) {
-    let mut it = input.split("\n\n");
-    let rules = it.next().map(|v| {
-        v.lines().fold(Vec::new(), |mut rules, s| {
-            let kv = s.split(" => ").collect::<Vec<_>>();
-            rules.push((kv[0], kv[1]));
-            rules
-        })
-    }).unwrap();
+fn part_one(input: &str) -> usize
+{
+    use std::collections::HashSet;
 
-    (rules, it.next().unwrap())
-}
-
-fn part_one(molecule: &str, rules: &Rules) -> i32 {
+    let (rules, molecule) = load(input);
     let mut molecules = HashSet::new();
     rules.iter().for_each(|(k, s)|
         molecule.match_indices(k).for_each(|(i, _)| {
@@ -42,12 +28,15 @@ fn part_one(molecule: &str, rules: &Rules) -> i32 {
             molecules.insert(m);
         })
     );
-    
-    molecules.len() as i32
+
+    molecules.len()
 }
 
-fn part_two(molecule: &str, rules: &Rules) -> u32 {
+fn part_two(input: &str) -> u32
+{
     use rand::seq::SliceRandom;
+
+    let (rules, molecule) = load(input);
 
     let rrules = rules.iter().map(|(k, v)| (*v, *k)).collect::<Vec<_>>();
 
@@ -66,16 +55,38 @@ fn part_two(molecule: &str, rules: &Rules) -> u32 {
     cnt
 }
 
+fn load(input: &str) -> (Rules, &str)
+{
+    let mut it = input.split("\n\n");
+    let rules = it.next()
+        .map(|v| v.lines()
+            .fold(Vec::new(), |mut rules, s| {
+                let kv = s.split(" => ").collect::<Vec<_>>();
+                rules.push((kv[0], kv[1]));
+                rules
+            })
+        )
+        .unwrap();
+
+    (rules, it.next().unwrap())
+}
+
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let (rules, molecule) = load(include_str!("./input.txt"));
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 576);
+    }
 
-    let count = part_one(molecule, &rules);
-    assert_eq!(count, 576);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 207);
+    }
 }

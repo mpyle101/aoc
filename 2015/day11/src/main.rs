@@ -1,19 +1,31 @@
-
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let t1 = Instant::now();
-    let password = generate("hepxcrrq");
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", password, t2 - t1);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let password = generate(&password);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", password, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn generate(pword: &str) -> String {
+fn part_one(input: &str) -> String
+{
+    generate(input)
+}
+
+fn part_two(input: &str) -> String
+{
+    let password = generate(input);
+    generate(&password)
+}
+
+fn generate(pword: &str) -> String
+{
     // Turn our input into an array of zero based bytes.
     // This will make incrementing trivial using mod 26.
     // hepxcrrq
@@ -31,7 +43,8 @@ fn generate(pword: &str) -> String {
     password.iter().map(|b| (b + b'a') as char).collect::<String>()
 }
 
-fn increment(s: &mut [u8;8]) {
+fn increment(s: &mut [u8;8])
+{
     let mut i = 7;
     s[i] = (s[i] + 1) % 26;
     while s[i] == 0 && i > 0 {
@@ -40,7 +53,8 @@ fn increment(s: &mut [u8;8]) {
     }
 }
 
-fn is_valid(s: &[u8;8]) -> bool {
+fn is_valid(s: &[u8;8]) -> bool
+{
     let mut pairs = 0;
 
     let mut straight = false;
@@ -68,11 +82,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let password = generate("hepxcrrq");
-        assert_eq!(password, "hepxxyzz");
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), "hepxxyzz");
+    }
 
-        let password = generate("hepxxyzz");
-        assert_eq!(password, "heqaabcc");
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), "heqaabcc");
     }
 }

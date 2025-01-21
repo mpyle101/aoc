@@ -1,6 +1,85 @@
 use std::ops::{Index, IndexMut};
 use lazy_static::lazy_static;
 
+fn main()
+{
+    use std::time::Instant;
+
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
+}
+
+fn part_one(input: &str) -> i32
+{
+    use std::collections::VecDeque;
+
+    let boss = load(input);
+    let state = State {
+        mana: 0,
+        hero: Wizard { hp: 50, mana: 500, armor: 0 },
+        boss,
+        effects: [0i32;3],
+    };
+
+    let mut mana = i32::MAX;
+    let mut q = VecDeque::from([state]);
+    while let Some(st) = q.pop_front() {
+        if st.boss.hp <= 0 {
+            mana = mana.min(st.mana);
+        } else {
+            do_move(&st, false).iter().for_each(|s| q.push_back(*s));
+        }
+    }
+
+    mana
+}
+
+fn part_two(input: &str) -> i32
+{
+    use std::collections::VecDeque;
+
+    let boss = load(input);
+    let state = State {
+        mana: 0,
+        hero: Wizard { hp: 50, mana: 500, armor: 0 },
+        boss,
+        effects: [0i32;3],
+    };
+
+    let mut mana = i32::MAX;
+    let mut q = VecDeque::from([state]);
+    while let Some(st) = q.pop_front() {
+        if st.boss.hp <= 0 {
+            mana = mana.min(st.mana);
+        } else {
+            do_move(&st, true).iter().for_each(|s| q.push_back(*s));
+        }
+    }
+
+    mana
+}
+
+fn load(input: &str) -> Monster
+{
+    let mut it = input.lines()
+        .map(|l| {
+            let v = l.split(": ").collect::<Vec<_>>();
+            v[1].parse::<i32>().unwrap()
+        });
+    
+    Monster {
+        hp:     it.next().unwrap(),
+        damage: it.next().unwrap(),
+    }
+}
+
 enum Spell {
     Drain(i32),
     Shield(i32),
@@ -43,7 +122,8 @@ type Effects = [i32;3];
 impl Index<Effect> for Effects {
     type Output = i32;
 
-    fn index(&self, effect: Effect) -> &Self::Output {
+    fn index(&self, effect: Effect) -> &Self::Output
+    {
         match effect {
             Effect::Shield   => &self[0],
             Effect::Poison   => &self[1],
@@ -53,7 +133,8 @@ impl Index<Effect> for Effects {
 }
 
 impl IndexMut<Effect> for Effects {
-    fn index_mut(&mut self, effect: Effect) -> &mut Self::Output {
+    fn index_mut(&mut self, effect: Effect) -> &mut Self::Output
+    {
         match effect {
             Effect::Shield   => &mut self[0],
             Effect::Poison   => &mut self[1],
@@ -72,7 +153,8 @@ struct State {
 }
 
 impl Spell {
-    fn cast(&self, state: &State) -> State {
+    fn cast(&self, state: &State) -> State
+    {
         use Effect::*;
     
         let mut st = *state;
@@ -108,80 +190,22 @@ impl Spell {
         st
     }
 
-    fn can_cast(&self, st: &State) -> bool {
+    fn can_cast(&self, st: &State) -> bool
+    {
         use Effect::*;
 
         match self {
-            Spell::Drain(n)  => st.hero.mana >= *n,
-            Spell::Shield(n) => st.hero.mana >= *n && st.effects[Shield] == 0,
-            Spell::Poison(n) => st.hero.mana >= *n && st.effects[Poison] == 0,
-            Spell::Recharge(n) => st.hero.mana >= *n && st.effects[Recharge] == 0,
+            Spell::Drain(n)       => st.hero.mana >= *n,
+            Spell::Shield(n)      => st.hero.mana >= *n && st.effects[Shield]   == 0,
+            Spell::Poison(n)      => st.hero.mana >= *n && st.effects[Poison]   == 0,
+            Spell::Recharge(n)    => st.hero.mana >= *n && st.effects[Recharge] == 0,
             Spell::MagicMissle(n) => st.hero.mana >= *n,
         }
     }
 }
 
-fn main() {
-    use std::time::Instant;
-
-    let t1 = Instant::now();
-    let mana = part_one();
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", mana, t2 - t1);
-
-    let t1 = Instant::now();
-    let mana = part_two();
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", mana, t2 - t1);
-}
-
-fn part_one() -> i32 {
-    use std::collections::VecDeque;
-
-    let state = State {
-        mana: 0,
-        hero: Wizard { hp: 50, mana: 500, armor: 0 },
-        boss: Monster { hp: 71, damage: 10 },
-        effects: [0i32;3],
-    };
-
-    let mut mana = i32::MAX;
-    let mut q = VecDeque::from([state]);
-    while let Some(st) = q.pop_front() {
-        if st.boss.hp <= 0 {
-            mana = mana.min(st.mana);
-        } else {
-            do_move(&st, false).iter().for_each(|s| q.push_back(*s));
-        }
-    }
-
-    mana
-}
-
-fn part_two() -> i32 {
-    use std::collections::VecDeque;
-
-    let state = State {
-        mana: 0,
-        hero: Wizard { hp: 50, mana: 500, armor: 0 },
-        boss: Monster { hp: 71, damage: 10 },
-        effects: [0i32;3],
-    };
-
-    let mut mana = i32::MAX;
-    let mut q = VecDeque::from([state]);
-    while let Some(st) = q.pop_front() {
-        if st.boss.hp <= 0 {
-            mana = mana.min(st.mana);
-        } else {
-            do_move(&st, true).iter().for_each(|s| q.push_back(*s));
-        }
-    }
-
-    mana
-}
-
-fn do_move(state: &State, hard: bool) -> Vec<State> {
+fn do_move(state: &State, hard: bool) -> Vec<State>
+{
     let mut st0 = *state;
     if hard {
         if st0.hero.hp == 1 {
@@ -195,39 +219,41 @@ fn do_move(state: &State, hard: bool) -> Vec<State> {
         return vec![st]
     }
 
-    // See the hero can cast a spell
+    // See if the hero can cast a spell
     // If so, cast the spell and see if the boss is dead
     // If not, do the boss's turn so first apply any effects
     // If the boss is dead, return the state
     // Otherwise, let the boss attack and if our hero still
     // lives, return that state.
-    SPELLS.iter().filter_map(|spell| {
-        if spell.can_cast(&st) {
-            let s = spell.cast(&st);
-            if s.boss.hp <= 0 {
-                Some(s)
-            } else {
-                let mut s = apply_effects(&s);
+    SPELLS.iter()
+        .filter_map(|spell| {
+            if spell.can_cast(&st) {
+                let s = spell.cast(&st);
                 if s.boss.hp <= 0 {
                     Some(s)
                 } else {
-                    let damage = s.boss.damage - s.hero.armor;
-                    s.hero.hp -= if damage < 1 { 1 } else { damage };
-                    if s.hero.hp > 0 {
+                    let mut s = apply_effects(&s);
+                    if s.boss.hp <= 0 {
                         Some(s)
                     } else {
-                        None
+                        let damage = s.boss.damage - s.hero.armor;
+                        s.hero.hp -= if damage < 1 { 1 } else { damage };
+                        if s.hero.hp > 0 {
+                            Some(s)
+                        } else {
+                            None
+                        }
                     }
                 }
+            } else {
+                None
             }
-        } else {
-            None
-        }
-    })
-    .collect()
+        })
+        .collect()
 }
 
-fn apply_effects(state: &State) -> State {
+fn apply_effects(state: &State) -> State
+{
     use Effect::*;
 
     let mut st = *state;
@@ -252,14 +278,19 @@ fn apply_effects(state: &State) -> State {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let mana = part_one();
-    assert_eq!(mana, 1824);
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1824);
+    }
 
-    let mana = part_two();
-    assert_eq!(mana, 1937);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1937);
+    }
 }

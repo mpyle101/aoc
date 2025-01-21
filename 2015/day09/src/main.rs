@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet};
 
-type Cities<'a> = HashSet<&'a str>;
 type Route<'a>  = (&'a str, &'a str);
 type Routes<'a> = HashMap<Route<'a>, u32>;
 
@@ -24,13 +23,15 @@ fn part_one(input: &str) -> u32
     let routes = load(input);
     let cities = routes.keys()
         .map(|(a, _)| *a)
-        .collect::<HashSet<_>>();
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
 
     cities.iter()
-        .map(|c| {
-            let mut left = cities.clone();
-            left.remove(c);
-            shortest_path(c, &mut left, &routes)
+        .enumerate()
+        .map(|(i, city)| {
+            let visited = 1 << i;
+            shortest_path(city, visited, &cities, &routes)
         })
         .min()
         .unwrap()
@@ -41,46 +42,50 @@ fn part_two(input: &str) -> u32
     let routes = load(input);
     let cities = routes.keys()
         .map(|(a, _)| *a)
-        .collect::<HashSet<_>>();
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
 
     cities.iter()
-        .map(|c| {
-            let mut left = cities.clone();
-            left.remove(c);
-            longest_path(c, &mut left, &routes)
+        .enumerate()
+        .map(|(i, city)| {
+            let visited = 1 << i;
+            longest_path(city, visited, &cities, &routes)
         })
         .max()
         .unwrap()
 }
 
-fn shortest_path<'a>(city: &str, cities: &mut Cities<'a>, routes: &Routes<'a>) -> u32
+fn shortest_path(city: &str, visited: u32, cities: &[&str], routes: &Routes) -> u32
 {
-    if cities.is_empty() {
+    if visited.count_ones() == cities.len() as u32 {
         0
     } else {
         cities.iter()
-            .flat_map(|&c| routes.get(&(city, c)).map(|n| (c, *n)))
-            .map(|(c, n)| {
-                let mut left = cities.clone();
-                left.remove(c);
-                n + shortest_path(c, &mut left, routes)
+            .enumerate()
+            .filter(|(i, _)| (visited & 1 << i) == 0)
+            .flat_map(|(i, c)| routes.get(&(city, c)).map(|n| (i, c, *n)))
+            .map(|(i, c, n)| {
+                let visited = visited | (1 << i);
+                n + shortest_path(c, visited, cities, routes)
             })
             .min()
             .unwrap_or(u32::MAX)
     }
 }
 
-fn longest_path<'a>(city: &str, cities: &mut Cities<'a>, routes: &Routes<'a>) -> u32
+fn longest_path(city: &str, visited: u32, cities: &[&str], routes: &Routes) -> u32
 {
-    if cities.is_empty() {
+    if visited.count_ones() == cities.len() as u32 {
         0
     } else {
         cities.iter()
-            .flat_map(|&c| routes.get(&(city, c)).map(|n| (c, *n)))
-            .map(|(c, n)| {
-                let mut left = cities.clone();
-                left.remove(c);
-                n + longest_path(c, &mut left, routes)
+            .enumerate()
+            .filter(|(i, _)| (visited & 1 << i) == 0)
+            .flat_map(|(i, c)| routes.get(&(city, c)).map(|n| (i, c, *n)))
+            .map(|(i, c, n)| {
+                let visited = visited | (1 << i);
+                n + longest_path(c, visited, cities, routes)
             })
             .max()
             .unwrap_or(0)

@@ -1,16 +1,17 @@
-
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let t1 = Instant::now();
-    let code = part_one();
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", code, t2 - t1);
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one() -> u64 {
+fn part_one(input: &str) -> u64 {
 
-    let target = (2978, 3083);
+    let target = load(input);
 
     let mut last = 1;
     let mut cell = (1, 1);
@@ -33,14 +34,29 @@ fn part_one() -> u64 {
     code
 }
 
+fn load(input: &str) -> (u64, u64)
+{
+    let mut iter = input.lines();
+    iter.next();
+
+    let s = iter.next().unwrap();
+    let v = s.split(' ').collect::<Vec<_>>();
+
+    (
+        v[5][0..4].parse::<u64>().unwrap(),
+        v[7][0..4].parse::<u64>().unwrap()
+    )
+}
+
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let code = part_one();
-    assert_eq!(code, 2650453);
-  }
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 2650453);
+    }
 }

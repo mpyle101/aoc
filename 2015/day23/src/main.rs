@@ -1,17 +1,22 @@
-
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let program = load(include_str!("./input.txt"));
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    println!("Part 1: {} ({:?})", part_one(&program), t.elapsed());
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
-    println!("Part 2: {} ({:?})", part_two(&program), t.elapsed());
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(program: &[Cmd]) -> u32 {
+fn part_one(input: &str) -> u32
+{
+    let program = load(input);
+
     let mut ip  = 0;
     let mut reg: [u32;2] = [0, 0];
     while ip < program.len() {
@@ -21,7 +26,10 @@ fn part_one(program: &[Cmd]) -> u32 {
     reg[1]
 }
 
-fn part_two(program: &[Cmd]) -> u32 {
+fn part_two(input: &str) -> u32
+{
+    let program = load(input);
+
     let mut ip = 0;
     let mut reg: [u32;2] = [1, 0];
     while ip < program.len() {
@@ -31,7 +39,8 @@ fn part_two(program: &[Cmd]) -> u32 {
     reg[1]
 }
 
-fn load(input: &str) -> Vec<Cmd> {
+fn load(input: &str) -> Vec<Cmd>
+{
     use Cmd::*;
 
     input.lines()
@@ -74,7 +83,8 @@ enum Cmd {
 }
 
 impl Cmd {
-    fn exec(&self, ip: usize, reg: &mut [u32;2]) -> usize {
+    fn exec(&self, ip: usize, reg: &mut [u32;2]) -> usize
+    {
         use Cmd::*;
 
         match self {
@@ -94,14 +104,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn input_part_one() {
-        let program = load(include_str!("./input.txt"));
-        assert_eq!(part_one(&program), 255);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 255);
     }
 
     #[test]
-    fn input_part_two() {
-        let program = load(include_str!("./input.txt"));
-        assert_eq!(part_two(&program), 334);
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 334);
     }
 }

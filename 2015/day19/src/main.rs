@@ -20,55 +20,60 @@ fn part_one(input: &str) -> usize
     use std::collections::HashSet;
 
     let (rules, molecule) = load(input);
-    let mut molecules = HashSet::new();
-    rules.iter().for_each(|(k, s)|
-        molecule.match_indices(k).for_each(|(i, _)| {
-            let mut m = molecule.to_string();
-            m.replace_range(i..i+k.len(), s);
-            molecules.insert(m);
+    rules.iter()
+        .flat_map(|(sequence, replacement)| {
+            let n = sequence.len();
+            molecule
+                .match_indices(sequence)
+                .map(move |(i, _)| {
+                    let mut m = molecule.to_string();
+                    m.replace_range(i..i+n, replacement);
+                    m
+                })
         })
-    );
-
-    molecules.len()
+        .collect::<HashSet<_>>()
+        .len()
 }
 
 fn part_two(input: &str) -> u32
 {
-    use rand::seq::SliceRandom;
+    use rand::prelude::SliceRandom;
 
-    let (rules, molecule) = load(input);
+    let (mut rules, molecule) = load(input);
 
-    let rrules = rules.iter().map(|(k, v)| (*v, *k)).collect::<Vec<_>>();
-
-    let mut cnt = 0;
+    let mut count = 0;
     let mut m = molecule.to_string();
+
     while m != "e" {
-        // Pick a completely random rule to apply. Sometimes we get stuck
-        // sometimes we find the answer: 207.
-        let rule = rrules.choose(&mut rand::thread_rng()).unwrap();
-        while let Some(i) = m.find(rule.0) {
-            m.replace_range(i..(i+rule.0.len()), rule.1);
-            cnt += 1;
+        let n = count;
+        for (s, r) in &rules {
+            let mut m1 = m.clone();
+            m.rmatch_indices(r)
+                .for_each(|(i, _)| {
+                    count += 1;
+                    let n = r.len();
+                    m1.replace_range(i..i+n, s);
+                });
+                m = m1
+        }
+        if count == n {
+            m = molecule.to_string();
+            count = 0;
+            rules.shuffle(&mut rand::thread_rng());
         }
     }
 
-    cnt
+    count
 }
 
 fn load(input: &str) -> (Rules, &str)
 {
-    let mut it = input.split("\n\n");
-    let rules = it.next()
-        .map(|v| v.lines()
-            .fold(Vec::new(), |mut rules, s| {
-                let kv = s.split(" => ").collect::<Vec<_>>();
-                rules.push((kv[0], kv[1]));
-                rules
-            })
-        )
-        .unwrap();
+    let (rules, molecule) = input.split_once("\n\n").unwrap();
+    let rules = rules.lines()
+        .flat_map(|line| line.split_once(" => "))
+        .collect();
 
-    (rules, it.next().unwrap())
+    (rules, molecule)
 }
 
 

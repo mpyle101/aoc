@@ -1,98 +1,98 @@
-fn main() {
-    use std::fs;
+fn main()
+{
     use std::time::Instant;
 
-    let input = fs::read_to_string("./input.txt").unwrap();
-    let actions = load(&input);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let blocks = part_one(&actions);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", blocks, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let t1 = Instant::now();
-    let blocks = part_two(&actions);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", blocks, t2 - t1);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-enum Action {
-    Left(i32),
-    Right(i32),
-}
-
-fn load(input: &str) -> Vec<Action> {
-    input.split(", ").map(|v| {
-        let blocks = v[1..].parse::<i32>().unwrap();
-        match v.chars().next() {
-            Some('L') => Action::Left(blocks),
-            Some('R') => Action::Right(blocks),
-            _ => panic!("Unknown action: {v}")
-        }
-    })
-    .collect()
-}
-
-fn part_one(actions: &[Action]) -> i32 {
-    // Rotate the world instead of moving around in it.
-    let p = actions.iter()
-        .fold((0, 0), |(x, y), action|
-            match action {
-                Action::Left(n)  => ( y, n - x),
-                Action::Right(n) => (-y, x + n),
+fn part_one(input: &str) -> i32
+{
+    let steps = load(input);
+    let (x, y) = steps.iter()
+        .fold((0, 0), |(x, y), (c, n)| {
+            match c {
+                // rotate the world
+                'R' => (-y, x + n),
+                'L' => ( y, n - x),
+                _  => unreachable!()
             }
-        );
-        
-    p.0.abs() + p.1.abs()
+        });
+
+    x.abs() + y.abs()
 }
 
-fn part_two(actions: &[Action]) -> i32 {
+fn part_two(input: &str) -> i32
+{
     use std::collections::HashSet;
 
-    let mut facing = 0; // 0:N, 1:E, 2:S, 3:W
-    let mut p: (i32, i32) = (0, 0); // x, y
-    let mut visited = HashSet::from([p]);
+    let steps = load(input);
 
-    for action in actions {
-        let (dir, blocks) = match action {
-            Action::Left(n)  => (if facing == 0 { 3 } else { facing - 1 }, n),
-            Action::Right(n) => (if facing == 3 { 0 } else { facing + 1 }, n),
-        };
-        let (dx, dy) = if dir % 2 == 0 {
-            (0, if dir == 0 { *blocks } else { -blocks })
-        } else {
-            (if dir == 1 { *blocks } else { -blocks }, 0)
-        };
-        facing = dir;
+    let (mut x, mut y) = (0_i32, 0_i32);
+    let mut visited = HashSet::from([(0, 0)]);
 
-        let (stepx, stepy) = (dx.signum(), dy.signum());
-        let target = (p.0 + dx, p.1 + dy);
-        while p != target {
-            p = (p.0 + stepx, p.1 + stepy);
-            if !visited.insert(p) {
-                return p.0.abs() + p.1.abs()
+    let mut dir = '^';
+    for (c, n) in steps {
+        dir = match (dir, c) {
+            ('^', 'R') => '>', ('^', 'L') => '<',
+            ('v', 'R') => '<', ('v', 'L') => '>',
+            ('<', 'R') => '^', ('<', 'L') => 'v',
+            ('>', 'R') => 'v', ('>', 'L') => '^',
+                     _ => unreachable!()
+        };
+        let (dx, dy) = match dir {
+            '^' => ( 0, -1),
+            'v' => ( 0,  1),
+            '<' => (-1,  0),
+            '>' => ( 1,  0),
+             _  => unreachable!()
+        };
+        for _ in 0..n {
+            (x, y) = (x + dx, y + dy);
+            if !visited.insert((x, y)) {
+                return x.abs() + y.abs()
             }
         }
     }
-    
-    -1
+
+    0
+}
+
+fn load(input: &str) -> Vec<(char, i32)>
+{
+    input.lines()
+        .flat_map(|s| s.split(", "))
+        .map(|s| {
+            let c = s.chars().next().unwrap();
+            let n = s[1..].parse::<i32>().unwrap();
+            (c, n)
+        })
+        .collect()
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
 
     #[test]
-    fn it_works() {
-        let input = fs::read_to_string("./input.txt").unwrap();
-        let actions = load(&input);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 231);
+    }
 
-        let blocks = part_one(&actions);
-        assert_eq!(blocks, 231);
-
-        let blocks = part_two(&actions);
-        assert_eq!(blocks, 147);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 147);
     }
 }

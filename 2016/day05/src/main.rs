@@ -1,20 +1,20 @@
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let input = "abbhdwsy";
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let password = part_one(input);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", password, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let t1 = Instant::now();
-    let password = part_two(input);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", password, t2 - t1);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(door_id: &str) -> String {
+fn part_one(input: &str) -> String
+{
     let mut password = ['-';8];
 
     let marker  = ['0';5];
@@ -23,7 +23,7 @@ fn part_one(door_id: &str) -> String {
 
     let mut i = 0;
     while i < 8 {
-        let s = format!("{door_id}{index}");
+        let s = format!("{input}{index}");
         let digest = md5::compute(s);
         let hash = hex::encode(digest.iter());
         hash.chars().enumerate().take(6).for_each(|(n, c)| buf[n] = c);
@@ -38,7 +38,8 @@ fn part_one(door_id: &str) -> String {
     password.iter().collect()
 }
 
-fn part_two(door_id: &str) -> String {
+fn part_two(input: &str) -> String
+{
     let mut password = ['-';8];
 
     let marker  = ['0';5];
@@ -47,7 +48,7 @@ fn part_two(door_id: &str) -> String {
 
     let mut i = 0;
     while i < 8 {
-        let s = format!("{door_id}{index}");
+        let s = format!("{input}{index}");
         let digest = md5::compute(s);
         let hash = hex::encode(digest.iter());
         hash.chars().enumerate().take(7).for_each(|(n, c)| buf[n] = c);
@@ -72,13 +73,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let input = "abbhdwsy";
-    
-        let password = part_one(input);
-        assert_eq!(password, "801b56a7");
-    
-        let password = part_two(input);
-        assert_eq!(password, "424a0197");
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), "801b56a7");
+    }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), "424a0197");
     }
 }

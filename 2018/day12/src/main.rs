@@ -33,9 +33,7 @@ fn part_two(input: &str) -> i64
     // after that.
 
     let (state, rules) = load(input);
-    let st = (0..=168).fold(state.clone(), |st, _| {
-        cycle(&st, &rules)
-    });
+    let st = (0..=168).fold(state, |st, _| cycle(&st, &rules));
     let start = st.iter().sum::<i32>() as i64;
 
     let n = 50_000_000_000 - 169;

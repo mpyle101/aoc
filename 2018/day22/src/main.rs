@@ -1,28 +1,33 @@
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let t1 = Instant::now();
-    let risk = part_one(4848, (15, 700));
-    let t2 = Instant::now();
-    println!("Part 1: {}  ({:?})", risk, t2 - t1);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let minutes = part_two(4848, (15, 700));
-    let t2 = Instant::now();
-    println!("Part 1: {}  ({:?})", minutes, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(depth: i32, target: (i32, i32)) -> i32 {
+fn part_one(input: &str) -> i32
+{
+    let (depth, target) = load(input);
     let dims  = (target.0 + 1, target.1 + 1);
     let caves = spelunk(depth, target, dims);
     
     caves.iter().map(|v| v % 3).sum()
 }
 
-fn part_two(depth: i32, target: (i32, i32)) -> i32 {
+fn part_two(input: &str) -> i32
+{
     use pathfinding::prelude::dijkstra;
 
     // Pre-calculate extra regions.
+    let (depth, target) = load(input);
     let (mx, my) = (target.0 + 30, target.1 + 30);
     let caves = spelunk(depth, target, (mx, my));
 
@@ -40,9 +45,25 @@ fn part_two(depth: i32, target: (i32, i32)) -> i32 {
     result.1
 }
 
+fn load(input: &str) -> (i32, (i32, i32))
+{
+    let (s1, s2) = input.split_once('\n').unwrap();
+
+    let (_, s) = s1.split_once(": ").unwrap();
+    let depth = s.parse::<i32>().unwrap();
+
+    let (_, s) = s2.split_once(": ").unwrap();
+    let (x, y) = s.split_once(',').unwrap();
+    let x = x.parse::<i32>().unwrap();
+    let y = y.parse::<i32>().unwrap();
+
+    (depth, (x, y))
+}
+
 type State = ((i32, i32), i32);
 
-fn successors((p, eq): &State, caves: &[i32], mx: i32, my: i32) -> Vec<(State, i32)> {
+fn successors((p, eq): &State, caves: &[i32], mx: i32, my: i32) -> Vec<(State, i32)>
+{
     let (x, y)  = *p;
     let terrain = caves[(y * mx + x) as usize];
 
@@ -70,7 +91,8 @@ fn successors((p, eq): &State, caves: &[i32], mx: i32, my: i32) -> Vec<(State, i
     states
 }
 
-fn spelunk(depth: i32, (tx, ty): (i32, i32), (mx, my): (i32, i32)) -> Vec<i32> {
+fn spelunk(depth: i32, (tx, ty): (i32, i32), (mx, my): (i32, i32)) -> Vec<i32>
+{
     let mut caves = Vec::with_capacity((mx * my) as usize);
 
     caves.push(depth % 20183);  // (0, 0)
@@ -93,7 +115,8 @@ fn spelunk(depth: i32, (tx, ty): (i32, i32), (mx, my): (i32, i32)) -> Vec<i32> {
 }
 
 #[allow(dead_code)]
-fn print(caves: &[i32], (mx, my): (i32, i32)) {
+fn print(caves: &[i32], (mx, my): (i32, i32))
+{
     for y in 0..my {
         for x in 0..mx {
             let terrain = caves[(y * mx + x) as usize];
@@ -111,14 +134,19 @@ fn print(caves: &[i32], (mx, my): (i32, i32)) {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let risk = part_one(4848, (15, 700));
-    assert_eq!(risk, 11359);
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 11359);
+    }
 
-    let minutes = part_two(4848, (15, 700));
-    assert_eq!(minutes, 976);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 976);
+    }
 }

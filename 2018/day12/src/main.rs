@@ -68,8 +68,8 @@ fn check<'a>(n: i32, state: &State, rules: &'a Rules) -> Option<&'a u8>
         .filter(|(_, n)| state.contains(n))
         .fold(0u8, |p, (i, _)| p | 1 << (4 - i));
 
-    rules.iter().
-        find(|(p, _)| *p == pattern)
+    rules.iter()
+        .find(|(p, _)| *p == pattern)
         .map(|(_, v)| v)
 }
 

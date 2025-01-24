@@ -1,18 +1,22 @@
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let t1 = Instant::now();
-    let scores = part_one(681901);
-    let t2 = Instant::now();
-    println!("Part 1: {}  ({:?})", scores, t2 - t1);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let count = part_two([6,8,1,9,0,1]);
-    let t2 = Instant::now();
-    println!("Part 2: {}  ({:?})", count, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(count: usize) -> String {
+fn part_one(input: &str) -> String
+{
+    let count = input.parse::<usize>().unwrap();
+
     let mut recipes: Vec<u8> = Vec::with_capacity(count + 15);
     recipes.push(3);
     recipes.push(7);
@@ -32,7 +36,11 @@ fn part_one(count: usize) -> String {
     recipes[count..count + 10].iter().map(|&n| (n + 48) as char).collect()
 }
 
-fn part_two(scores: [u8;6]) -> u32 {
+fn part_two(input: &str) -> u32
+{
+    let scores = input.bytes()
+        .enumerate()
+        .fold([0;6], |mut buf, (i, b)| { buf[i] = b - b'0'; buf });
     let mut recipes: Vec<u8> = vec![3,7,1,0,1,0,1];
     let mut len = recipes.len();
     
@@ -63,14 +71,19 @@ fn part_two(scores: [u8;6]) -> u32 {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let scores = part_one(681901);
-    assert_eq!(scores, "1617111014");
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), "1617111014");
+    }
 
-    let count = part_two([6,8,1,9,0,1]);
-    assert_eq!(count, 20321495);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 20321495);
+    }
 }

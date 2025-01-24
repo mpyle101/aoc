@@ -1,78 +1,74 @@
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let input = include_str!("./input.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let checksum = part_one(input);
-    println!("Part 1: {checksum} ({:?})", t.elapsed());
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
-    let letters = part_two(input);
-    println!("Part 2: {letters} ({:?})", t.elapsed());
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(boxes: &str) -> u32 {
-    let other = [3, 2];
-    let mut letters: [u8;26] = [0;26];
+fn part_one(input: &str) -> u32
+{
+    input.lines()
+        .fold([0, 0], |[n2, n3], line| {
+            let letters = line.bytes()
+                .fold([0;26], |mut a, b| {
+                    a[(b - b'a') as usize] += 1; a
+                });
+            [
+                letters.iter().find(|&n| *n == 2).map_or(n2, |_| n2 + 1),
+                letters.iter().find(|&n| *n == 3).map_or(n3, |_| n3 + 1)
+            ]
+        })
+        .iter()
+        .product()
+}
 
-    let [n2, n3] = boxes.lines()
-        .fold([0, 0], |mut cnt, line| {
-            letters = [0;26];
-            line.chars().for_each(|c| letters[c as usize - 97] += 1);
+fn part_two(input: &str) -> String
+{
+    let ids = input.lines().collect::<Vec<_>>();
 
-            let mut iter = letters.iter().skip_while(|&v| *v != 2 && *v != 3);
-            if let Some(n) = iter.next() {
-                cnt[*n as usize - 2] += 1;
-                let i = other[*n as usize - 2];
-                let mut iter = iter.skip_while(|&v| *v != i);
-                if let Some(m) = iter.next() {
-                    cnt[*m as usize - 2] += 1;
-                }
+    for i in 0..ids.len() - 1 {
+        for j in i..ids.len() {
+            if ids[i].bytes()
+                .zip(ids[j].bytes())
+                .filter(|(a, b)| a != b)
+                .count()  == 1
+            {
+                return ids[i].bytes()
+                    .zip(ids[j].bytes())
+                    .filter(|(a, b)| a == b)
+                    .map(|(a, _)| a as char)
+                    .collect::<String>()
             }
-            cnt
-        });
+        }
+    }
 
-    n2 * n3
-}
-
-fn part_two(boxes: &str) -> String {
-    use itertools::Itertools;
-
-    let m = boxes.lines()
-        .combinations(2)
-        .map(|v| (v[0].as_bytes(), v[1].as_bytes()))
-        .collect::<Vec<_>>();
-
-    let v = (0..26).fold(vec![0;m.len()], |mut v, i| {
-        v.iter_mut()
-            .enumerate()
-            .for_each(|(n, v)| {
-                let (v1, v2) = m[n];
-                *v += i32::from(v1[i] != v2[i]);
-            });
-        v
-    });
-
-    let (v1, v2) = m[v.iter().position(|n| *n == 1).unwrap()];
-    v1.iter().zip(v2.iter())
-        .filter_map(|(c1, c2)| (c1 == c2).then_some(*c1 as char))
-        .collect()
+    "".into()
 }
 
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let input = include_str!("./input.txt");
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 5368);
+    }
 
-    let checksum = part_one(input);
-    assert_eq!(checksum, 5368);
-
-    let letters = part_two(input);
-    assert_eq!(letters, "cvgywxqubnuaefmsljdrpfzyi");
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), "cvgywxqubnuaefmsljdrpfzyi");
+    }
 }

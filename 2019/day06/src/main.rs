@@ -1,87 +1,127 @@
-// Run through the list of orbits and create a map of each object
-// being orbited to a vector objects orbiting it.
-// Then start at COM and set all its orbiters to have a segment
-// count of 1 and store the name/count association in a queue.
-// For each element in the queue, get its oribters from the map,
-// create name/count values for them increasing the count by one
-// and add them to the back of the queue. Put the processed element
-// into the orbits vector.
-// When the queue is finally empty, all orbits will have been given
-// the appropriate count and put into the orbits vector and you can
-// sum the counts to get the checksum for Part 1.
-// For part 2 we use the intial map to create a vector of object names
-// back to COM for both YOU and SAN. Then reverse the arrays and find
-// the index where they don't match. Adding the difference between the
-// length of each array and the index gives you the number of segments
-// needed to go from YOU to SAN, the answer for Part 2.
+use std::collections::{HashMap, HashSet};
 
-use std::collections::{HashMap, VecDeque};
+type Memo<'a> = HashMap<&'a str, u32>;
+type Orbits<'a> = HashMap<&'a str, &'a str>;
+type Transfers<'a> = HashMap<&'a str, Vec<&'a str>>;
 
-#[derive(Debug)]
-struct Orbit<'a> {
-    name: &'a str,
-    count: u32,
+fn main()
+{
+    use std::time::Instant;
+
+    let input = include_str!("../input.txt");
+
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn main() {
-    let mut map = HashMap::new();
 
-    let data = include_str!("./orbits.txt");
-    data.lines()
-        .map(|o| o.split(')').collect::<Vec<_>>())
-        .for_each(|v| insert(&mut map, &v) );
+fn part_one(input: &str) -> u32
+{
+    let orbits = load_orbits(input);
+    let mut counts = Memo::from([("COM", 0)]);
+    orbits.keys().for_each(|obj| { to_com(obj, &orbits, &mut counts); });
 
-    let mut q = VecDeque::new();
-    map.get("COM").unwrap().iter()
-        .for_each(|&name| q.push_back(Orbit { name, count: 1 }));
+    counts.values().sum()
+}
 
-    let mut orbits = Vec::new();
-    while let Some(o) = q.pop_front() {
-        if let Some(v) = map.get(o.name) { 
-            v.iter().for_each(|&name| q.push_back(Orbit { name, count: o.count + 1 }))
+#[allow(non_snake_case)]
+fn part_two(input: &str) -> u32
+{
+    let xfers = load_xfers(input);
+    let YOU = xfers.get("YOU").map(|v| v[0]).unwrap();
+    let SAN = xfers.get("SAN").map(|v| v[0]).unwrap();
+
+    let mut visited = HashSet::from(["YOU", "SAN"]);
+    to_santa(YOU, SAN, &xfers, &mut visited)
+}
+
+fn to_com<'a>(obj: &'a str, orbits: &Orbits<'a>, counts: &mut Memo<'a>) -> u32
+{
+    if let Some(n) = counts.get(obj) {
+        *n
+    } else if let Some(o) = orbits.get(obj) {
+        let n = to_com(o, orbits, counts) + 1;
+        *counts.entry(obj).or_default() = n;
+        n
+    } else {
+        0
+    }
+}
+
+fn to_santa<'a>(obj: &'a str, san: &'a str, xfers: &Transfers<'a>, visited: &mut HashSet<&'a str>) -> u32
+{
+    if obj == san {
+        0
+    } else if let Some(v) = xfers.get(obj) {
+        // Can't use u32::MAX because it will rollover when we add 1.
+        let mut n = 10_000_000;
+        for o in v {
+            if visited.insert(o) {
+                n = n.min(1 + to_santa(o, san, xfers, visited));
+            }
         }
-        orbits.push(o);
-    };
-
-    let checksum: u32 = orbits.into_iter().map(|o| o.count).sum();
-    println!("Checksum: {checksum}");
-
-    let mut xfers = HashMap::new();
-    data.lines()
-        .map(|o| o.split(')').collect::<Vec<_>>())
-        .for_each(|v| { xfers.insert(v[1], v[0]); } );
-
-    let you = to_com("YOU", &xfers);
-    let san = to_com("SAN", &xfers);
-    let idx = walk_back(&you, &san);
-    let min_xfers = (you.len() - idx) + (san.len() - idx);
-
-    println!("Minimum xfers: {min_xfers}");
+        n
+    } else {
+        10_000_000
+    }
 }
 
-fn insert<'a>(map: &mut HashMap<&'a str, Vec<&'a str>>, orbit: &[&'a str]) {
-    match map.get_mut(orbit[0]) {
-        Some(v) => v.push(orbit[1]),
-        None => { map.insert(orbit[0], vec![orbit[1]]); }
-    };
+fn load_orbits(input: &str) -> Orbits
+{
+    input.lines()
+        .map(|line| {
+            let (s1, s2) = line.split_once(')').unwrap();
+            (s2, s1)
+        })
+        .collect()
 }
 
-fn to_com<'a>(start: &str, map: &HashMap<&str, &'a str>) -> Vec<&'a str> {
-    let mut path = Vec::new();
-    let mut name = start;
-    while let Some(&o) = map.get(name) {
-        path.push(o);
-        name = o;
+fn load_xfers(input: &str) -> Transfers
+{
+    input.lines()
+        .fold(Transfers::new(), |mut m, line| {
+            let (s1, s2) = line.split_once(')').unwrap();
+            m.entry(s1).or_default().push(s2);
+            m.entry(s2).or_default().push(s1);
+            m
+        })
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 245089);
     }
 
-    path.reverse();
-    path
-}
-
-fn walk_back(v1: &[&str], v2: &[&str]) -> usize {
-    for (idx, &v) in v1.iter().enumerate() {
-        if v != v2[idx] { return idx }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 511);
     }
 
-    0
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example1.txt");
+        assert_eq!(part_one(input), 42);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example2.txt");
+        assert_eq!(part_two(input), 4);
+    }
 }

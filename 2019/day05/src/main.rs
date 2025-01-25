@@ -1,42 +1,58 @@
-use vm::Vm;
+fn main()
+{
+    use std::time::Instant;
 
-fn main() {
-  let program = include_str!("./program.txt");
-  let mut vm = Vm::new(program).unwrap();
-  let (mut stdin, mut stdout) = vm.pipes();
+    let input = include_str!("../input.txt");
 
-  stdin.write(1);
-  vm.exec().unwrap();
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-  println!("Diagnostic Code: {}", stdout.flush());
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
+}
+
+fn part_one(input: &str) -> i64
+{
+    use vm::Vm;
+
+    let mut vm = Vm::new(input).unwrap();
+    let (mut stdin, mut stdout) = vm.pipes();
+
+    stdin.write(1);
+    vm.exec().unwrap();
+    stdout.flush()
+}
+
+fn part_two(input: &str) -> i64
+{
+    use vm::Vm;
+
+    let mut vm = Vm::new(input).unwrap();
+    let (mut stdin, mut stdout) = vm.pipes();
+
+    stdin.write(5);
+    vm.exec().unwrap();
+    stdout.flush()
 }
 
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  static PROGRAM: &str = include_str!("./program.txt");
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 13787043);
+    }
 
-  #[test]
-  fn it_works() {
-    // test program
-    let mut vm = Vm::new(PROGRAM).unwrap();
-    let (mut stdin, mut stdout) = vm.pipes();
-
-    stdin.write(1);
-    assert_eq!(vm.exec().unwrap(), vm::State::Done);
-    assert_eq!(stdout.flush(), 13787043);
-}
-
-  #[test]
-  fn thermal_radiator_controller() {
-    // thermal radiator controller
-    let mut vm = Vm::new(PROGRAM).unwrap();
-    let (mut stdin, mut stdout) = vm.pipes();
-
-    stdin.write(5);
-    assert_eq!(vm.exec().unwrap(), vm::State::Done);
-    assert_eq!(stdout.flush(), 3892695);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 3892695);
+    }
 }

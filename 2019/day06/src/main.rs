@@ -53,16 +53,16 @@ fn to_com<'a>(obj: &'a str, orbits: &Orbits<'a>, counts: &mut Memo<'a>) -> u32
     }
 }
 
-fn to_santa<'a>(obj: &'a str, san: &'a str, xfers: &Transfers<'a>, visited: &mut HashSet<&'a str>) -> u32
+fn to_santa<'a>(me: &'a str, santa: &'a str, xfers: &Transfers<'a>, visited: &mut HashSet<&'a str>) -> u32
 {
-    if obj == san {
+    if me == santa {
         0
-    } else if let Some(v) = xfers.get(obj) {
+    } else if let Some(v) = xfers.get(me) {
         // Can't use u32::MAX because it will rollover when we add 1.
         let mut n = 10_000_000;
         for o in v {
             if visited.insert(o) {
-                n = n.min(1 + to_santa(o, san, xfers, visited));
+                n = n.min(1 + to_santa(o, santa, xfers, visited));
             }
         }
         n

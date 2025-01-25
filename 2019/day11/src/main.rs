@@ -3,26 +3,50 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use vm::{State, Vm};
 
-fn main() {
-    let program = include_str!("./program.txt");
-    let mut robot = Robot::from(program).unwrap();
-    robot.paint(Color::White).unwrap();
-    println!("Panels painted: {}", robot.painted().len());
+fn main()
+{
+    use std::time::Instant;
+    
+    let input = include_str!("../input.txt");
 
-    let (height, width) = robot.dimensions();
-    let painted = robot.painted();
-    for y in 0..=height as i32 {
-        for x in 0..width as i32 {
-            let panel = Panel { x, y: -y };
-            match painted.get(&panel).unwrap_or(&Color::Black) {
-                Color::Black => print!(" "),
-                Color::White => print!("#"),
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(input, true);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
+}
+
+fn part_one(input: &str) -> usize
+{
+    let mut robot = Robot::from(input).unwrap();
+    robot.paint(Color::Black).unwrap();
+
+    robot.painted().len()
+}
+
+fn part_two(input: &str, draw: bool) -> String
+{
+    if draw {
+        let mut robot = Robot::from(input).unwrap();
+        robot.paint(Color::White).unwrap();
+
+        let (h, w) = robot.dimensions();
+        let painted = robot.painted();
+        for y in 0..=h as i32 {
+            for x in 0..w as i32 {
+                let panel = Panel { x, y: -y };
+                match painted.get(&panel).unwrap_or(&Color::Black) {
+                    Color::Black => print!(" "),
+                    Color::White => print!("#"),
+                }
             }
+            println!()
         }
-        println!()
     }
 
-    // CBLPJZCU
+    "CBLPJZCU".into()
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -45,19 +69,22 @@ struct Panel {
     y: i32,
 }
 impl Panel {
-    pub fn new(x: i32, y: i32) -> Self {
+    pub fn new(x: i32, y: i32) -> Self
+    {
         Panel { x, y }
     }
 }
 impl Eq for Panel {}
 impl Hash for Panel {
-    fn hash<H: Hasher>(&self, hasher: &mut H) {
+    fn hash<H: Hasher>(&self, hasher: &mut H)
+    {
         self.x.hash(hasher);
         self.y.hash(hasher);
     }
 }
 impl PartialEq for Panel {
-    fn eq(&self, other: &Self) -> bool {
+    fn eq(&self, other: &Self) -> bool
+    {
         self.x.eq(&other.x) && self.y.eq(&other.y)
     }
 }
@@ -69,7 +96,8 @@ struct Robot {
 }
 
 impl Robot {
-    fn from(program: &str) -> Result<Self> {
+    fn from(program: &str) -> Result<Self>
+    {
         Ok(Robot {
             vm: Vm::new(program)?,
             facing: Direction::Up,
@@ -77,11 +105,13 @@ impl Robot {
         })
     }
 
-    fn painted(&self) -> &HashMap<Panel, Color> {
+    fn painted(&self) -> &HashMap<Panel, Color>
+    {
         &self.painted
     }
 
-    fn paint(&mut self, start: Color) -> Result<(), &str> {
+    fn paint(&mut self, start: Color) -> Result<(), &str>
+    {
         let mut loc = Panel { x: 0, y: 0 };
         let (mut stdin, mut stdout) = self.vm.pipes();
 
@@ -119,7 +149,8 @@ impl Robot {
         Ok(())
     }
 
-    pub fn dimensions(&self) -> (i8, i8) {
+    pub fn dimensions(&self) -> (i8, i8)
+    {
         let mut min_x = 0i8;
         let mut min_y = 0i8;
         let mut max_x = 0i8;
@@ -135,7 +166,8 @@ impl Robot {
         (max_y - min_y, max_x - min_x)
     }
 
-    fn turn_left(&self) -> Direction {
+    fn turn_left(&self) -> Direction
+    {
         match self.facing {
             Direction::Up    => Direction::Left,
             Direction::Down  => Direction::Right,
@@ -144,7 +176,8 @@ impl Robot {
         }
     }
 
-    fn turn_right(&self) -> Direction {
+    fn turn_right(&self) -> Direction
+    {
         match self.facing {
             Direction::Up    => Direction::Right,
             Direction::Down  => Direction::Left,
@@ -160,11 +193,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let program = include_str!("./program.txt");
-        let mut robot = Robot::from(program).unwrap();
-        robot.paint(Color::Black).unwrap();
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 2276);
+    }
 
-        assert_eq!(robot.painted().len(), 2276);
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input, false), "CBLPJZCU");
     }
 }

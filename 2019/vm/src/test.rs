@@ -14,14 +14,25 @@ fn it_works() {
 }
 
 #[test]
-fn trc() {
-  // thermal radiator controller
+fn thermal_radiator_controller() {
   let mut vm = Vm::new(PROGRAM).unwrap();
   let (mut stdin, mut stdout) = vm.pipes();
 
   stdin.write(5);
   assert_eq!(vm.exec().unwrap(), State::Done);
   assert_eq!(stdout.flush(), 3892695);
+}
+
+#[test]
+fn read_from_stdin() {
+  let program = "3,9,8,9,10,9,4,9,99,-1,8";
+  let mut vm = Vm::new(program).unwrap();
+  let (mut stdin, mut stdout) = vm.pipes();
+
+  assert_eq!(vm.exec().unwrap(), State::Waiting);
+  stdin.write(8);
+  assert_eq!(vm.cont().unwrap(), State::Done);
+  assert_eq!(stdout.flush(), 1);
 }
 
 #[test]

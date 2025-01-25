@@ -61,7 +61,7 @@ fn part_two(program: &str) -> Result<i64, &str> {
 
     let mut vm = Vm::new(program).or(Err("Load failed"))?;
 
-    vm.edit_program(0, 2);
+    vm.set_addr(0, 2);
     rules.iter().for_each(|&v| vm.write(v as i64));
     vm.write(b'n'); vm.write(b'\n'); // feed
     vm.exec().or(Err("Exec failed"))?;

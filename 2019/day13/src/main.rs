@@ -1,25 +1,37 @@
-use std::collections::HashSet;
 use vm::Vm;
 
-fn main() {
-    let program = include_str!("./program.txt");
+fn main()
+{
+    use std::time::Instant;
+    
+    let input = include_str!("../input.txt");
 
-    let blocks = part_one(program);
-    println!("Block tiles: {blocks}");
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let score = part_two(program);
-    println!("Score: {score}");
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(program: &str) -> usize {
-    let mut vm = Vm::new(program).unwrap();
+fn part_one(input: &str) -> usize
+{
+    let mut vm = Vm::new(input).unwrap();
     let (_, mut stdout) = vm.pipes();
+
     vm.exec().unwrap();
-    stdout.drain().chunks(3).filter(|c| c[2] == 2).count()
+    stdout.drain()
+        .chunks(3)
+        .filter(|c| c[2] == 2)
+        .count()
 }
 
-fn part_two(program: &str) -> i64 {
-    let mut vm = Vm::new(program).unwrap();
+fn part_two(input: &str) -> i64
+{
+    use std::collections::HashSet;
+
+    let mut vm = Vm::new(input).unwrap();
     let (mut stdin, mut stdout) = vm.pipes();
 
     vm.set_addr(0, 2);
@@ -59,9 +71,13 @@ fn part_two(program: &str) -> i64 {
     score
 }
 
-fn find_tile(screen: &[i64], id: i64) -> Option<(i64, i64)> {
-    let tiles = screen.chunks(3).collect::<Vec<&[i64]>>();
-    let idx = tiles.iter().position(|t| t[2] == id)?;
+fn find_tile(screen: &[i64], id: i64) -> Option<(i64, i64)>
+{
+    let tiles = screen.chunks(3)
+        .collect::<Vec<&[i64]>>();
+    let idx = tiles.iter()
+        .position(|t| t[2] == id)?;
+
     Some((tiles[idx][0], tiles[idx][1]))
 }
 
@@ -70,18 +86,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let program = include_str!("./program.txt");
-        let blocks = part_one(program);
-
-        assert_eq!(blocks, 427);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 427);
     }
 
     #[test]
-    fn it_works2() {
-        let program = include_str!("./program.txt");
-        let score = part_two(program);
-
-        assert_eq!(score, 21426);
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 21426);
     }
 }

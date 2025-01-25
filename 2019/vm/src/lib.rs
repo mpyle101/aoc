@@ -85,11 +85,8 @@ impl Vm {
         // Copy instructions into backup memory
         program.split(',')
             .enumerate()
-            .try_for_each(|(i, s)| -> Result<()> {
-                let v = s.parse::<i64>()?;
-                vm.backup[i] = v;
-                Ok(())
-            })?;
+            .flat_map(|(i, s)| s.parse::<i64>().map(|n| (i, n)))
+            .for_each(|(i, n)| vm.backup[i] = n);
 
         Ok(vm)
     }
@@ -144,10 +141,6 @@ impl Vm {
     }
 
     pub fn set_addr(&mut self, addr: usize, v: i64) {
-        self.memory[addr] = v
-    }
-
-    pub fn edit_program(&mut self, addr: usize, v: i64) {
         self.backup[addr] = v
     }
 

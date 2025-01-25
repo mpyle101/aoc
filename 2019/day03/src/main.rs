@@ -13,7 +13,7 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> u32
+fn part_one(input: &str) -> i32
 {
     use std::iter::FromIterator;
     use std::collections::HashSet;
@@ -24,7 +24,7 @@ fn part_one(input: &str) -> u32
     let b = Path::from_iter(generate_path(s2));
 
     (&a & &b).iter()
-        .map(|p| md(*p, (0, 0)))
+        .map(|p| p.0.abs() + p.1.abs())
         .min()
         .unwrap()
 }
@@ -46,11 +46,6 @@ fn part_two(input: &str) -> usize
         .flat_map(|(p, i)| w2.iter().position(|p1| p1 == p).map(|j| i + j + 1))
         .min()
         .unwrap()
-}
-
-fn md((x1, y1): (i32, i32), (x2, y2): (i32, i32)) -> u32
-{
-    x2.abs_diff(x1) + y2.abs_diff(y1)
 }
 
 fn generate_path(wire: &str) -> Vec<(i32, i32)>

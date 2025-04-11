@@ -111,7 +111,7 @@ fn split(s: &str) -> Option<String> {
         if m.as_str().len() > 1 {
             let n = m.as_str().parse::<u32>().unwrap();
             let a = n / 2;
-            let b = (n + 1) / 2;
+            let b = n.div_ceil(2);
             let mut s2 = s.to_string();
             s2.replace_range(m.start()..m.end(), &format!("[{a},{b}]"));
             return Some(s2)

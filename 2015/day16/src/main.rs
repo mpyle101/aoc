@@ -30,7 +30,7 @@ fn load(input: &str) -> Vec<HashMap<&str, i32>> {
 fn part_one(aunts: &[HashMap<&str, i32>], clues: &[(&str, i32); 10]) -> i32 {
     let sue = clues.iter().fold(aunts.to_vec(), |vec, (clue, value)|
         vec.iter()
-            .filter(|m| m.get(clue).map_or(true, |v| v == value))
+            .filter(|m| m.get(clue).is_none_or(|v| v == value))
             .cloned()
             .collect::<Vec<_>>()
     );
@@ -41,7 +41,7 @@ fn part_one(aunts: &[HashMap<&str, i32>], clues: &[(&str, i32); 10]) -> i32 {
 fn part_two(aunts: &[HashMap<&str, i32>], clues: &[(&str, i32); 10]) -> i32 {
     let sue = clues.iter().fold(aunts.to_vec(), |vec, (clue, value)|
         vec.iter().filter(|map|
-            map.get(clue).map_or(true, |v|
+            map.get(clue).is_none_or(|v|
                 if *clue == "cats:" || *clue == "trees:" {
                     v > value
                 } else if *clue == "pomeranians:" || *clue == "goldfish:" {

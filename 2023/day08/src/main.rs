@@ -74,7 +74,7 @@ fn part_two(input: &str) -> u64
     let mut cycles = vec![0u64;keys.len()];
 
     let mut found = false;
-    while !found && cycles.iter().any(|n| *n == 0) {
+    while !found && cycles.contains(&0) {
         steps += 1;
         let (idx, dir) = iter.next().unwrap();
         for key in keys.iter_mut() {

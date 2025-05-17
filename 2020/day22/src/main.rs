@@ -71,7 +71,7 @@ fn play(deck1: &mut Deck, deck2: &mut Deck) -> Player {
     let mut winner = None;
     while winner.is_none() {
         let round = Round (deck1.clone(), deck2.clone());
-        if rounds.iter().any(|r| *r == round) {
+        if rounds.contains(&round) {
             winner = Some(Player::One)
         } else {
             let card1 = deck1.pop_front().unwrap();

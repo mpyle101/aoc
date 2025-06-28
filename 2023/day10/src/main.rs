@@ -137,7 +137,7 @@ fn next_move(mv: Move, graph: &[char], rowlen: usize) -> Move
         West(p)  if graph[p] == '-' => West(p - 1),
         West(p)  if graph[p] == 'F' => South(p + rowlen),
         West(p)  if graph[p] == 'L' => North(p - rowlen),
-        _ => panic!("Unsupport movement: {:?}", mv)
+        _ => panic!("Unsupport movement: {mv:?}")
     }
 }
 

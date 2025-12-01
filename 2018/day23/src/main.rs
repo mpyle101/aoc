@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use z3::{ast::Int, Config, Context, Optimize};
+use z3::{ast::Int, Optimize};
 
 type BotMap = HashMap<Bot, HashSet<Bot>>;
 type BotSet = HashSet<Bot>;
@@ -34,21 +34,20 @@ fn part_two(input: &str) -> i64
 {
     let bots = load(input);
 
-    let ctx = Context::new(&Config::new());
-    let x = Int::new_const(&ctx, "x");
-    let y = Int::new_const(&ctx, "y");
-    let z = Int::new_const(&ctx, "z");
+    let x = Int::new_const("x");
+    let y = Int::new_const("y");
+    let z = Int::new_const("z");
 
-    let one  = Int::from_i64(&ctx, 1);
-    let zero = Int::from_i64(&ctx, 0);
+    let one  = Int::from_i64(1);
+    let zero = Int::from_i64(0);
 
-    let mut count = Int::from_i64(&ctx, 0);
+    let mut count = Int::from_i64(0);
     for b in bots {
-        let bx = Int::from_i64(&ctx, b.x);
-        let by = Int::from_i64(&ctx, b.y);
-        let bz = Int::from_i64(&ctx, b.z);
-        let br = Int::from_i64(&ctx, b.r);
-    
+        let bx = Int::from_i64(b.x);
+        let by = Int::from_i64(b.y);
+        let bz = Int::from_i64(b.z);
+        let br = Int::from_i64(b.r);
+
         let dx = bx - &x;
         let dx = dx.le(&zero).ite(&dx.unary_minus(), &dx);
         let dy = by - &y;
@@ -59,7 +58,7 @@ fn part_two(input: &str) -> i64
         count += md.le(&br).ite(&one, &zero);
     }
 
-    let optimizer = Optimize::new(&ctx);
+    let optimizer = Optimize::new();
     optimizer.maximize(&count);
 
     let dx = x.le(&zero).ite(&x.unary_minus(), &x);
@@ -76,7 +75,7 @@ fn part_two(input: &str) -> i64
 }
 
 #[allow(dead_code)]
-fn part_two_bk(input: &str) -> i64
+fn part_two_bron_kerbosch(input: &str) -> i64
 {
     // :sad-panda:
     // Unfortunately, this approach doesn't work for our input set
@@ -180,7 +179,7 @@ impl BronKerbosch {
 
             for v in &p - pivot {
                 let neighbors = graph.get(&v).unwrap();
-        
+
                 r.push(v);
                 self.bk(graph, r, &p & neighbors, &x & neighbors);
                 r.pop();

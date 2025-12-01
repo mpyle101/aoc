@@ -15,10 +15,9 @@ fn main()
 
 fn part_one(input: &str) -> u32
 {
-    let mut zeros = 0;
-
+    let mut dial = 50;
     input.lines()
-        .fold(50, |mut dial, line| {
+        .fold(0, |zeros, line| {
             let dir = line.chars().next().unwrap();
             let mut steps = line[1..].parse::<u32>().unwrap();
 
@@ -33,19 +32,15 @@ fn part_one(input: &str) -> u32
                 }
             };
 
-            zeros += (dial == 0) as u32;
-            dial
-        });
-
-    zeros
+            zeros + (dial == 0) as u32
+        })
 }
 
 fn part_two(input: &str) -> u32
 {
-    let mut zeros = 0;
-
+    let mut dial = 50;
     input.lines()
-        .fold(50, |mut dial, line| {
+        .fold(0, |mut zeros, line| {
             let dir = line.chars().next().unwrap();
             let mut steps = line[1..].parse::<u32>().unwrap();
             zeros += steps / 100;
@@ -67,11 +62,8 @@ fn part_two(input: &str) -> u32
                 }
             };
 
-            zeros += (dial == 0) as u32;
-            dial
-        });
-
-    zeros
+            zeros + (dial == 0) as u32
+        })
 }
 
 

@@ -9,7 +9,7 @@ enum Player {
 type Deck = VecDeque<usize>;
 
 fn main() {
-    let decks = load(include_str!("./input.txt"));
+    let decks = load(include_str!("../input.txt"));
 
     let score = part_one(&decks);
     println!("Part 1: {score}");
@@ -117,7 +117,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let decks = load(include_str!("./input.txt"));
+        let decks = load(include_str!("../input.txt"));
 
         let score = part_one(&decks);
         assert_eq!(score, 35818);
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn small() {
-        let decks = load(include_str!("./test.txt"));
+        let decks = load(include_str!("../example.txt"));
 
         let score = part_one(&decks);
         assert_eq!(score, 306);

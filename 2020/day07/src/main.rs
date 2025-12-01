@@ -47,7 +47,7 @@ fn part_two(bags: &Bags2) -> u32 {
     total_bags
 }
 
-fn load_one(input: &str) -> Bags1 {
+fn load_one(input: &str) -> Bags1<'_> {
     let mut bags = HashMap::new();
     input.lines()
         .map(|s| s.split(" bags contain ").collect::<Vec<_>>())
@@ -61,7 +61,7 @@ fn load_one(input: &str) -> Bags1 {
     bags
 }
 
-fn load_two(input: &str) -> Bags2 {
+fn load_two(input: &str) -> Bags2<'_> {
     let mut bags = HashMap::new();
     input.lines()
         .map(|s| s.split(" bags contain ").collect::<Vec<_>>())

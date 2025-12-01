@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 fn main() {
-    let recipes = load(include_str!("./input.txt"));
+    let recipes = load(include_str!("../input.txt"));
     let allergens = find_allergens(&recipes);
 
     let count = part_one(&recipes, &allergens);
@@ -60,7 +60,7 @@ fn find_allergens<'a>(recipes: &'a [Recipe]) -> HashMap<&'a str, &'a str> {
     found
 }
 
-fn load(input: &str) -> Vec<Recipe> {
+fn load(input: &str) -> Vec<Recipe<'_>> {
     input.lines()
         .map(|s| s[..s.len()-1].split(" (contains ").collect::<Vec<_>>())
         .map(|v| {
@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let recipes = load(include_str!("./input.txt"));
+        let recipes = load(include_str!("../input.txt"));
         let allergens = find_allergens(&recipes);
 
         let count = part_one(&recipes, &allergens);

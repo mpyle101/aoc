@@ -67,7 +67,7 @@ fn part_two(input: &str) -> i64 {
         .fold(start, |n, (_, action, v, p)| action.undo(*p, n, *v))
 }
 
-fn load(input: &str) -> HashMap<&str, Action> {
+fn load(input: &str) -> HashMap<&str, Action<'_>> {
     input.lines()
         .map(|s| s.split(' ').collect::<Vec<_>>())
         .map(|v| {

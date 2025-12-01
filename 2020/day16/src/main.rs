@@ -80,7 +80,7 @@ fn part_two(input: &str) -> u64
         .product()
 }
 
-fn load(input: &str) -> (Rules, Ticket, Vec<Ticket>)
+fn load(input: &str) -> (Rules<'_>, Ticket, Vec<Ticket>)
 {
     let mut it = input.split("\n\n");
     let s = it.next().unwrap();

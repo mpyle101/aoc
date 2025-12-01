@@ -29,7 +29,7 @@ struct Program<'a> {
 
 type Tower<'a> = HashMap<&'a str, Program<'a>>;
 
-fn load(input: &str) -> Tower {
+fn load(input: &str) -> Tower<'_> {
     input.lines().map(|s| {
         let v: Vec<_> = s.split(' ').collect();
         let name   = v[0];

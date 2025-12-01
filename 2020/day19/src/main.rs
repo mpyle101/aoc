@@ -4,7 +4,7 @@ use std::collections::HashMap;
 type Rules<'a> = HashMap<u32, Rule<'a>>;
 
 fn main() {
-    let (mut rules, msgs) = load(include_str!("./input.txt"));
+    let (mut rules, msgs) = load(include_str!("../input.txt"));
 
     println!("Part 1: {}", part_one(&rules, msgs));
     println!("Part 2: {}", part_two(&mut rules, msgs));
@@ -29,7 +29,7 @@ fn part_two(rules: &mut Rules, msgs: &str) -> usize {
 }
 
 
-fn load(input: &str) -> (Rules, &str) {
+fn load(input: &str) -> (Rules<'_>, &str) {
     let v: Vec<_> = input.split("\n\n").collect();
     let rules: HashMap<u32, Rule> = v[0].lines()
         .map(|s| {
@@ -107,7 +107,7 @@ mod tests {
 
   #[test]
   fn it_works() {
-    let (mut rules, msgs) = load(include_str!("./input.txt"));
+    let (mut rules, msgs) = load(include_str!("../input.txt"));
 
     let valid = part_one(&rules, msgs);
     assert_eq!(valid, 210);

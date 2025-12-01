@@ -13,11 +13,11 @@ fn main() {
     println!("Part 2: {fuel}")
 }
 
-fn load(formulas: &str) -> Result<SpecMap> {
+fn load(formulas: &str) -> Result<SpecMap<'_>> {
     formulas.lines().map(parse).collect::<Result<SpecMap>>()
 }
 
-fn parse(spec: &str) -> Result<(&str, Spec)> {
+fn parse(spec: &str) -> Result<(&str, Spec<'_>)> {
     let spec = Spec::from(spec)?;
     Ok((spec.id, spec))
 }
@@ -133,7 +133,7 @@ impl<'a> Spec<'a> {
         })
     }
 
-    fn parse(rsrc: &str) -> Result<Resource> {
+    fn parse(rsrc: &str) -> Result<Resource<'_>> {
         let v = rsrc.trim().split(' ').collect::<Vec<_>>();
         Ok(Resource {
             id: v[1],

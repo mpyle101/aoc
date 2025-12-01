@@ -21,12 +21,21 @@ const SEA_MONSTER: [(i32, i32); 15] = [
     (0, -13), (0, -14), (1, -15), (1, -18), (0, -19)
 ];
 
-fn main() {
-    let tiles = load(include_str!("./input.txt"));
+fn main()
+{
+    use std::time::Instant;
+
+    let input = include_str!("../input.txt");
+    let tiles = load(input);
     let image = find_image(&tiles).unwrap();
 
-    println!("Part 1: {}", part_one(&image));
-    println!("Part 2: {}", part_two(&image));
+    let t = Instant::now();
+    let result = part_one(&image);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
+
+    let t = Instant::now();
+    let result = part_two(&image);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(image: &Image) -> u64 {
@@ -72,7 +81,7 @@ fn sea_monster(im: &Matrix<char>, pos: (usize, usize)) -> bool {
     })
 }
 
-fn find_image(tiles: &Tiles) -> Option<Image> {
+fn find_image(tiles: &Tiles) -> Option<Image<'_>> {
 
     let w = ((tiles.len() / 8) as f64).sqrt() as i32;
     let all: Vec<_> = tiles.keys().collect();
@@ -137,7 +146,7 @@ struct Image<'a> {
 }
 
 impl Image<'_> {
-    fn new(dim: i32, tiles: &Tiles) -> Image {
+    fn new(dim: i32, tiles: &Tiles) -> Image<'_> {
         Image { dim, tiles, data: HashMap::new() }
     }
 
@@ -261,29 +270,41 @@ fn draw(image: &Matrix<char>) {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let tiles = load(include_str!("./input.txt"));
-    let image = find_image(&tiles).unwrap();
+    #[test]
+    fn input_part_one()
+    {
+        let tiles = load(include_str!("../example.txt"));
+        let image = find_image(&tiles).unwrap();
 
-    let corners = part_one(&image);
-    assert_eq!(corners, 18482479935793);
+        assert_eq!(part_one(&image), 18482479935793);
+    }
 
-    let rough = part_two(&image);
-    assert_eq!(rough, 2118);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let tiles = load(include_str!("../example.txt"));
+        let image = find_image(&tiles).unwrap();
 
-  #[test]
-  fn small() {
-    let tiles = load(include_str!("./test.txt"));
-    let image = find_image(&tiles).unwrap();
+        assert_eq!(part_two(&image), 2118);
+    }
 
-    let corners = part_one(&image);
-    assert_eq!(corners, 20899048083289);
+    #[test]
+    fn example_part_one()
+    {
+        let tiles = load(include_str!("../example.txt"));
+        let image = find_image(&tiles).unwrap();
 
-    let rough = part_two(&image);
-    assert_eq!(rough, 273);
-  }
+        assert_eq!(part_one(&image), 20899048083289);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let tiles = load(include_str!("../example.txt"));
+        let image = find_image(&tiles).unwrap();
+
+        assert_eq!(part_one(&image), 273);
+    }
 }

@@ -79,7 +79,7 @@ fn split(n: u64) -> Option<(u64, u64)>
     // integer logarithm must be positive
     if n > 0 {
         let digits = n.ilog10() + 1;
-        if digits % 2 == 0 {
+        if digits.is_multiple_of(2) {
             let lt = n / 10_u64.pow(digits / 2);
             let rt = n - lt * 10_u64.pow(digits / 2);
             return Some((lt, rt))

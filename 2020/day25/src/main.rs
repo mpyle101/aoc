@@ -1,5 +1,5 @@
 fn main() {
-    let public_keys: Vec<_> = include_str!("./input.txt").lines()
+    let public_keys: Vec<_> = include_str!("../input.txt").lines()
         .map(|l| l.parse::<u64>().unwrap()).collect();
 
     let enc_key = part_one(public_keys[0], public_keys[1]);
@@ -24,7 +24,7 @@ mod tests {
 
   #[test]
   fn it_works() {
-    let public_keys: Vec<_> = include_str!("./input.txt").lines()
+    let public_keys: Vec<_> = include_str!("../input.txt").lines()
         .map(|l| l.parse::<u64>().unwrap()).collect();
 
     let enc_key = part_one(public_keys[0], public_keys[1]);

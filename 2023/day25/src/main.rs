@@ -38,7 +38,7 @@ fn part_one(input: &str) -> usize
         .product()
 }
 
-fn load(input: &str) -> (Graph, HashMap<&str, NodeIndex>, Vec<(&str, &str)>)
+fn load(input: &str) -> (Graph<'_>, HashMap<&str, NodeIndex>, Vec<(&str, &str)>)
 {
     let mut nodes = HashMap::new();
     let mut edges = vec![];

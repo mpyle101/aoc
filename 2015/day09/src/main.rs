@@ -92,7 +92,7 @@ fn longest_path(city: &str, visited: u32, cities: &[&str], routes: &Routes) -> u
     }
 }
 
-fn load(input: &str) -> Routes
+fn load(input: &str) -> Routes<'_>
 {
     input.lines()
         .map(|line| line.split(' '))

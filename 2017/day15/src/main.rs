@@ -28,14 +28,14 @@ fn part_two(a: u64, b: u64) -> usize {
     let mut gen_a = Vec::with_capacity(5_000_000);
     let mut a1 = a * 16807 % 2147483647;
     while gen_a.len() < 5_000_000 {
-        if a1 % 4 == 0 { gen_a.push(a1) }
+        if a1.is_multiple_of(4) { gen_a.push(a1) }
         a1 = a1 * 16807 % 2147483647;
     }
 
     let mut gen_b = Vec::with_capacity(5_000_000);
     let mut b1 = b * 48271 % 2147483647;
     while gen_b.len() < 5_000_000 {
-        if b1 % 8 == 0 { gen_b.push(b1) }
+        if b1.is_multiple_of(8) { gen_b.push(b1) }
         b1 = b1 * 48271 % 2147483647;
     }
 

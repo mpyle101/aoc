@@ -51,7 +51,7 @@ fn part_two(input: &str) -> String
     clique.join(",")
 }
 
-fn load(input: &str) -> Network
+fn load(input: &str) -> Network<'_>
 {
     input.lines()
         .fold(Network::new(), |mut m, line| {

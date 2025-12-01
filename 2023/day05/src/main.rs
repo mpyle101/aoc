@@ -68,7 +68,7 @@ impl Iterator for RangeIter<'_>
         if let Some(v1) = self.iter.next().map(|n| n.parse::<u64>().unwrap()) {
             self.iter.next()
                 .map(|n| n.parse::<u64>().unwrap())
-                .map(|v2| (v1..v1 + v2))
+                .map(|v2| v1..v1 + v2)
         } else {
             None
         }

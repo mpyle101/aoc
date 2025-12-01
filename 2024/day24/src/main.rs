@@ -95,7 +95,7 @@ fn solve<'a>(w: &'a str, wires: &mut Wires<'a>, gates: &Gates<'a>) -> u64
     }
 }
 
-fn load(input: &str) -> (Wires, Gates)
+fn load(input: &str) -> (Wires<'_>, Gates<'_>)
 {
     let (s1, s2) = input.split_once("\n\n").unwrap();
     let wires = s1.lines()

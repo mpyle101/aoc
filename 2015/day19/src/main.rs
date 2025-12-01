@@ -66,7 +66,7 @@ fn part_two(input: &str) -> u32
     count
 }
 
-fn load(input: &str) -> (Rules, &str)
+fn load(input: &str) -> (Rules<'_>, &str)
 {
     let (rules, molecule) = input.split_once("\n\n").unwrap();
     let rules = rules.lines()

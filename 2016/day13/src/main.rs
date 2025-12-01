@@ -65,7 +65,7 @@ fn reachable((x, y): &(i32, i32), num: i32, memo: &mut Memo) -> Vec<(i32, i32)>
 fn is_open((x, y): (i32, i32), num: i32) -> bool
 {
     let n = x.pow(2) + (3 * x) + (2 * x * y) + y + y.pow(2) + num;
-    n.count_ones() % 2 == 0
+    n.count_ones().is_multiple_of(2)
 }
 
 

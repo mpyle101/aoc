@@ -22,7 +22,7 @@ struct Room<'a> {
     checksum: [char;5],
 }
 
-fn load(input: &str) -> Vec<Room> {
+fn load(input: &str) -> Vec<Room<'_>> {
     input.lines().map(|s| {
         let i = s.rfind('-').unwrap();
         let name = &s[0..i];

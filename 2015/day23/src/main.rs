@@ -92,7 +92,7 @@ impl Cmd {
             tpl(r) => { reg[*r] *= 3; ip+1 },
             inc(r) => { reg[*r] += 1; ip+1 },
             jmp(n) => (ip as i32 + n) as usize,
-            jie(r, n) => if reg[*r] % 2 == 0 { (ip as i32 + n) as usize } else { ip+1 },
+            jie(r, n) => if reg[*r].is_multiple_of(2) { (ip as i32 + n) as usize } else { ip+1 },
             jio(r, n) => if reg[*r] == 1 { (ip as i32 + n) as usize } else { ip+1 },
         }
     }

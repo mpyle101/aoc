@@ -129,7 +129,7 @@ impl Monkey {
     }
 
     fn throw_to(&self, wl: u64) -> usize {
-        if wl % self.test_divisor == 0 {
+        if wl.is_multiple_of(self.test_divisor) {
             self.true_monkey
         } else {
             self.false_monkey

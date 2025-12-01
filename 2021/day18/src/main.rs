@@ -5,9 +5,7 @@ mod number;
 use number::Number;
 
 lazy_static! {
-    static ref RE1: Regex = Regex::new(concat!(
-        r"\[(?P<a>[0-9]+),(?P<b>[0-9]+)\]",
-    )).unwrap();
+    static ref RE1: Regex = Regex::new(r"\[(?P<a>[0-9]+),(?P<b>[0-9]+)\]").unwrap();
     static ref RE2: Regex = Regex::new(r"[0-9]+").unwrap();
 }
 

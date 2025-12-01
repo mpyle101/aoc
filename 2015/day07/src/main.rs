@@ -78,7 +78,7 @@ fn eval<'a>(w: &'a str, gates: &Gates<'a>, signals: &mut Signals<'a>) -> i32
     }
 }
 
-fn load(input: &str) -> Gates
+fn load(input: &str) -> Gates<'_>
 {
     use Gate::*;
 

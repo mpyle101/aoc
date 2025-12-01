@@ -61,7 +61,7 @@ fn enhance(pixels: &Matrix<char>, rules: &Rules, iterations: usize) -> usize {
     let mut p = pixels.clone();
 
     (0..iterations).for_each(|_| {
-        let step = if p.rows % 2 == 0 { 2 } else { 3 };
+        let step = if p.rows.is_multiple_of(2) { 2 } else { 3 };
         let subs = p.rows / step;
 
         let mut m = Matrix::new_square(subs * (step + 1), '_');

@@ -71,7 +71,7 @@ fn to_santa<'a>(me: &'a str, santa: &'a str, xfers: &Transfers<'a>, visited: &mu
     }
 }
 
-fn load_orbits(input: &str) -> Orbits
+fn load_orbits(input: &str) -> Orbits<'_>
 {
     input.lines()
         .map(|line| {
@@ -81,7 +81,7 @@ fn load_orbits(input: &str) -> Orbits
         .collect()
 }
 
-fn load_xfers(input: &str) -> Transfers
+fn load_xfers(input: &str) -> Transfers<'_>
 {
     input.lines()
         .fold(Transfers::new(), |mut m, line| {

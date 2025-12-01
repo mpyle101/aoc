@@ -75,6 +75,7 @@ fn load(input: &str) -> Vec<Vec<char>>
         .collect()
 }
 
+#[allow(clippy::needless_range_loop)]
 fn tilt_north(field: &mut [Vec<char>])
 {
     let ncols = field[0].len();
@@ -92,6 +93,7 @@ fn tilt_north(field: &mut [Vec<char>])
     }
 }
 
+#[allow(clippy::needless_range_loop)]
 fn tilt_south(field: &mut [Vec<char>])
 {
     let nrows = field.len();

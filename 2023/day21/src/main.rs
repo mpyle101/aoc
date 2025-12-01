@@ -68,7 +68,7 @@ fn teleport(steps: usize, garden: &Garden) -> usize
     let n1 = (steps - 260) / 131;
     let n2 = (steps - 66) % 131;
 
-    let mut count = if m % 2 == 0 {
+    let mut count = if m.is_multiple_of(2) {
         (n1 + 2).pow(2) * 7265 + (n1 + 1).pow(2) * 7325
     } else {
         (n1 + 2).pow(2) * 7325 + (n1 + 1).pow(2) * 7265

@@ -143,7 +143,7 @@ fn run(modules: &mut Modules) -> (u32, u32)
 }
 
 #[allow(clippy::manual_strip)]
-fn load(input: &str) -> (HashMap<&str, Module>, Vec<&str>, Vec<&str>)
+fn load(input: &str) -> (HashMap<&str, Module<'_>>, Vec<&str>, Vec<&str>)
 {
     use Module::*;
 

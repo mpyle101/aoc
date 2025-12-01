@@ -167,7 +167,7 @@ fn move_dn(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
 
 fn move_lt(pos: usize, graph: &[char], rowlen: usize) -> Option<usize>
 {
-    if pos % rowlen != 0 {
+    if !pos.is_multiple_of(rowlen) {
         let c = graph[pos - 1];
         if c == '-' || c == 'L' || c == 'F' {
             return Some(pos - 1)

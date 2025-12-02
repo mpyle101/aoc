@@ -15,13 +15,12 @@ fn main()
 
 fn part_one(input: &str) -> u32
 {
-    let mut dial = 50;
     input.lines()
-        .fold(0, |zeros, line| {
+        .fold((0, 50), |(zeros, dial), line| {
             let dir = line.chars().next().unwrap();
             let ticks = line[1..].parse::<u32>().unwrap();
 
-            dial = if dir == 'R' {
+            let dial = if dir == 'R' {
                 (dial + ticks) % 100
             } else {
                 let ticks = ticks % 100;
@@ -32,20 +31,20 @@ fn part_one(input: &str) -> u32
                 }
             };
 
-            zeros + (dial == 0) as u32
+            (zeros + (dial == 0) as u32, dial)
         })
+        .0
 }
 
 fn part_two(input: &str) -> u32
 {
-    let mut dial = 50;
     input.lines()
-        .fold(0, |mut zeros, line| {
+        .fold((0, 50), |(mut zeros, dial), line| {
             let dir = line.chars().next().unwrap();
             let ticks = line[1..].parse::<u32>().unwrap();
             zeros += ticks / 100;
 
-            dial = if dir == 'R' {
+            let dial = if dir == 'R' {
                 if dial + (ticks % 100) > 100 {
                     zeros += 1
                 }
@@ -62,8 +61,9 @@ fn part_two(input: &str) -> u32
                 }
             };
 
-            zeros + (dial == 0) as u32
+            (zeros + (dial == 0) as u32, dial)
         })
+        .0
 }
 
 

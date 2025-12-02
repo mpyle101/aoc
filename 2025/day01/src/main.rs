@@ -19,16 +19,16 @@ fn part_one(input: &str) -> u32
     input.lines()
         .fold(0, |zeros, line| {
             let dir = line.chars().next().unwrap();
-            let mut steps = line[1..].parse::<u32>().unwrap();
+            let ticks = line[1..].parse::<u32>().unwrap();
 
             dial = if dir == 'R' {
-                (dial + steps) % 100
+                (dial + ticks) % 100
             } else {
-                steps %= 100;
-                if steps <= dial {
-                    dial - steps
+                let ticks = ticks % 100;
+                if ticks <= dial {
+                    dial - ticks
                 } else {
-                    100 - (steps - dial)
+                    100 - (ticks - dial)
                 }
             };
 
@@ -42,23 +42,23 @@ fn part_two(input: &str) -> u32
     input.lines()
         .fold(0, |mut zeros, line| {
             let dir = line.chars().next().unwrap();
-            let mut steps = line[1..].parse::<u32>().unwrap();
-            zeros += steps / 100;
+            let ticks = line[1..].parse::<u32>().unwrap();
+            zeros += ticks / 100;
 
             dial = if dir == 'R' {
-                if dial + (steps % 100) > 100 {
+                if dial + (ticks % 100) > 100 {
                     zeros += 1
                 }
-                (dial + steps) % 100
+                (dial + ticks) % 100
             } else {
-                steps %= 100;
-                if steps == dial {
+                let ticks = ticks % 100;
+                if ticks == dial {
                     0
-                } else if steps < dial {
-                    dial - steps
+                } else if ticks < dial {
+                    dial - ticks
                 } else {
                     if dial != 0 { zeros += 1 };
-                    100 - (steps - dial)
+                    100 - (ticks - dial)
                 }
             };
 

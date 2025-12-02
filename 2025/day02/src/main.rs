@@ -16,8 +16,8 @@ fn main()
 fn part_one(input: &str) -> u64
 {
     input.split(',')
-        .fold(0, |acc, rng| {
-            let (s1, s2) = rng.split_once('-').unwrap();
+        .fold(0, |acc, s| {
+            let (s1, s2) = s.split_once('-').unwrap();
             let n1 = s1.parse::<u64>().unwrap();
             let n2 = s2.parse::<u64>().unwrap();
 
@@ -28,8 +28,8 @@ fn part_one(input: &str) -> u64
 fn part_two(input: &str) -> u64
 {
     input.split(',')
-        .fold(0, |acc, rng| {
-            let (s1, s2) = rng.split_once('-').unwrap();
+        .fold(0, |acc, s| {
+            let (s1, s2) = s.split_once('-').unwrap();
             let n1 = s1.parse::<u64>().unwrap();
             let n2 = s2.parse::<u64>().unwrap();
 

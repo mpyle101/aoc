@@ -45,9 +45,7 @@ fn part_two(input: &str) -> u32
             zeros += ticks / 100;
 
             let dial = if dir == 'R' {
-                if dial + (ticks % 100) > 100 {
-                    zeros += 1
-                }
+                if dial + (ticks % 100) > 100 { zeros += 1 }
                 (dial + ticks) % 100
             } else {
                 let ticks = ticks % 100;
@@ -56,7 +54,7 @@ fn part_two(input: &str) -> u32
                 } else if ticks < dial {
                     dial - ticks
                 } else {
-                    if dial != 0 { zeros += 1 };
+                    zeros += (dial != 0) as u32;
                     100 - (ticks - dial)
                 }
             };

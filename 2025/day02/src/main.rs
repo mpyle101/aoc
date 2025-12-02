@@ -42,7 +42,7 @@ fn is_repeated(n: u64) -> bool
     let mut buf = [0u8;10];
     let arr = digits(n, &mut buf);
     let k = arr.len() / 2;
-    
+
     arr[0..k] == arr[k..]
 }
 

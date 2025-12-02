@@ -42,12 +42,8 @@ fn is_repeated(n: u64) -> bool
     let mut buf = [0u8;10];
     let arr = digits(n, &mut buf);
 
-    if arr.len().is_multiple_of(2) {
-        let k = arr.len() / 2;
-        arr[0..k] == arr[k..]
-    } else {
-        false
-    }
+    let k = arr.len() / 2;
+    arr[0..k] == arr[k..]
 }
 
 fn is_repeated_n(n: u64) -> bool
@@ -74,6 +70,7 @@ fn digits(mut n: u64, buf: &mut [u8;10]) -> &[u8]
     }
     buf.reverse();
 
+    // Remove leading zeros.
     &buf[10 - i..]
 }
 

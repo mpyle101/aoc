@@ -37,37 +37,24 @@ fn part_two(input: &str) -> u64
         })
 }
 
-fn is_repeated(mut n: u64) -> bool
+fn is_repeated(n: u64) -> bool
 {
-    let mut digits = [0u8;10];
+    let digits = format!("{n}");
 
-    let mut i = 0;
-    while n > 0 {
-        digits[i] = (n % 10) as u8;
-        n /= 10;
-        i += 1;
-    }
-
-    if i.is_multiple_of(2) {
-        let k = i / 2;
+    if digits.len().is_multiple_of(2) {
+        let k = digits.len() / 2;
         digits[0..k] == digits[k..k + k]
     } else {
         false
     }
 }
 
-fn is_repeated_n(mut n: u64) -> bool
+fn is_repeated_n(n: u64) -> bool
 {
-    let mut digits = vec![];
-
-    while n > 0 {
-        digits.push((n % 10) as u8);
-        n /= 10;
-    }
-    digits.reverse();
+    let digits = format!("{n}");
 
     for n in 1..=digits.len() / 2 {
-        let mut iter = digits.chunks(n);
+        let mut iter = digits.as_bytes().chunks(n);
         let c1 = iter.next().unwrap();
         if iter.all(|c2| c2 == c1) { return true }
     }

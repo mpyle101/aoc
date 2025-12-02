@@ -43,7 +43,7 @@ fn is_repeated(n: u64) -> bool
 
     if digits.len().is_multiple_of(2) {
         let k = digits.len() / 2;
-        digits[0..k] == digits[k..k + k]
+        digits[0..k] == digits[k..]
     } else {
         false
     }

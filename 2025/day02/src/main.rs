@@ -50,7 +50,7 @@ fn is_repeated(mut n: u64) -> bool
 
     if i.is_multiple_of(2) {
         let k = i / 2;
-        digits[0..k].iter().zip(&digits[k..]).all(|(a, b)| a == b)
+        digits[0..k] == digits[k..k + k]
     } else {
         false
     }
@@ -69,9 +69,7 @@ fn is_repeated_n(mut n: u64) -> bool
     for n in 1..=digits.len() / 2 {
         let mut iter = digits.chunks(n);
         let c1 = iter.next().unwrap();
-        if iter.all(|c2| c2.len() == c1.len() && c1.iter().zip(c2).all(|(a, b)| a == b)) {
-            return true
-        }
+        if iter.all(|c2| c2 == c1) { return true }
     }
 
     false

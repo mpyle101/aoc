@@ -26,7 +26,7 @@ fn part_two(input: &str) -> u64
 fn extract(line: &str, mut k: usize) -> u64
 {
     let v = line.chars()
-        .map(|c| c.to_digit(10).unwrap() as u64)
+        .map(|c| c.to_digit(10).unwrap() as u8)
         .collect::<Vec<_>>();
 
     let mut i = 0;
@@ -39,9 +39,9 @@ fn extract(line: &str, mut k: usize) -> u64
             .iter()
             .enumerate()
             .fold((i, 0), |a, v| if *v.1 > a.1 { (v.0 + i, *v.1) } else { a });
-        k -= 1;
         i = next.0 + 1;
-        n += next.1;
+        n += next.1 as u64;
+        k -= 1;
     }
 
     n

@@ -25,8 +25,8 @@ fn part_two(input: &str) -> u64
 
 fn extract(line: &str, mut k: usize) -> u64
 {
-    let v = line.chars()
-        .map(|c| c.to_digit(10).unwrap() as u8)
+    let v = line.bytes()
+        .map(|b| b - b'0')
         .collect::<Vec<_>>();
 
     let mut i = 0;

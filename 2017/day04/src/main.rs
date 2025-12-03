@@ -1,59 +1,73 @@
-fn main() {
-    use std::fs;
+fn main()
+{
     use std::time::Instant;
 
-    let input = fs::read_to_string("./input.txt").unwrap();
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
-    let valid = part_one(&input);
-    println!("Part 1: {} {:?}", valid, t.elapsed());
+    let result = part_one(input);
+    println!("Part 1: {} {:?}", result, t.elapsed());
 
     let t = Instant::now();
-    let valid = part_two(&input);
-    println!("Part 2: {} {:?}", valid, t.elapsed());
+    let result = part_two(input);
+    println!("Part 2: {} {:?}", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> i32 {
+fn part_one(input: &str) -> u32
+{
     use std::collections::HashSet;
 
     input.lines()
         .map(|s| {
-            let words  = s.split(' ').collect::<Vec<_>>();
-            let unique = HashSet::<&&str>::from_iter(words.iter());
-            unique.len() == words.len()
+            let words  = s.split(' ').count();
+            let unique = HashSet::<&str>::from_iter(s.split(' '));
+            (unique.len() == words) as u32
         })
-        .filter(|valid| *valid)
-        .count() as i32
+        .sum()
 }
 
-fn part_two(input: &str) -> i32 {
-    use itertools::Itertools;
-
+#[allow(clippy::needless_range_loop)]
+fn part_two(input: &str) -> u32
+{
     input.lines()
-        .map(|s| s.split(' ')
-            .combinations(2)
-            .any(|v| v[0].len() == v[1].len() &&
-                (*v[0]).chars().sorted().eq((*v[1]).chars().sorted())
-            )
-        )
-        .filter(|invalid| !*invalid)
-        .count() as i32
+        .map(|line| {
+            let words = line.split_whitespace()
+                .map(|s| {
+                    let mut w = s.bytes().collect::<Vec<_>>();
+                    w.sort();
+                    w
+                })
+                .collect::<Vec<_>>();
+
+            for i in 0..words.len()-1 {
+                let w1 = &words[i];
+                for j in i+1..words.len() {
+                    let w2 = &words[j];
+                    if w1 == w2 { return 0 }
+                }
+            }
+
+            1
+        })
+        .sum()
 }
 
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use std::fs;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let input = fs::read_to_string("./input.txt").unwrap();
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 325);
+    }
 
-    let valid = part_one(&input);
-    assert_eq!(valid, 325);
-
-    let valid = part_two(&input);
-    assert_eq!(valid, 119);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 119);
+    }
 }

@@ -15,15 +15,15 @@ fn main()
 
 fn part_one(input: &str) -> u64
 {
-    input.lines().map(|line| extract(line, 2)).sum()
+    input.lines().map(|line| largest(line, 2)).sum()
 }
 
 fn part_two(input: &str) -> u64
 {
-    input.lines().map(|line| extract(line, 12)).sum()
+    input.lines().map(|line| largest(line, 12)).sum()
 }
 
-fn extract(line: &str, mut k: usize) -> u64
+fn largest(line: &str, mut k: usize) -> u64
 {
     let v = line.bytes()
         .map(|b| b - b'0')

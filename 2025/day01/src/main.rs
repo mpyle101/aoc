@@ -16,10 +16,12 @@ fn main()
 fn part_one(input: &str) -> u32
 {
     input.lines()
-        .fold((0, 50), |(zeros, dial), line| {
+        .map(|line| {
             let dir = line.chars().next().unwrap();
             let ticks = line[1..].parse::<u32>().unwrap();
-
+            (dir, ticks)
+        })
+        .fold((0, 50), |(zeros, dial), (dir, ticks)| {
             let dial = if dir == 'R' {
                 (dial + ticks) % 100
             } else {
@@ -39,11 +41,13 @@ fn part_one(input: &str) -> u32
 fn part_two(input: &str) -> u32
 {
     input.lines()
-        .fold((0, 50), |(mut zeros, dial), line| {
+        .map(|line| {
             let dir = line.chars().next().unwrap();
             let ticks = line[1..].parse::<u32>().unwrap();
+            (dir, ticks)
+        })
+        .fold((0, 50), |(mut zeros, dial), (dir, ticks)| {
             zeros += ticks / 100;
-
             let dial = if dir == 'R' {
                 if dial + (ticks % 100) > 100 { zeros += 1 }
                 (dial + ticks) % 100

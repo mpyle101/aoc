@@ -16,24 +16,28 @@ fn main()
 fn part_one(input: &str) -> u64
 {
     input.split(',')
-        .fold(0, |acc, s| {
+        .map(|s| {
             let (s1, s2) = s.split_once('-').unwrap();
             let n1 = s1.parse::<u64>().unwrap();
             let n2 = s2.parse::<u64>().unwrap();
-
-            acc + (n1..=n2).filter(|n| is_repeated(*n)).sum::<u64>()
+            n1..=n2
+        })
+        .fold(0, |acc, rng| {
+            acc + rng.filter(|n| is_repeated(*n)).sum::<u64>()
         })
 }
 
 fn part_two(input: &str) -> u64
 {
     input.split(',')
-        .fold(0, |acc, s| {
+        .map(|s| {
             let (s1, s2) = s.split_once('-').unwrap();
             let n1 = s1.parse::<u64>().unwrap();
             let n2 = s2.parse::<u64>().unwrap();
-
-            acc + (n1..=n2).filter(|n| is_repeated_n(*n)).sum::<u64>()
+            n1..=n2
+        })
+        .fold(0, |acc, rng| {
+            acc + rng.filter(|n| is_repeated_n(*n)).sum::<u64>()
         })
 }
 

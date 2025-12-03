@@ -13,57 +13,38 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-#[allow(clippy::needless_range_loop)]
-fn part_one(input: &str) -> u32
+fn part_one(input: &str) -> u64
 {
-    input.lines()
-        .map(|line| {
-            let v = line.chars()
-                .map(|c| c.to_digit(10).unwrap())
-                .collect::<Vec<_>>();
-
-            let mut n = 0;
-            for i in 0..v.len()-1 {
-                let n1 = v[i] * 10;
-                for j in i+1..v.len() {
-                    let n2 = n1 + v[j];
-                    n = n.max(n2);
-                }
-            }
-
-            n
-        })
-        .sum()
+    input.lines().map(|line| extract(line, 2)).sum()
 }
 
 fn part_two(input: &str) -> u64
 {
-    input.lines()
-        .map(|line| {
-            let v = line.chars()
-                .map(|c| c.to_digit(10).unwrap() as u64)
-                .collect::<Vec<_>>();
+    input.lines().map(|line| extract(line, 12)).sum()
+}
 
-            let mut drops = v.len() - 12;
-            let mut st = Vec::with_capacity(line.len());
-            st.push(v[0]);
+fn extract(line: &str, mut k: usize) -> u64
+{
+    let v = line.chars()
+        .map(|c| c.to_digit(10).unwrap() as u64)
+        .collect::<Vec<_>>();
 
-            v.iter()
-                .skip(1)
-                .for_each(|n| {
-                    while drops > 0 && let Some(m) = st.last() && m < n {
-                        st.pop();
-                        drops -= 1;
-                    }
-                    st.push(*n);
-                });
+    let mut i = 0;
+    let mut n = 0;
+    while k > 0 {
+        n *= 10;
 
-            st[0..12].iter()
-                .rev()
-                .zip(0..)
-                .fold(0, |acc, (n, i)| acc + n * 10u64.pow(i))
-        })
-        .sum()
+        // Find the next largest value up to the end less values left to fill
+        let next = v[i..v.len() - k + 1]
+            .iter()
+            .enumerate()
+            .fold((i, 0), |a, v| if *v.1 > a.1 { (v.0 + i, *v.1) } else { a });
+        k -= 1;
+        i = next.0 + 1;
+        n += next.1;
+    }
+
+    n
 }
 
 

@@ -19,12 +19,12 @@ fn part_one(input: &str) -> usize
 {
     use pathfinding::matrix::Matrix;
 
-    let mat = Matrix::from_rows(input.lines().map(|l| l.bytes())).unwrap();
-    mat.items()
+    let m = Matrix::from_rows(input.lines().map(|l| l.bytes())).unwrap();
+    m.items()
         .filter(|(_, c)| **c == b'@')
         .filter(|(p, _)| {
-            mat.neighbours(*p, true)
-                .filter(|n| mat[n] == b'@')
+            m.neighbours(*p, true)
+                .filter(|n| m[n] == b'@')
                 .count() < 4
         })
         .count()
@@ -34,26 +34,26 @@ fn part_two(input: &str) -> usize
 {
     use pathfinding::matrix::Matrix;
 
-    let mut mat = Matrix::from_rows(input.lines().map(|l| l.bytes())).unwrap();
+    let mut m = Matrix::from_rows(input.lines().map(|l| l.bytes())).unwrap();
 
     let mut rolls = 0;
-    let mut v = removeable(&mat);
+    let mut v = removeable(&m);
     while !v.is_empty() {
         rolls += v.len();
-        v.iter().for_each(|p| mat[p] = b'.');
-        v = removeable(&mat);
+        v.iter().for_each(|p| m[p] = b'.');
+        v = removeable(&m);
     }
 
     rolls
 }
 
-fn removeable(mat: &Matrix<u8>) -> Vec<(usize, usize)>
+fn removeable(m: &Matrix<u8>) -> Vec<(usize, usize)>
 {
-    mat.items()
+    m.items()
         .filter(|(_, c)| **c == b'@')
         .filter(|(p, _)| {
-            mat.neighbours(*p, true)
-                .filter(|n| mat[n] == b'@')
+            m.neighbours(*p, true)
+                .filter(|n| m[n] == b'@')
                 .count() < 4
         })
         .map(|(p, _)| p)

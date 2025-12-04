@@ -17,16 +17,16 @@ fn part_one(input: &str) -> usize
 {
     let mut nrows = 0;
     let mut ncols = 0;
-    let v = input.lines()
+    let data = input.lines()
         .inspect(|l| { nrows += 1; ncols = l.len() })
         .fold(Vec::new(), |mut v, l| { v.extend_from_slice(l.as_bytes()); v });
 
-    v.iter()
+    data.iter()
         .enumerate()
         .filter(|(_, c)| **c == b'@')
         .filter(|(i, _)| {
             neighbours(*i, nrows, ncols)
-                .filter(|&p| v[p] == b'@')
+                .filter(|&p| data[p] == b'@')
                 .count() < 4
         })
         .count()
@@ -36,29 +36,29 @@ fn part_two(input: &str) -> usize
 {
     let mut nrows = 0;
     let mut ncols = 0;
-    let mut v = input.lines()
+    let mut data = input.lines()
         .inspect(|l| { nrows += 1; ncols = l.len() })
         .fold(Vec::new(), |mut v, l| { v.extend_from_slice(l.as_bytes()); v });
 
     let mut rolls = 0;
-    let mut v1 = removeable(&v, nrows, ncols);
-    while !v1.is_empty() {
-        rolls += v1.len();
-        v1.iter().for_each(|i| v[*i] = b'.');
-        v1 = removeable(&v, nrows, ncols);
+    let mut v = removeable(&data, nrows, ncols);
+    while !v.is_empty() {
+        rolls += v.len();
+        v.iter().for_each(|i| data[*i] = b'.');
+        v = removeable(&data, nrows, ncols);
     }
 
     rolls
 }
 
-fn removeable(v: &[u8], nrows: usize, ncols: usize) -> Vec<usize>
+fn removeable(data: &[u8], nrows: usize, ncols: usize) -> Vec<usize>
 {
-    v.iter()
+    data.iter()
         .enumerate()
         .filter(|(_, c)| **c == b'@')
         .filter(move |(i, _)| {
             neighbours(*i, nrows, ncols)
-                .filter(|&p| v[p] == b'@')
+                .filter(|&p| data[p] == b'@')
                 .count() < 4
         })
         .map(|(i, _)| i)

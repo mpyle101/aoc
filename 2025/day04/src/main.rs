@@ -70,14 +70,14 @@ mod tests {
     fn input_part_one()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_one(input), 8713);
+        assert_eq!(part_one(input), 1356);
     }
 
     #[test]
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_two(input), 1097);
+        assert_eq!(part_two(input), 8713);
     }
 
     #[test]

@@ -24,7 +24,7 @@ fn part_one(input: &str) -> usize
         .filter(|(_, c)| **c == b'@')
         .filter(|(p, _)| {
             mat.neighbours(*p, true)
-                .filter(|n| *mat.get(*n).unwrap() == b'@')
+                .filter(|n| mat[n] == b'@')
                 .count() < 4
         })
         .count()
@@ -37,24 +37,23 @@ fn part_two(input: &str) -> usize
     let mut mat = Matrix::from_rows(input.lines().map(|l| l.bytes())).unwrap();
 
     let mut rolls = 0;
-    let mut removeable = can_remove(&mat);
-    while !removeable.is_empty() {
-        rolls += removeable.len();
-        removeable.iter()
-            .for_each(|p| *mat.get_mut(*p).unwrap() = b'.');
-        removeable = can_remove(&mat);
+    let mut v = removeable(&mat);
+    while !v.is_empty() {
+        rolls += v.len();
+        v.iter().for_each(|p| mat[p] = b'.');
+        v = removeable(&mat);
     }
 
     rolls
 }
 
-fn can_remove(mat: &Matrix<u8>) -> Vec<(usize, usize)>
+fn removeable(mat: &Matrix<u8>) -> Vec<(usize, usize)>
 {
     mat.items()
         .filter(|(_, c)| **c == b'@')
         .filter(|(p, _)| {
             mat.neighbours(*p, true)
-                .filter(|n| *mat.get(*n).unwrap() == b'@')
+                .filter(|n| mat[n] == b'@')
                 .count() < 4
         })
         .map(|(p, _)| p)

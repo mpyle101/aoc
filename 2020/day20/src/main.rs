@@ -26,19 +26,20 @@ fn main()
     use std::time::Instant;
 
     let input = include_str!("../input.txt");
-    let tiles = load(input);
-    let image = find_image(&tiles).unwrap();
 
     let t = Instant::now();
-    let result = part_one(&image);
+    let result = part_one(input);
     println!("Part 1: {} ({:?})", result, t.elapsed());
 
     let t = Instant::now();
-    let result = part_two(&image);
+    let result = part_two(input);
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(image: &Image) -> u64 {
+fn part_one(input: &str) -> u64 {
+    let tiles = load(input);
+    let image = find_image(&tiles).unwrap();
+
     let i = image.dim;
     [(0, 0), (i-1, 0), (0, i-1), (i-1, i-1)]
         .iter()
@@ -47,7 +48,10 @@ fn part_one(image: &Image) -> u64 {
         .product()
 }
 
-fn part_two(image: &Image) -> usize {
+fn part_two(input: &str) -> usize {
+    let tiles = load(input);
+    let image = find_image(&tiles).unwrap();
+
     let xforms = [
         (true, 0), (true, 1), (true, 2), (true, 3),
         (false, 0), (false, 1), (false, 2), (false, 3),
@@ -275,36 +279,28 @@ mod tests {
     #[test]
     fn input_part_one()
     {
-        let tiles = load(include_str!("../example.txt"));
-        let image = find_image(&tiles).unwrap();
-
-        assert_eq!(part_one(&image), 18482479935793);
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 18482479935793);
     }
 
     #[test]
     fn input_part_two()
     {
-        let tiles = load(include_str!("../example.txt"));
-        let image = find_image(&tiles).unwrap();
-
-        assert_eq!(part_two(&image), 2118);
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 2118);
     }
 
     #[test]
     fn example_part_one()
     {
-        let tiles = load(include_str!("../example.txt"));
-        let image = find_image(&tiles).unwrap();
-
-        assert_eq!(part_one(&image), 20899048083289);
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 20899048083289);
     }
 
     #[test]
     fn example_part_two()
     {
-        let tiles = load(include_str!("../example.txt"));
-        let image = find_image(&tiles).unwrap();
-
-        assert_eq!(part_one(&image), 273);
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 273);
     }
 }

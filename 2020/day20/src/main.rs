@@ -10,7 +10,7 @@ struct Edges {
 
 struct TileData {
     id: u32,
-    data: Matrix<u8>,
+    mat: Matrix<u8>,
     edges: Edges,
 }
 
@@ -139,9 +139,9 @@ fn make_tile(id: u32, m: Matrix<u8>) -> TileData
 
     // We don't need the tile content for part one and don't need
     // the edges for part two.
-    let data = m.slice(1..m.rows-1, 1..m.columns-1).unwrap();
+    let mat = m.slice(1..m.rows-1, 1..m.columns-1).unwrap();
 
-    TileData { id, data, edges: Edges { lt, rt, top, bot } }
+    TileData { id, mat, edges: Edges { lt, rt, top, bot } }
 }
 
 fn layout_tiles(
@@ -209,18 +209,18 @@ fn make_edge(m: &Matrix<u8>) -> u16
 fn build_image(layout: &Layout, size: usize, tiles: &Tiles) -> Matrix<u8>
 {
     // Ugly but we need to know how big the tiles are now.
-    let rows = tiles[0][0].data.rows;
+    let rows = tiles[0][0].mat.rows;
     let dims = rows * size;
 
     Matrix::from_fn(dims, dims, |(r, c)| {
-        let i  = r / rows;  // row of tile in img
-        let ii = r % rows;  // row of item in tile
-        let j  = c / rows;  // col of tile in img
-        let jj = c % rows;  // col of item in tile
+        let i  = r / rows;  // row of tile in layout
+        let ii = r % rows;  // row in tile
+        let j  = c / rows;  // col of tile in layout
+        let jj = c % rows;  // col in tile
 
-        let item = &layout[i * size + j];
-        let tile = &tiles[item.pos][item.idx];
-        tile.data[(ii, jj)]
+        let tile = &layout[i * size + j];
+        let data = &tiles[tile.pos][tile.idx];
+        data.mat[(ii, jj)]
     })
 }
 

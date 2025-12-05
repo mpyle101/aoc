@@ -1,25 +1,29 @@
-use core::iter::Iterator;
 use pathfinding::prelude::Matrix;
-use std::collections::{HashMap, HashSet};
 
-type Tiles = HashMap<Tile, Matrix<char>>;
-
-enum Edge {
-    North,
-    South,
-    East,
-    West,
+#[derive(Clone, Copy, Debug)]
+struct Edges {
+    lt: u16,
+    rt: u16,
+    top: u16,
+    bot: u16,
 }
 
-// 3x20
-// ..................#.
-// #....##....##....###
-// .#..#..#..#..#..#...
-const SEA_MONSTER: [(i32, i32); 15] = [
-    (0, 0), (0, -1), (0, -2), (-1, -1), (1, -3),
-    (1, -6), (0, -7), (0, -8), (1, -9), (1, -12),
-    (0, -13), (0, -14), (1, -15), (1, -18), (0, -19)
-];
+struct TileData {
+    id: u32,
+    data: Matrix<u8>,
+    edges: Edges,
+}
+
+#[derive(Clone, Debug)]
+struct Tile {
+    idx: usize,
+    pos: usize,
+    edges: Edges,
+}
+
+type Tiles = Vec<[TileData; 8]>;
+type Layout = Vec<Tile>;
+
 
 fn main()
 {
@@ -36,239 +40,208 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> u64 {
+fn part_one(input: &str) -> u64
+{
     let tiles = load(input);
-    let image = find_image(&tiles).unwrap();
+    let size = (tiles.len() as f32).sqrt() as usize;
+    let layout = layout_tiles(0, size, vec![], &tiles).unwrap();
 
-    let i = image.dim;
-    [(0, 0), (i-1, 0), (0, i-1), (i-1, i-1)]
+    // Iterate over the corners: tl, tr, bl, br
+    [0, size - 1, size * (size - 1), size * size - 1]
         .iter()
-        .map(|pos| image.get(pos).unwrap())
-        .map(|tile| tile.id as u64)
+        .map(|i| {
+            let Tile { pos, idx, .. } = layout[*i];
+            tiles[pos][idx].id as u64
+        })
         .product()
 }
 
-fn part_two(input: &str) -> usize {
+fn part_two(input: &str) -> usize
+{
     let tiles = load(input);
-    let image = find_image(&tiles).unwrap();
+    let size = (tiles.len() as f32).sqrt() as usize;
+    let layout = layout_tiles(0, size, vec![], &tiles).unwrap();
 
-    let xforms = [
-        (true, 0), (true, 1), (true, 2), (true, 3),
-        (false, 0), (false, 1), (false, 2), (false, 3),
-    ];
-    let mut it = xforms.iter();
-
-    let base = image.build();
-    let last = base.rows - 2;
-
-    let mut sea_monsters = 0;
-    while sea_monsters == 0 {
-        let xf = it.next().unwrap();
-        let im = xform(&base, xf.0, xf.1);
-        sea_monsters = im.iter().enumerate().skip(1)
-            .map(|(row, data)| data.iter()
-                .enumerate().skip(18)
-                .filter(|(col, &c)| row < last && c == '#' && sea_monster(&im, (row, *col)))
-                .count()
-            ).sum();
-    }
-
-    let hashes = base.values().filter(|&c| *c == '#').count();
-    hashes - sea_monsters * SEA_MONSTER.len()
-}
-
-fn sea_monster(im: &Matrix<char>, pos: (usize, usize)) -> bool {
-    SEA_MONSTER.iter().all(|d| {
-        let i = ((pos.0 as i32 + d.0) as usize, (pos.1 as i32+ d.1) as usize);
-        let c = im.get(im.idx(&i)).unwrap();
-        *c == '#'
-    })
-}
-
-fn find_image(tiles: &Tiles) -> Option<Image<'_>> {
-
-    let w = ((tiles.len() / 8) as f64).sqrt() as i32;
-    let all: Vec<_> = tiles.keys().collect();
-
-    let pos = (0, 0);
-    for tile in all {
-        let mut image = Image::new(w, tiles);
-        image.insert(pos, *tile);
-
-        if solve(pos, tiles, &mut image) {
-            return Some(image)
-        }
-    }
-
-    None
-}
-
-fn solve(
-    pos: (i32, i32),
-    tiles: &Tiles,
-    image: &mut Image
-) -> bool {
-    use Edge::*;
-
-    if image.len() == tiles.len() / 8 {
-        return true
-    }
-
-    let used = image.used();
-    for tile in tiles.keys() {
-        if used.contains(&tile.id) {
-            continue;
-        }
-
-        if let Some(neighbor) = image.get(&(pos.0 - 1, pos.1)) {
-            if tile.edge(tiles, North) != neighbor.edge(tiles, South) {
-                continue;
-            }
-        }
-        if let Some(neighbor) = image.get(&(pos.0, pos.1 - 1)) {
-            if tile.edge(tiles, West) != neighbor.edge(tiles, East) {
-                continue;
-            }
-        }
-
-        image.insert(pos, *tile);
-        let p = if pos.1 < image.dim - 1 { (pos.0, pos.1 + 1) } else { (pos.0 + 1, 0) };
-        if solve(p, tiles, image) {
-            return true
-        }
-        image.remove(&pos);
-    }
-
-    false
-}
-
-#[derive(Debug)]
-struct Image<'a> {
-    dim: i32,
-    data: HashMap<(i32, i32), Tile>,
-    tiles: &'a Tiles,
-}
-
-impl Image<'_> {
-    fn new(dim: i32, tiles: &Tiles) -> Image<'_> {
-        Image { dim, tiles, data: HashMap::new() }
-    }
-
-    fn insert(&mut self, pos: (i32, i32), tile: Tile) -> Option<Tile> {
-        self.data.insert(pos, tile)
-    }
-
-    fn remove(&mut self, pos: &(i32, i32)) -> Option<Tile> {
-        self.data.remove(pos)
-    }
-
-    fn get(&self, pos: &(i32, i32)) -> Option<&Tile> {
-        self.data.get(pos)
-    }
-
-    fn len(&self) -> usize {
-        self.data.len()
-    }
-
-    fn used(&self) -> HashSet<u32> {
-        self.data.values().map(|t| t.id).collect()
-    }
-
-    fn build(&self) -> Matrix<char> {
-        let data = self.trimmed_row(0);
-        (1..self.dim).fold(data, |mut m, r| {
-            let d = self.trimmed_row(r);
-            d.iter().for_each(|r| m.extend(r).unwrap());
-            m
-        })
-    }
-
-    fn trimmed_row(&self, row: i32) -> Matrix<char> {
-        let tile = self.data.get(&(row, 0)).unwrap();
-        let data = tile.trim(self.tiles);
-
-        (1..self.dim).fold(data, |m, c| {
-            let t = self.data.get(&(row, c)).unwrap();
-            let d = t.trim(self.tiles);
-            combine(&m, &d)
-        })
-    }
-}
-
-fn combine(t1: &Matrix<char>, t2: &Matrix<char>) -> Matrix<char> {
-    let iter1 = t1.iter();
-    let iter2 = t2.iter();
-
-    Matrix::from_rows(
-        iter1.zip(iter2).map(|(r1, r2)| r1.iter().chain(r2).copied())
-    ).unwrap()
-}
-
-
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Tile {
-    id: u32,
-    flip: bool,
-    rotate: usize,
-}
-
-impl Tile {
-    fn edge(&self, tiles: &Tiles, edge: Edge) -> Matrix<char> {
-        let data = tiles.get(self).unwrap();
-
-        let rows = data.rows;
-        let cols = data.columns;
-
-        use Edge::*;
-        match edge {
-            North => data.slice(0..1, 0..cols).unwrap(),
-            South => data.slice(rows-1..rows, 0..cols).unwrap(),
-            East  => data.slice(0..rows, cols-1..cols).unwrap(),
-            West  => data.slice(0..rows, 0..1).unwrap()
-        }
-    }
-
-    fn trim(&self, tiles:&Tiles) -> Matrix<char> {
-        let data = tiles.get(self).unwrap();
-        data.slice(1..data.rows-1, 1..data.columns-1).unwrap()
-    }
-}
-
-fn load(input: &str) -> Tiles {
-    let xforms = [
-        (true, 0), (true, 1), (true, 2), (true, 3),
-        (false, 0), (false, 1), (false, 2), (false, 3),
+    // Can be flipped or rotated with respect to sea monsters.
+    let image = build_image(&layout, size, &tiles);
+    let images = [
+        image.clone(),
+        image.rotated_cw(1),
+        image.rotated_cw(2),
+        image.rotated_cw(3),
+        image.flipped_lr(),
+        image.flipped_lr().rotated_cw(1),
+        image.flipped_lr().rotated_cw(2),
+        image.flipped_lr().rotated_cw(3),
     ];
 
-    input.split("\n\n").flat_map(|s| {
-        let mut it = s.lines();
-        let v: Vec<_> = it.next().unwrap().split(' ').collect();
-        let id = v[1][..v[1].len() - 1].parse::<u32>().unwrap();
-        let data = Matrix::from_rows(it.map(|s| s.chars())).unwrap();
-
-        xforms.iter().map(|x| (
-            Tile { id, flip: x.0, rotate: x.1 },
-            xform(&data, x.0, x.1))
-        ).collect::<Vec<_>>()
-    })
-    .collect()
-}
-
-fn xform(data: &Matrix<char>, flip: bool, rotate: usize) -> Matrix<char> {
-    let mut m = if flip { data.flipped_lr() } else { data.clone() };
-    if rotate > 0 {
-        m.rotate_cw(rotate)
+    for img in images {
+        let n = sea_monsters(&img);
+        if n > 0 { 
+            let rough: usize = img.iter()
+                .map(|row| row.iter().filter(|c| **c == b'#').count())
+                .sum();
+            return rough - (n * SEA_MONSTER.len())
+         }
     }
 
-    m
+    0
 }
 
 #[allow(dead_code)]
-fn draw(image: &Matrix<char>) {
-    println!("rows: {}, cols: {}", image.rows, image.columns);
-    for row in image.iter() {
-        println!("{}", row.iter().collect::<String>());
+fn draw(m: &Matrix<u8>)
+{
+    m.iter()
+        .for_each(|row| {
+            row.iter().for_each(|b| print!("{}", *b as char));
+            println!();
+        });
+}
+
+fn load(input: &str) -> Tiles
+{
+    let scans = input.split("\n\n")
+        .map(|s| {
+            let (s1, s2) = s.split_once('\n').unwrap();
+            let id = s1[5..9].parse::<u32>().unwrap();
+            let data = Matrix::from_rows(s2.lines().map(|l| l.bytes())).unwrap();
+
+            (id, data)
+        })
+        .collect::<Vec<_>>();
+
+    scans.iter()
+        .map(|(id, tile)| {
+            [
+                make_tile(*id, tile.clone()),
+                make_tile(*id, tile.rotated_cw(1)),
+                make_tile(*id, tile.rotated_cw(2)),
+                make_tile(*id, tile.rotated_cw(3)),
+                make_tile(*id, tile.flipped_lr()),
+                make_tile(*id, tile.flipped_lr().rotated_cw(1)),
+                make_tile(*id, tile.flipped_lr().rotated_cw(2)),
+                make_tile(*id, tile.flipped_lr().rotated_cw(3)),
+            ]
+        })
+        .collect()
+}
+
+fn make_tile(id: u32, m: Matrix<u8>) -> TileData
+{
+    let sl = m.slice(0..m.rows, 0..1).unwrap();
+    let lt = make_edge(&sl);
+    let sl = m.slice(0..m.rows, m.columns-1..m.columns).unwrap();
+    let rt = make_edge(&sl);
+    let sl = m.slice(0..1, 0..m.columns).unwrap();
+    let top = make_edge(&sl);
+    let sl = m.slice(m.rows-1..m.rows, 0..m.columns).unwrap();
+    let bot = make_edge(&sl);
+
+    // We don't need the tile content for part one and don't need
+    // the edges for part two.
+    let data = m.slice(1..m.rows-1, 1..m.columns-1).unwrap();
+
+    TileData { id, data, edges: Edges { lt, rt, top, bot } }
+}
+
+fn layout_tiles(
+    pos: usize,
+    size: usize,
+    layout: Layout,
+    tiles: &Tiles
+) -> Option<Layout>
+{
+    if pos == size * size {
+        Some(layout)
+    } else {
+        for (i, tdata) in tiles.iter().enumerate() {
+            if !layout.iter().any(|t| t.pos == i) {
+                for (idx, data) in tdata.iter().enumerate() {
+                    if place_tile(pos, size, data, &layout) {
+                        let mut img = layout.clone();
+                        img.push(Tile { pos: i, idx, edges: data.edges });
+
+                        if let Some(img) = layout_tiles(pos + 1, size, img, tiles) {
+                            return Some(img)
+                        }
+                    }
+                }
+            }
+        }
+
+        None
     }
+}
+
+fn place_tile(
+    pos: usize,
+    size: usize,
+    tile: &TileData,
+    layout: &Layout,
+) -> bool
+{
+    if pos >= size {
+        let top = &layout[pos - size];
+        if top.edges.bot != tile.edges.top {
+            return false
+        }
+    }
+
+    if !pos.is_multiple_of(size) {
+        let lt = &layout[pos - 1];
+        if lt.edges.rt != tile.edges.lt {
+            return false
+        }
+    }
+
+    true
+}
+
+fn make_edge(m: &Matrix<u8>) -> u16
+{
+    m.iter()
+        .flat_map(|r| r.iter())
+        .enumerate()
+        .filter(|(_, c)| **c == b'#')
+        .fold(0, |n, (i, _)| n | 1 << i)
+}
+
+fn build_image(layout: &Layout, size: usize, tiles: &Tiles) -> Matrix<u8>
+{
+    // Ugly but we need to know how big the tiles are now.
+    let rows = tiles[0][0].data.rows;
+    let dims = rows * size;
+
+    Matrix::from_fn(dims, dims, |(r, c)| {
+        let i  = r / rows;  // row of tile in img
+        let ii = r % rows;  // row of item in tile
+        let j  = c / rows;  // col of tile in img
+        let jj = c % rows;  // col of item in tile
+
+        let item = &layout[i * size + j];
+        let tile = &tiles[item.pos][item.idx];
+        tile.data[(ii, jj)]
+    })
+}
+
+// 3x20
+// ..................#.
+// #....##....##....###
+// .#..#..#..#..#..#...
+const SEA_MONSTER: [(usize, usize);15] = [
+    (0, 18),
+    (1, 0), (1, 5), (1, 6), (1, 11), (1, 12), (1, 17), (1, 18), (1, 19),
+    (2, 1), (2, 4), (2, 7), (2, 10), (2, 13), (2, 16)
+];
+
+fn sea_monsters(m: &Matrix<u8>) -> usize
+{
+    (0..m.rows - 2)
+        .flat_map(|r| (0..m.columns - 19).map(move |c| (r, c)))
+        .filter(|(r, c)| {
+            SEA_MONSTER.iter().all(|(dr, dc)| m[(r + dr, c + dc)] == b'#')
+        })
+        .count()
 }
 
 
@@ -301,6 +274,6 @@ mod tests {
     fn example_part_two()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_one(input), 273);
+        assert_eq!(part_two(input), 273);
     }
 }

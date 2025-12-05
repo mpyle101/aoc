@@ -1,89 +1,120 @@
-use pathfinding::matrix::{Matrix, MatrixFormatError};
-
-fn main() {
+fn main()
+{
     use std::time::Instant;
 
-    let mat = load(include_str!("./input.txt"));
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let count = mat.map_or(0, |m| part_one(&m));
-    let t2 = Instant::now();
-    println!("Part 1: {count} ({:?})", t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let mat = load(include_str!("./input.txt"));
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
+}
+fn part_one(input: &str) -> usize
+{
+    let mut nrows = 0;
+    let mut ncols = 0;
+    let grid = input.lines()
+        .inspect(|l| { nrows += 1; ncols = l.len() })
+        .fold(Vec::new(), |mut v, l| { v.extend_from_slice(l.as_bytes()); v });
 
-    let t1 = Instant::now();
-    let count = mat.map_or(0, |m| part_two(&m));
-    let t2 = Instant::now();
-    println!("Part 2: {count} ({:?})", t2 - t1);
+    (0..100)
+        .fold(grid, |g, _| {
+            g.iter()
+                .enumerate()
+                .map(|(i, c)| {
+                    let lit = neighbours(i, nrows, ncols)
+                        .filter(|ix| g[*ix] == b'#')
+                        .count();
+                    (c, lit)
+                })
+                .map(|(c, lit)| {
+                    match (c, lit) {
+                        (b'.', 3) => b'#',
+                        (b'#', 2) => b'#',
+                        (b'#', 3) => b'#',
+                        _         => b'.'
+                    }
+                })
+                .collect()
+        })
+        .iter()
+        .filter(|c| **c == b'#')
+        .count()
 }
 
-fn load(input: &str) -> Result<Matrix<char>, MatrixFormatError> {
-    Matrix::from_rows(input.lines().map(|l| l.chars()))
+fn part_two(input: &str) -> usize
+{
+    let mut nrows = 0;
+    let mut ncols = 0;
+    let mut grid = input.lines()
+        .inspect(|l| { nrows += 1; ncols = l.len() })
+        .fold(Vec::new(), |mut v, l| { v.extend_from_slice(l.as_bytes()); v });
+
+    // top left, top right, bottom left, bottom right
+    let on = [0, ncols - 1, (nrows - 1) * ncols, nrows * ncols - 1];
+    on.iter().for_each(|i| grid[*i] = b'#');
+
+    (0..100)
+        .fold(grid, |g, _| {
+            let mut grid = g.iter()
+                .enumerate()
+                .map(|(i, c)| {
+                    let lit = neighbours(i, nrows, ncols)
+                        .filter(|ix| g[*ix] == b'#')
+                        .count();
+                    (c, lit)
+                })
+                .map(|(c, lit)| {
+                    match (c, lit) {
+                        (b'.', 3) => b'#',
+                        (b'#', 2) => b'#',
+                        (b'#', 3) => b'#',
+                        _         => b'.'
+                    }
+                })
+                .collect::<Vec<_>>();
+            on.iter().for_each(|i| grid[*i] = b'#');
+            grid
+        })
+        .iter()
+        .filter(|c| **c == b'#')
+        .count()
 }
 
-fn part_one(map: &Matrix<char>) -> usize {
-    (0..100).fold(map.clone(), |mat, _| {
-        let mut m = Matrix::new(mat.rows, mat.columns, '.');
-        mat.indices().for_each(|p| {
-            let cnt = mat.neighbours(p, true)
-                .filter_map(|p| mat.get(p).filter(|&v| *v == '#'))
-                .count();
-            if cnt == 3 || (cnt == 2 && mat.get(p).is_some_and(|v| *v == '#')) {
-                if let Some(v) = m.get_mut(p) { *v = '#' };
-            }
-        });
-        m
-    })
-    .values()
-    .filter(|&c| *c == '#')
-    .count()
+fn neighbours(i: usize, nrows: usize, ncols: usize) -> impl Iterator<Item = usize>
+{
+    let r = i / ncols;
+    let c = i % ncols;
+    let (rows, cols) = (
+        r.saturating_sub(1)..nrows.min(r + 2),
+        c.saturating_sub(1)..ncols.min(c + 2)
+    );
+
+    rows
+        .flat_map(move |rr| cols.clone().map(move |cc| (rr, cc)))
+        .filter(move |&p| p != (r, c))
+        .map(move |(rr, cc)| rr * ncols + cc)
 }
 
-fn part_two(map: &Matrix<char>) -> usize {
-    let corners = [
-        (0, 0),
-        (0, map.rows - 1),
-        (map.columns - 1, 0),
-        (map.rows - 1, map.columns - 1)
-    ];
-
-    // The lights in the corners are stuck on.
-    let mut m0 = map.clone();
-    for p in corners.iter() { if let Some(v) = m0.get_mut(*p) { *v = '#' } }
-
-    (0..100).fold(m0, |m1, _| {
-        let mut m = Matrix::new(m1.rows, m1.columns, '.');
-        m1.indices().for_each(|p| {
-            let cnt = m1.neighbours(p, true)
-                .filter_map(|p| m1.get(p).filter(|&v| *v == '#'))
-                .count();
-            if cnt == 3 || (cnt == 2 && m1.get(p).is_some_and(|v| *v == '#')) {
-                if let Some(v) = m.get_mut(p) { *v = '#' };
-            }
-        });
-
-        // The lights in the corners are stuck on.
-        for p in corners.iter() { if let Some(v) = m.get_mut(*p) { *v = '#' } }
-        m
-    })
-    .values()
-    .filter(|&c| *c == '#')
-    .count()
-}
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn it_works() {
-    let mat = load(include_str!("./input.txt"));
-    let count = mat.map_or(0, |m| part_one(&m));
-    assert_eq!(count, 1061);
+    #[test]
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1061);
+    }
 
-    let mat = load(include_str!("./input.txt"));
-    let count = mat.map_or(0, |m| part_two(&m));
-    assert_eq!(count, 1006);
-  }
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 1006);
+    }
 }

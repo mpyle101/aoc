@@ -15,33 +15,33 @@ fn main()
 
 fn part_one(input: &str) -> usize
 {
-    let (s1, ids) = input.split_once("\n\n").unwrap();
-    let v = s1.lines()
+    let (s, ids) = input.split_once("\n\n").unwrap();
+    let v = s.lines()
         .map(|l| {
-            let (l, h) = l.split_once('-').unwrap();
-            let n1 = l.parse::<u64>().unwrap();
-            let n2 = h.parse::<u64>().unwrap();
+            let (s1, s2) = l.split_once('-').unwrap();
+            let l = s1.parse::<u64>().unwrap();
+            let h = s2.parse::<u64>().unwrap();
 
-            (n1, n2)
+            (l, h)
         })
         .collect::<Vec<_>>();
 
     ids.lines()
         .flat_map(|l| l.parse::<u64>())
-        .filter(|n| v.iter().any(|(n1, n2)| n >= n1 && n <= n2))
+        .filter(|n| v.iter().any(|(l, h)| n >= l && n <= h))
         .count()
 }
 
-fn part_two(input: &str) -> u64
+fn part_two(input: &str) -> usize
 {
-    let (s1, _) = input.split_once("\n\n").unwrap();
-    let mut v = s1.lines()
+    let (s, _) = input.split_once("\n\n").unwrap();
+    let mut v = s.lines()
         .map(|l| {
-            let (l, h) = l.split_once('-').unwrap();
-            let n1 = l.parse::<u64>().unwrap();
-            let n2 = h.parse::<u64>().unwrap();
+            let (s1, s2) = l.split_once('-').unwrap();
+            let l = s1.parse::<u64>().unwrap();
+            let h = s2.parse::<u64>().unwrap();
 
-            (n1, n2)
+            (l, h)
         })
         .collect::<Vec<_>>();
     v.sort();
@@ -50,18 +50,18 @@ fn part_two(input: &str) -> u64
     let mut curr = v[0];
     v.iter()
         .skip(1)
-        .for_each(|(l, h)| {
-            if *l <= curr.1 {
-                curr.1 = curr.1.max(*h);
+        .for_each(|&(l, h)| {
+            if l <= curr.1 {
+                curr.1 = curr.1.max(h);
             } else {
                 ranges.push(curr);
-                curr = (*l, *h)
+                curr = (l, h)
             }
         });
     ranges.push(curr);
 
     ranges.iter()
-        .map(|(l, h)| h - l + 1)
+        .map(|&(l, h)| (l..=h).count())
         .sum()
 }
 
@@ -95,6 +95,6 @@ mod tests {
     fn example_part_two()
     {
         let input = include_str!("../example.txt");
-        assert_eq!(part_two(input), 3);
+        assert_eq!(part_two(input), 14);
     }
 }

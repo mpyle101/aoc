@@ -1,5 +1,5 @@
 use core::iter::Iterator;
-use pathfinding::prelude::{Matrix, Weights};
+use pathfinding::prelude::Matrix;
 use std::collections::{HashMap, HashSet};
 
 type Tiles = HashMap<Tile, Matrix<char>>;
@@ -59,7 +59,7 @@ fn part_two(input: &str) -> usize {
     let mut it = xforms.iter();
 
     let base = image.build();
-    let last = base.rows() - 2;
+    let last = base.rows - 2;
 
     let mut sea_monsters = 0;
     while sea_monsters == 0 {
@@ -216,8 +216,8 @@ impl Tile {
     fn edge(&self, tiles: &Tiles, edge: Edge) -> Matrix<char> {
         let data = tiles.get(self).unwrap();
 
-        let rows = data.rows();
-        let cols = data.columns();
+        let rows = data.rows;
+        let cols = data.columns;
 
         use Edge::*;
         match edge {
@@ -230,7 +230,7 @@ impl Tile {
 
     fn trim(&self, tiles:&Tiles) -> Matrix<char> {
         let data = tiles.get(self).unwrap();
-        data.slice(1..data.rows()-1, 1..data.columns()-1).unwrap()
+        data.slice(1..data.rows-1, 1..data.columns-1).unwrap()
     }
 }
 
@@ -265,7 +265,7 @@ fn xform(data: &Matrix<char>, flip: bool, rotate: usize) -> Matrix<char> {
 
 #[allow(dead_code)]
 fn draw(image: &Matrix<char>) {
-    println!("rows: {}, cols: {}", image.rows(), image.columns());
+    println!("rows: {}, cols: {}", image.rows, image.columns);
     for row in image.iter() {
         println!("{}", row.iter().collect::<String>());
     }

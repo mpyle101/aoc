@@ -15,24 +15,26 @@ fn main()
 
 fn part_one(input: &str) -> u64
 {
-    let mut iter = input.lines();
-    let mut formulas = iter.next().unwrap()
+    let mut iter = input.lines().rev();
+    let actions = iter.next().unwrap()
         .split_whitespace()
-        .map(|s| vec![s])
         .collect::<Vec<_>>();
+
+    let mut values = vec![Vec::new(); actions.len()];
     iter.for_each(|line| {
         line.split_whitespace()
             .enumerate()
-            .for_each(|(i, s)| formulas[i].push(s));
+            .flat_map(|(i, s)| s.parse::<u64>().map(|n| (i, n)))
+            .for_each(|(i, n)| values[i].push(n));
     });
-    formulas
-        .iter_mut()
-        .map(|v| {
-            v.reverse();
-            if v[0] == "+" {
-                v.iter().skip(1).flat_map(|s| s.parse::<u64>()).sum::<u64>()
+    
+    actions.iter()
+        .enumerate()
+        .map(|(i, s)| {
+            if *s == "+" {
+                values[i].iter().sum::<u64>()
             } else {
-                v.iter().skip(1).flat_map(|s| s.parse::<u64>()).product::<u64>()
+                values[i].iter().product::<u64>()
             }
         })
         .sum()

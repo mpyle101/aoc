@@ -13,47 +13,58 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-fn part_one(input: &str) -> i64
+fn part_one(input: &str) -> u64
 {
-    use itertools::Itertools;
+    let mut weights = input.lines()
+        .flat_map(|line| line.parse::<u32>())
+        .collect::<Vec<_>>();
+    weights.sort_by(|a, b| b.cmp(a));
+    let target = weights.iter().sum::<u32>() / 3;
 
-    let weights = load(input);
-    let target  = weights.iter().sum::<i64>() / 3;
+    let mut v = vec![];
+    dfs(2, 0, 0, target, vec![], &weights, &mut v);
 
-    // Manually worked our way to 6 because 2-5 returned no results.
-    // Could put an outer loop to work our way up to handle any data
-    // set.
-    weights.iter()
-        .combinations(6)
-        .filter_map(|v| (v.iter().copied().sum::<i64>() == target).then_some(v))
-        .map(|v| v.iter().copied().product::<i64>())
-        .min()
-        .unwrap()
+    v.iter().map(|n| *n as u64).product::<u64>()
 }
 
-fn part_two(input: &str) -> i64
+fn part_two(input: &str) -> u64
 {
-    use itertools::Itertools;
+    let mut weights = input.lines()
+        .flat_map(|line| line.parse::<u32>())
+        .collect::<Vec<_>>();
+    weights.sort_by(|a, b| b.cmp(a));
+    let target = weights.iter().sum::<u32>() / 4;
 
-    let weights = load(input);
-    let target  = weights.iter().sum::<i64>() / 4;
+    let mut v = vec![];
+    dfs(3, 0, 0, target, vec![], &weights, &mut v);
 
-    // Manually worked our way to 4 because 2 & 3 returned no results.
-    // Could put an outer loop to work our way up to handle any data
-    // set.
-    weights.iter()
-        .combinations(4)
-        .filter_map(|v| (v.iter().copied().sum::<i64>() == target).then_some(v))
-        .map(|v| v.iter().copied().product::<i64>())
-        .min()
-        .unwrap()
+    v.iter().map(|n| *n as u64).product::<u64>()
 }
 
-fn load(input: &str) -> Vec<i64>
+fn dfs(m: u32, i: usize, n: u32, t: u32, g: Vec<u32>, weights: &[u32], r: &mut Vec<u32>)
 {
-    input.lines()
-        .flat_map(|line| line.parse::<i64>())
-        .collect()
+    if n == t {
+        let re = r.iter().map(|n| *n as u64).product::<u64>();
+        let qe = g.iter().map(|n| *n as u64).product::<u64>();
+        let wts = weights.iter().filter(|w| !g.contains(w)).sum::<u32>();
+
+        if wts == t * m && (r.is_empty() || g.len() < r.len() || (g.len() == r.len() && qe < re)) {
+            *r = g;
+        }
+    } else if n < t && i < weights.len() {
+        let l = if r.is_empty() {
+            usize::MAX
+        } else {
+            r.len()
+        };
+        if g.len() < l {
+            let w = weights[i];
+            let mut g1 = g.clone(); g1.push(w);
+            dfs(m, i + 1, n + w, t, g1, weights, r);
+        }
+
+        dfs(m, i + 1, n, t, g, weights, r);
+    }
 }
 
 
@@ -73,5 +84,19 @@ mod tests {
     {
         let input = include_str!("../input.txt");
         assert_eq!(part_two(input), 80393059);
+    }
+
+    #[test]
+    fn example_part_one()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_one(input), 99);
+    }
+
+    #[test]
+    fn example_part_two()
+    {
+        let input = include_str!("../example.txt");
+        assert_eq!(part_two(input), 44);
     }
 }

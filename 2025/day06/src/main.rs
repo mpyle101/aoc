@@ -67,7 +67,7 @@ fn part_two(input: &str) -> u64
                 .iter()
                 .enumerate()
                 .fold(0, |n, (ix, i)| {
-                    values[ix].push(line[n..n+i].to_string());
+                    values[ix].push(&line[n..n+i]);
                     n + i + 1
                 });
         });
@@ -81,7 +81,9 @@ fn part_two(input: &str) -> u64
                 i,
                 (0..n).rev()
                     .map(|j| {
-                        let num = v.iter().flat_map(|s| s.chars().nth(j)).collect::<String>();
+                        let num = v.iter()
+                            .flat_map(|s| s.chars().nth(j))
+                            .collect::<String>();
                         num.trim().parse::<u64>().unwrap()
                     })
             )

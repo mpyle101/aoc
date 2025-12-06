@@ -44,8 +44,8 @@ fn part_two(input: &str) -> u64
 fn dfs(m: u32, i: usize, n: u32, t: u32, g: Vec<u32>, weights: &[u32], r: &mut Vec<u32>)
 {
     if n == t {
-        let re = r.iter().map(|n| *n as u64).product::<u64>();
         let qe = g.iter().map(|n| *n as u64).product::<u64>();
+        let re = r.iter().map(|n| *n as u64).product::<u64>();
         let wts = weights.iter().filter(|w| !g.contains(w)).sum::<u32>();
 
         if wts == t * m && (r.is_empty() || g.len() < r.len() || (g.len() == r.len() && qe < re)) {
@@ -61,9 +61,9 @@ fn dfs(m: u32, i: usize, n: u32, t: u32, g: Vec<u32>, weights: &[u32], r: &mut V
             let w = weights[i];
             let mut g1 = g.clone(); g1.push(w);
             dfs(m, i + 1, n + w, t, g1, weights, r);
+            dfs(m, i + 1, n, t, g, weights, r);
         }
 
-        dfs(m, i + 1, n, t, g, weights, r);
     }
 }
 

@@ -1,5 +1,4 @@
 use std::ops::{Index, IndexMut};
-use lazy_static::lazy_static;
 
 fn main()
 {
@@ -88,15 +87,13 @@ enum Spell {
     MagicMissle(i32),
 }
 
-lazy_static! {
-    static ref SPELLS: [Spell;5] = [
-        Spell::MagicMissle(53),
-        Spell::Drain(73),
-        Spell::Shield(113),
-        Spell::Poison(173),
-        Spell::Recharge(229),
-    ];
-}
+const SPELLS: [Spell;5] = [
+    Spell::MagicMissle(53),
+    Spell::Drain(73),
+    Spell::Shield(113),
+    Spell::Poison(173),
+    Spell::Recharge(229),
+];
 
 #[derive(Clone, Copy)]
 struct Monster {

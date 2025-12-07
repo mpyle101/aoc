@@ -1,5 +1,3 @@
-use lazy_static::lazy_static;
-
 fn main()
 {
     use std::time::Instant;
@@ -29,7 +27,7 @@ fn part_one(input: &str) -> i32
         0..ARMOR.len(),
         0..WEAPONS.len()
     ).filter_map(|(r1, r2, a, w)| {
-        if r1 == r2 { 
+        if r1 == r2 && r1 != 0 { 
             None
         } else {
             let cost   = ARMOR[a].cost + WEAPONS[w].cost + RINGS[r1].cost + RINGS[r2].cost;
@@ -64,7 +62,7 @@ fn part_two(input: &str) -> i32
         0..ARMOR.len(),
         0..WEAPONS.len()
     ).filter_map(|(r1, r2, a, w)| {
-        if r1 == r2 { 
+        if r1 == r2 && r1 != 0 { 
             None
         } else {
             let cost   = ARMOR[a].cost + WEAPONS[w].cost + RINGS[r1].cost + RINGS[r2].cost;
@@ -128,42 +126,31 @@ struct Item {
     armor: i32,
     damage: i32,
 }
+const ARMOR: [Item;6] = [
+    Item { cost:   0, damage: 0, armor: 0 },   // None
+    Item { cost:  13, damage: 0, armor: 1 },   // Leather
+    Item { cost:  31, damage: 0, armor: 2 },   // Chainmail
+    Item { cost:  53, damage: 0, armor: 3 },   // Splintmail
+    Item { cost:  75, damage: 0, armor: 4 },   // Bandedmail
+    Item { cost: 102, damage: 0, armor: 5 },   // Platemail
+];
+const WEAPONS: [Item;5] = [
+    Item { cost:  8, damage: 4, armor: 0 },    // Dagger
+    Item { cost: 10, damage: 5, armor: 0 },    // Shortsword
+    Item { cost: 25, damage: 6, armor: 0 },    // Warhammer
+    Item { cost: 40, damage: 7, armor: 0 },    // Longsword
+    Item { cost: 74, damage: 8, armor: 0 },    // Greataxe
+];
+const RINGS: [Item;7] = [
+    Item { cost:   0, damage: 0, armor: 0 },   // None
+    Item { cost:  25, damage: 1, armor: 0 },   // Damage +1
+    Item { cost:  50, damage: 2, armor: 0 },   // Damage +2
+    Item { cost: 100, damage: 3, armor: 0 },   // Damage +3
+    Item { cost:  20, damage: 0, armor: 1 },   // Defense +1
+    Item { cost:  40, damage: 0, armor: 2 },   // Defense +2
+    Item { cost:  80, damage: 0, armor: 3 },   // Defense +3
+];
 
-impl Item {
-    fn new(cost: i32, damage: i32, armor: i32) -> Item
-    {
-        Item { cost, armor, damage }
-    }
-}
-
-lazy_static! {
-    static ref ARMOR: [Item;6] = [
-        Item::new(  0, 0, 0),   // None
-        Item::new( 13, 0, 1),   // Leather
-        Item::new( 31, 0, 2),   // Chainmail
-        Item::new( 53, 0, 3),   // Splintmail
-        Item::new( 75, 0, 4),   // Bandedmail
-        Item::new(102, 0, 5),   // Platemail
-    ];
-
-    static ref WEAPONS: [Item;5] = [
-        Item::new( 8, 4, 0),    // Dagger
-        Item::new(10, 5, 0),    // Shortsword
-        Item::new(25, 6, 0),    // Warhammer
-        Item::new(40, 7, 0),    // Longsword
-        Item::new(74, 8, 0),    // Greataxe
-    ];
-
-    static ref RINGS: [Item;7] = [
-        Item::new(  0, 0, 0),   // None
-        Item::new( 25, 1, 0),   // Damage +1
-        Item::new( 50, 2, 0),   // Damage +2
-        Item::new(100, 3, 0),   // Damage +3
-        Item::new( 20, 0, 1),   // Defense +1
-        Item::new( 40, 0, 2),   // Defense +2
-        Item::new( 80, 0, 3),   // Defense +3
-    ];
-}
 
 
 #[cfg(test)]

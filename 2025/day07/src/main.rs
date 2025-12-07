@@ -25,17 +25,16 @@ fn part_one(input: &str) -> u32
     (0..tm.rows)
         .step_by(2)
         .fold((0, HashSet::from([pos])), |(mut n, beams), r| {
-            let mut v = HashSet::new();
-            beams.iter()
-                .for_each(|c| {
+            let v = beams.iter()
+                .flat_map(|c| {
                     if tm[(r, *c)] == b'^' {
-                        v.insert(c - 1);
-                        v.insert(c + 1);
-                        n += 1
+                        n += 1;
+                        [c-1, c+1]
                     } else {
-                        v.insert(*c);
+                        [*c, *c]
                     }
-                });
+                })
+                .collect::<HashSet<_>>();
             (n, v)
         })
         .0
@@ -54,12 +53,8 @@ fn part_two(input: &str) -> u64
             let mut m = HashMap::new();
             beams.iter()
                 .for_each(|(c, n)| {
-                    if tm[(r, *c)] == b'^' {
-                        *m.entry(c - 1).or_default() += n;
-                        *m.entry(c + 1).or_default() += n;
-                    } else {
-                        *m.entry(*c).or_default() += n;
-                    }
+                    let sl: &[_] = if tm[(r, *c)] == b'^' { &[c-1, c+1] } else { &[*c] };
+                    sl.iter().for_each(|c| *m.entry(*c).or_default() += n )
                 });
             m
         })

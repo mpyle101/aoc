@@ -80,11 +80,11 @@ fn part_two(input: &str) -> u64
             (
                 i,
                 (0..n).rev()
-                    .map(|j| {
+                    .flat_map(|j| {
                         let num = v.iter()
                             .flat_map(|s| s.chars().nth(j))
                             .collect::<String>();
-                        num.trim().parse::<u64>().unwrap()
+                        num.trim().parse::<u64>()
                     })
             )
         })

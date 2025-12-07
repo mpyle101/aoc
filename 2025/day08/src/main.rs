@@ -20,15 +20,11 @@ fn part_one(input: &str) -> u32
     use std::collections::HashSet;
 
     let tm = Matrix::from_rows(input.lines().map(|l| l.bytes())).unwrap();
+    let pos = tm.items().position(|(_, v)| *v == b'S').unwrap();
 
-    let mut iter = tm.iter();
-    let row = iter.next().unwrap();
-    let pos = row.iter().position(|c| *c == b'S').unwrap();
-
-    let mut beams = HashSet::from([pos]);
     (0..tm.rows)
         .step_by(2)
-        .fold(0, |mut n, r| {
+        .fold((0, HashSet::from([pos])), |(mut n, beams), r| {
             let mut v = HashSet::new();
             beams.iter()
                 .for_each(|c| {
@@ -40,10 +36,9 @@ fn part_one(input: &str) -> u32
                         v.insert(*c);
                     }
                 });
-            beams = v;
-
-            n
+            (n, v)
         })
+        .0
 }
 
 fn part_two(input: &str) -> u64
@@ -51,12 +46,9 @@ fn part_two(input: &str) -> u64
     use std::collections::HashMap;
 
     let tm = Matrix::from_rows(input.lines().map(|l| l.bytes())).unwrap();
+    let pos = tm.items().position(|(_, v)| *v == b'S').unwrap();
 
-    let mut iter = tm.iter();
-    let row = iter.next().unwrap();
-    let pos = row.iter().position(|c| *c == b'S').unwrap();
-
-    let beams = (0..tm.rows)
+    (0..tm.rows)
         .step_by(2)
         .fold(HashMap::from([(pos, 1u64)]), |beams, r| {
             let mut m = HashMap::new();
@@ -70,9 +62,10 @@ fn part_two(input: &str) -> u64
                     }
                 });
             m
-        });
+        })
+        .values()
+        .sum()
 
-    beams.values().sum()
 }
 
 

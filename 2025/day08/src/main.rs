@@ -65,7 +65,6 @@ fn part_two(input: &str) -> u64
         })
         .values()
         .sum()
-
 }
 
 

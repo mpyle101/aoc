@@ -29,8 +29,8 @@ fn part_one(input: &str) -> u32
             beams.iter()
                 .for_each(|c| {
                     if tm[(r, *c)] == b'^' {
-                        v.insert(c-1);
-                        v.insert(c+1);
+                        v.insert(c - 1);
+                        v.insert(c + 1);
                         n += 1
                     } else {
                         v.insert(*c);
@@ -55,10 +55,10 @@ fn part_two(input: &str) -> u64
             beams.iter()
                 .for_each(|(c, n)| {
                     if tm[(r, *c)] == b'^' {
-                        *m.entry(c - 1).or_insert(0) += n;
-                        *m.entry(c + 1).or_insert(0) += n;
+                        *m.entry(c - 1).or_default() += n;
+                        *m.entry(c + 1).or_default() += n;
                     } else {
-                        *m.entry(*c).or_insert(0) += n;
+                        *m.entry(*c).or_default() += n;
                     }
                 });
             m

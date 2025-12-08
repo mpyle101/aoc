@@ -15,7 +15,7 @@ fn main()
 
 fn part_one<const N: usize>(input: &str) -> usize
 {
-    let (pairs, boxes) = load(input);
+    let (boxes, pairs) = load(input);
     let mut circuits = (0..boxes.len())
         .map(|i| vec![i])
         .collect::<Vec<_>>();
@@ -41,7 +41,7 @@ fn part_one<const N: usize>(input: &str) -> usize
 
 fn part_two(input: &str) -> i64
 {
-    let (pairs, boxes) = load(input);
+    let (boxes, pairs) = load(input);
     let mut circuits = (0..boxes.len())
         .map(|i| vec![i])
         .collect::<Vec<_>>();
@@ -65,7 +65,7 @@ fn part_two(input: &str) -> i64
 type Pos = (i64, i64, i64);
 
 #[allow(clippy::needless_range_loop)]
-fn load(input: &str) -> (Vec<(i64, usize, usize)>, Vec<Pos>)
+fn load(input: &str) -> (Vec<Pos>, Vec<(i64, usize, usize)>)
 {
     let boxes = input.lines()
         .map(|l| {
@@ -89,7 +89,7 @@ fn load(input: &str) -> (Vec<(i64, usize, usize)>, Vec<Pos>)
     }
     pairs.sort();
 
-    (pairs, boxes)
+    (boxes, pairs)
 }
 
 

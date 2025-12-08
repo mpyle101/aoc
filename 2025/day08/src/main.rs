@@ -15,6 +15,8 @@ fn main()
 
 fn part_one<const N: usize>(input: &str) -> usize
 {
+    use std::mem::take;
+
     let (boxes, pairs) = load(input);
     let mut circuits = (0..boxes.len())
         .map(|i| vec![i])
@@ -26,9 +28,9 @@ fn part_one<const N: usize>(input: &str) -> usize
             let i = circuits.iter().position(|v| v.contains(&a)).unwrap();
             let j = circuits.iter().position(|v| v.contains(&b)).unwrap();
             if i != j {
-                let mut v = circuits[j].clone();
+                let mut v = take(&mut circuits[j]);
                 circuits[i].append(&mut v);
-                circuits.remove(j);
+                circuits.swap_remove(j);
             }
         });
     circuits.sort_by_key(|v| std::cmp::Reverse(v.len()));
@@ -41,6 +43,8 @@ fn part_one<const N: usize>(input: &str) -> usize
 
 fn part_two(input: &str) -> i64
 {
+    use std::mem::take;
+
     let (boxes, pairs) = load(input);
     let mut circuits = (0..boxes.len())
         .map(|i| vec![i])
@@ -51,9 +55,9 @@ fn part_two(input: &str) -> i64
         let i = circuits.iter().position(|v| v.contains(&a)).unwrap();
         let j = circuits.iter().position(|v| v.contains(&b)).unwrap();
         if i != j {
-            let mut v = circuits[j].clone();
+            let mut v = take(&mut circuits[j]);
             circuits[i].append(&mut v);
-            circuits.remove(j);
+            circuits.swap_remove(j);
         }
         last = (a, b);
         if circuits.len() == 1 { break }

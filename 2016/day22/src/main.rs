@@ -1,69 +1,111 @@
+use pathfinding::matrix::Matrix;
 
-fn main() {
-    use std::{fs, time::Instant};
+fn main()
+{
+    use std::time::Instant;
 
-    let input = fs::read_to_string("./input.txt").unwrap();
-    let disks = load(&input);
+    let input = include_str!("../input.txt");
 
-    let t1 = Instant::now();
-    let pairs = part_one(&disks);
-    let t2 = Instant::now();
-    println!("Part 1: {} ({:?})", pairs, t2 - t1);
+    let t = Instant::now();
+    let result = part_one(input);
+    println!("Part 1: {} ({:?})", result, t.elapsed());
 
-    let t1 = Instant::now();
-    let steps = part_two(&disks);
-    let t2 = Instant::now();
-    println!("Part 2: {} ({:?})", steps, t2 - t1);
+    let t = Instant::now();
+    let result = part_two(input);
+    println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-struct Disk {
-    x: usize,
-    y: usize,
-    size: i32,
-    used: i32,
-}
+fn part_one(input: &str) -> u32
+{
+    let disks = input.lines()
+        .skip(2)
+        .map(|s| {
+            let size = s[24..27].trim().parse::<u32>().unwrap();
+            let used = s[30..33].trim().parse::<u32>().unwrap();
+            (size, used)
+        })
+        .collect::<Vec<_>>();
 
-impl Disk {
-    fn can_hold(&self, d: &Disk) -> bool {
-        (self.size - self.used) >= d.used
+    let mut viable = 0;
+    for a in 0..disks.len() - 1 {
+        for b in a + 1..disks.len() {
+            if disks[a].1 > 0 {
+                viable += (disks[a].1 <= disks[b].0 - disks[b].1) as u32
+            }
+            if disks[b].1 > 0 {
+                viable += (disks[b].1 <= disks[a].0 - disks[a].1) as u32
+            }
+        }
     }
+
+    viable
 }
 
-type Disks = Vec<Disk>;
+fn part_two(input: &str) -> u32
+{
+    use pathfinding::prelude::dijkstra;
 
-fn load(input: &str) -> Disks {
-    input.lines().skip(2).map(|s| {
-        let v = s.split_ascii_whitespace().collect::<Vec<_>>();
-        let size = v[1][0..v[1].len()-1].parse::<i32>().unwrap();
-        let used = v[2][0..v[2].len()-1].parse::<i32>().unwrap();
-        let v = v[0].split('-').collect::<Vec<_>>();
-        let x = v[1][1..].parse::<usize>().unwrap();
-        let y = v[2][1..].parse::<usize>().unwrap();
-        Disk { x, y, size, used }
-    })
-    .collect()
+    let mut empty = (0, 0);
+    let mut disks = Matrix::new(29, 35, (0, 0));
+    input.lines()
+        .skip(2)
+        .for_each(|s| {
+            let (sx, sy) = &s[15..23].split_once('-').unwrap();
+            let c = sx[1..].parse::<usize>().unwrap();
+            let r = sy[1..].trim().parse::<usize>().unwrap();
+
+            let size = s[24..27].trim().parse::<u32>().unwrap();
+            let used = s[30..33].trim().parse::<u32>().unwrap();
+            if used == 0 { empty = (r, c) }
+
+            disks[(r, c)] = (size, used);
+        });
+
+    // Drawing shows there's only one disk with enough available
+    // space to hold the target data. There's also a "wall" of
+    // huge disks between the empty disk and the target disk.
+    //
+    // . . . . . G
+    // . # # # # #
+    // . . . _ . .
+
+    // This gets us a path to be next to G
+    let goal = (0, 33);
+    let avail = disks[empty].0;
+    let path = dijkstra(
+        &empty,
+        |p| successors(p, &disks, avail).into_iter().map(|i| (i, 1)),
+        |p| *p == goal
+    ).unwrap();
+
+    // It take 5 data moves to move G left 1 disk and move the empty
+    // disk to the left of the new G. So 4 times the number of disks
+    // to move G to column 1 and one last move to put it at (0, 0).
+    path.1 + 5 * 33 + 1
 }
 
-fn part_one(disks: &Disks) -> usize {
-    use itertools::Itertools;
-
-    disks.iter().permutations(2)
-        .filter(|v| v[0].used != 0 && v[1].can_hold(v[0]))
-        .count()
+fn successors(pos: &(usize, usize), disks: &Matrix<(u32, u32)>, avail: u32) -> Vec<(usize, usize)>
+{
+    disks.neighbours(*pos, false)
+        .filter(|p| disks[p].1 <= avail)
+        .collect()
 }
 
-fn part_two(disks: &Disks) -> usize {
-    (0..29).for_each(|y| {
-        (0..35).for_each(|x| {
-            let disk = disks[x*29+y];
-            if x == 0 && y == 0 {
+#[allow(dead_code)]
+fn draw(disks: &Matrix<(u32, u32)>, path: &[(usize, usize)])
+{
+    (0..29).for_each(|r| {
+        (0..35).for_each(|c| {
+            let disk = disks[(r, c)];
+            if r == 0 && c == 0 {
                 print!("(.)")
-            } else if x == 34 && y == 0 {
+            } else if c == 34 && r == 0 {
                 print!(" G ")
-            } else if disk.used == 0 {
+            } else if path.contains(&(r, c)) {
+                print!(" * ")
+            } else if disk.1 == 0 {
                 print!(" - ")
-            } else if disk.size > 500 {
+            } else if disk.0 > 500 {
                 print!(" # ")
             } else {
                 print!(" . ")
@@ -71,27 +113,24 @@ fn part_two(disks: &Disks) -> usize {
         });
         println!();
     });
-
-    // Manually look at the print out. It takes 26 moves to get the
-    // empty disk to the left of G. Then it'll take 34 moves to get
-    // G to (0, 0) and it'll take 4 moves to get the free disk in
-    // front of G each time and we need to do that one less than G
-    // moves so 33 times => 26 + 34 + (33 * 4) = 192
-    192
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
 
     #[test]
-    fn it_works() {
-        let input = fs::read_to_string("./input.txt").unwrap();
-        let disks = load(&input);
-        
-        let pairs = part_one(&disks);
-        assert_eq!(pairs, 1003);
+    fn input_part_one()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_one(input), 1003);
+    }
+
+    #[test]
+    fn input_part_two()
+    {
+        let input = include_str!("../input.txt");
+        assert_eq!(part_two(input), 192);
     }
 }

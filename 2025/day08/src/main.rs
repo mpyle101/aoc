@@ -13,47 +13,22 @@ fn main()
     println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
-#[allow(clippy::needless_range_loop)]
 fn part_one<const N: usize>(input: &str) -> usize
 {
-    let boxes = input.lines()
-        .map(|l| {
-            let mut iter = l.split(',');
-            let x = iter.next().unwrap().parse::<i64>().unwrap();
-            let y = iter.next().unwrap().parse::<i64>().unwrap();
-            let z = iter.next().unwrap().parse::<i64>().unwrap();
-
-            (x, y, z)
-        })
+    let (pairs, boxes) = load(input);
+    let mut circuits = (0..boxes.len())
+        .map(|i| vec![i])
         .collect::<Vec<_>>();
-
-    let mut pairs = vec![];
-    for a in 0..boxes.len() - 1 {
-        let (ax, ay, az) = boxes[a];
-        for b in a + 1..boxes.len() {
-            let (bx, by, bz) = boxes[b];
-            let d = (ax - bx).pow(2) + (ay - by).pow(2) + (az - bz).pow(2);
-            pairs.push((d, a, b));
-        }
-    }
-    pairs.sort();
-
-    let mut circuits: Vec<Vec<usize>> = vec![];
+    
     pairs.iter()
         .take(N)
         .for_each(|&(_, a, b)| {
-            let ai = circuits.iter().position(|v| v.contains(&a));
-            let bi = circuits.iter().position(|v| v.contains(&b));
-            match (ai, bi) {
-                (None,    None)    => circuits.push(vec![a, b]),
-                (None,    Some(i)) => circuits[i].push(a),
-                (Some(i), None)    => circuits[i].push(b),
-                (Some(i), Some(j)) if i != j => {
-                    let mut v = circuits[j].clone();
-                    circuits[i].append(&mut v);
-                    circuits.remove(j);
-                },
-                _ => ()
+            let i = circuits.iter().position(|v| v.contains(&a)).unwrap();
+            let j = circuits.iter().position(|v| v.contains(&b)).unwrap();
+            if i != j {
+                let mut v = circuits[j].clone();
+                circuits[i].append(&mut v);
+                circuits.remove(j);
             }
         });
     circuits.sort_by_key(|v| std::cmp::Reverse(v.len()));
@@ -64,31 +39,9 @@ fn part_one<const N: usize>(input: &str) -> usize
         .product()
 }
 
-#[allow(clippy::needless_range_loop)]
 fn part_two(input: &str) -> i64
 {
-    let boxes = input.lines()
-        .map(|l| {
-            let mut iter = l.split(',');
-            let x = iter.next().unwrap().parse::<i64>().unwrap();
-            let y = iter.next().unwrap().parse::<i64>().unwrap();
-            let z = iter.next().unwrap().parse::<i64>().unwrap();
-
-            (x, y, z)
-        })
-        .collect::<Vec<_>>();
-
-    let mut pairs = vec![];
-    for a in 0..boxes.len() - 1 {
-        let (ax, ay, az) = boxes[a];
-        for b in a + 1..boxes.len() {
-            let (bx, by, bz) = boxes[b];
-            let d = (ax - bx).pow(2) + (ay - by).pow(2) + (az - bz).pow(2);
-            pairs.push((d, a, b));
-        }
-    }
-    pairs.sort();
-
+    let (pairs, boxes) = load(input);
     let mut circuits = (0..boxes.len())
         .map(|i| vec![i])
         .collect::<Vec<_>>();
@@ -107,6 +60,36 @@ fn part_two(input: &str) -> i64
     }
 
     boxes[last.0].0 * boxes[last.1].0
+}
+
+type Pos = (i64, i64, i64);
+
+#[allow(clippy::needless_range_loop)]
+fn load(input: &str) -> (Vec<(i64, usize, usize)>, Vec<Pos>)
+{
+    let boxes = input.lines()
+        .map(|l| {
+            let mut iter = l.split(',');
+            let x = iter.next().unwrap().parse::<i64>().unwrap();
+            let y = iter.next().unwrap().parse::<i64>().unwrap();
+            let z = iter.next().unwrap().parse::<i64>().unwrap();
+
+            (x, y, z)
+        })
+        .collect::<Vec<_>>();
+
+    let mut pairs = vec![];
+    for a in 0..boxes.len() - 1 {
+        let (ax, ay, az) = boxes[a];
+        for b in a + 1..boxes.len() {
+            let (bx, by, bz) = boxes[b];
+            let d = (ax - bx).pow(2) + (ay - by).pow(2) + (az - bz).pow(2);
+            pairs.push((d, a, b));
+        }
+    }
+    pairs.sort();
+
+    (pairs, boxes)
 }
 
 

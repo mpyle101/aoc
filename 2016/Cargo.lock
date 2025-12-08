@@ -76,7 +76,7 @@ version = "0.1.0"
 name = "day13"
 version = "0.1.0"
 dependencies = [
- "pathfinding 4.13.0",
+ "pathfinding 4.14.0",
 ]
 
 [[package]]
@@ -124,7 +124,7 @@ version = "0.1.0"
 name = "day22"
 version = "0.1.0"
 dependencies = [
- "itertools",
+ "pathfinding 4.14.0",
 ]
 
 [[package]]
@@ -261,9 +261,9 @@ dependencies = [
 
 [[package]]
 name = "pathfinding"
-version = "4.13.0"
+version = "4.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "301ad6aa19104eeb9af172b3d6a4ab8a5ea26234890baf2fcb1cbbc3f05f674b"
+checksum = "59ac35caa284c08f3721fb33c2741b5f763decaf42d080c8a6a722154347017e"
 dependencies = [
  "deprecate-until",
  "indexmap 2.7.0",

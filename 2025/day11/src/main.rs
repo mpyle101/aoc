@@ -32,9 +32,9 @@ fn part_one(input: &str) -> usize
         .collect::<HashMap<_,_>>();
 
     count_paths(
-        &"you",
-        |s| m.get(*s).unwrap(),
-        |s| **s == "out"
+        "you",
+        |s| m.get(s).unwrap().iter().cloned(),
+        |s| *s == "out"
     )
 }
 
@@ -55,19 +55,19 @@ fn part_two(input: &str) -> usize
 
     let empty = vec![];
     let mut count = count_paths(
-        &"dac",
-        |s| m.get(*s).unwrap(),
-        |s| **s == "out"
+        "dac",
+        |s| m.get(s).unwrap_or(&empty).iter().cloned(),
+        |s| *s == "out"
     );
     count *= count_paths(
-        &"fft",
-        |s| m.get(*s).unwrap_or(&empty),
-        |s| **s == "dac"
+        "fft",
+        |s| m.get(s).unwrap_or(&empty).iter().cloned(),
+        |s| *s == "dac"
     );
     count *= count_paths(
-        &"svr",
-        |s| m.get(*s).unwrap_or(&empty),
-        |s| **s == "fft"
+        "svr",
+        |s| m.get(s).unwrap_or(&empty).iter().cloned(),
+        |s| *s == "fft"
     );
 
     count

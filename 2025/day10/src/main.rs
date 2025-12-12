@@ -109,14 +109,17 @@ fn dfs(joltage: &[u32], btns: &[Vec<usize>], active: u32) -> u32
         0
     } else {
         // Get the index of the jolt with the least number of buttons
-        // ignoring any at 0.
-        let (_, ix) = (0..joltage.len())
-            .filter(|i| joltage[*i] != 0)
-            .map(|i| (
+        // ignoring any at 0. If there's a tie, pick the value with
+        // the highest joltage.
+        let (_, _, ix) = joltage.iter()
+            .enumerate()
+            .filter(|(_, n)| **n != 0)
+            .map(|(i, n)| (
                 btns.iter()
                     .enumerate()
                     .filter(|(p, v)| active & 1 << *p != 0 && v.contains(&i))
                     .count(),
+                -(*n as i32),   // min finding
                 i
             ))
             .min()

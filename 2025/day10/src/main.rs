@@ -2,7 +2,7 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../input.txt");
+    let input = include_str!("../example.txt");
 
     let t = Instant::now();
     let result = part_one(input);
@@ -103,6 +103,8 @@ fn lighters(n: u16, i: i32, btns: &[u16]) -> Vec<(u16, i32)>
 
 fn dfs(joltage: &[u32], btns: &[Vec<usize>]) -> u32
 {
+    use itertools::Itertools;
+
     if joltage.iter().sum::<u32>() == 0 {
         0
     } else {
@@ -130,17 +132,24 @@ fn dfs(joltage: &[u32], btns: &[Vec<usize>]) -> u32
             // of available buttons. It's possible the filtering will remove
             // all the candiate states.
             let jolt = joltage[ix];
-            let coefs = get_coefs(jolt, joltage.len());
 
-            let states = get_states(&coefs, joltage.len(), &used);
+            let x = jolt as i32;
+            let n = used.len() as i32;
+            let mut ci = (0..x + n - 1).combinations(used.len() - 1);
 
+            let mut coefs = vec![0;used.len()];
             let mut jolts = vec![0;joltage.len()];
-            for st in states.iter() {
-                if joltage.iter().zip(st).all(|(a, b)| b <= a) {
-                    (0..joltage.len()).for_each(|i| jolts[i] = joltage[i] - st[i]);
+            let mut state = vec![0;joltage.len()];
+
+            while next_coefs(&mut coefs, &mut ci, jolt, used.len()) {
+                next_state(&mut state, &coefs, &used);
+                if joltage.iter().zip(&state).all(|(a, b)| b <= a) {
+                    (0..joltage.len()).for_each(|i| jolts[i] = joltage[i] - state[i]);
                     let r = dfs(&jolts, &rem);
                     if r != u32::MAX { count = count.min(jolt + r)}
                 }
+
+                state.fill(0);
             }
         }
 
@@ -148,52 +157,32 @@ fn dfs(joltage: &[u32], btns: &[Vec<usize>]) -> u32
     }
 }
 
-fn get_states(coefs: &[Vec<u32>], size: usize, btns: &[Vec<usize>]) -> Vec<Vec<u32>>
+fn next_state(cv: &mut [u32], coefs: &[u32], btns: &[Vec<usize>])
 {
-    // Use them to generate value vectors.
     coefs.iter()
-        .map(|v| {
-            let mut cv = vec![0;size];
-            v.iter()
-                .enumerate()
-                .filter(|(_, c)| **c > 0)
-                .for_each(|(i, c)| btns[i].iter().for_each(|j| cv[*j] += *c));
-            cv
-        })
-        .collect()
+        .enumerate()
+        .filter(|(_, c)| **c > 0)
+        .for_each(|(i, c)| btns[i].iter().for_each(|j| cv[*j] += *c));
 }
 
-fn get_coefs(x: u32, n: usize) -> Vec<Vec<u32>>
+fn next_coefs<T>(coefs: &mut [u32], it: &mut T, x: u32, n: usize) -> bool
+    where T: Iterator<Item = Vec<i32>>
 {
-    use itertools::Itertools;
-
     let x1 = x as i32;
     let n1 = n as i32;
 
-    let mut states = vec![];
-    for bars in (0..x1 + n1 - 1).combinations(n - 1) {
-        let mut state = vec![];
+    if let Some(v) = it.next() {
         let mut prev = -1;
-        for b in bars {
-            state.push((b - prev - 1) as u32);
-            prev = b;
+        for (i, b) in v.iter().enumerate() {
+            coefs[i] = (b - prev - 1) as u32;
+            prev = *b;
         }
-        state.push((x1 + n1 - 1 - prev - 1) as u32);
-        states.push(state)
+        *coefs.last_mut().unwrap() = (x1 + n1 - 1 - prev - 1) as u32;
+
+        true
+    } else {
+        false
     }
-
-    states
-}
-
-#[allow(dead_code)]
-fn calc(size: usize, coef: &[u32], btns: &[Vec<usize>]) -> Vec<u32>
-{
-    btns.iter()
-        .zip(coef.iter())
-        .fold(vec![0;size], |mut v, (b, n)| {
-            b.iter().for_each(|i| v[*i] += n);
-            v
-        })
 }
 
 

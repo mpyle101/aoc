@@ -2,7 +2,7 @@ fn main()
 {
     use std::time::Instant;
 
-    let input = include_str!("../example.txt");
+    let input = include_str!("../input.txt");
 
     let t = Instant::now();
     let result = part_one(input);
@@ -71,7 +71,7 @@ fn part_two(input: &str) -> u32
     (0..buttons.len())
         .for_each(|i| {
             println!("{:?}", joltage[i]);
-            let c = dfs(&joltage[i], &buttons[i]);
+            let c = dfs(&joltage[i], &buttons[i], 0xFFFF);
             println!("{c}");
             count += c;
         });
@@ -101,7 +101,7 @@ fn lighters(n: u16, i: i32, btns: &[u16]) -> Vec<(u16, i32)>
         .collect()
 }
 
-fn dfs(joltage: &[u32], btns: &[Vec<usize>]) -> u32
+fn dfs(joltage: &[u32], btns: &[Vec<usize>], active: u32) -> u32
 {
     use itertools::Itertools;
 
@@ -112,20 +112,31 @@ fn dfs(joltage: &[u32], btns: &[Vec<usize>]) -> u32
         // ignoring any at 0.
         let (_, ix) = (0..joltage.len())
             .filter(|i| joltage[*i] != 0)
-            .map(|i| (btns.iter().filter(|v| v.contains(&i)).count(), i))
+            .map(|i| (
+                btns.iter()
+                    .enumerate()
+                    .filter(|(p, v)| active & 1 << *p != 0 && v.contains(&i))
+                    .count(),
+                i
+            ))
             .min()
             .unwrap();
 
         // Partition the buttons into used and remaining based on if
         // they manipulate the jolt from above.
         let (used, rem) = btns.iter()
-            .fold((vec![], vec![]), |(mut used, mut rem), v| {
-                if v.contains(&ix) { used.push(v.clone()) } else { rem.push(v.clone()) }
-                (used, rem)
+            .enumerate()
+            .filter(|(i, _)| active & 1 << i != 0)
+            .fold((0u32, 0u32), |(u, r), (i, v)| {
+                if v.contains(&ix) { 
+                    (u | 1 << i, r)
+                } else {
+                    (u, r | 1 << i)
+                }
             });
 
         let mut count = u32::MAX;
-        if !used.is_empty() {
+        if used != 0 {
             // Generate new target states by applying the buttons enough
             // times in all combinations to hit the required value for the
             // target jolt. Recurse and do it over again with the reduced set
@@ -134,19 +145,19 @@ fn dfs(joltage: &[u32], btns: &[Vec<usize>]) -> u32
             let jolt = joltage[ix];
 
             let x = jolt as i32;
-            let n = used.len() as i32;
-            let mut ci = (0..x + n - 1).combinations(used.len() - 1);
+            let n = used.count_ones() as i32;
+            let mut ci = (0..x + n - 1).combinations(n as usize - 1);
 
-            let mut coefs = vec![0;used.len()];
+            let mut coefs = vec![0;n as usize];
             let mut jolts = vec![0;joltage.len()];
             let mut state = vec![0;joltage.len()];
 
-            while next_coefs(&mut coefs, &mut ci, jolt, used.len()) {
-                next_state(&mut state, &coefs, &used);
+            while next_coefs(&mut coefs, &mut ci, jolt, used.count_ones()) {
+                next_state(&mut state, &coefs, btns, used);
                 if joltage.iter().zip(&state).all(|(a, b)| b <= a) {
                     (0..joltage.len()).for_each(|i| jolts[i] = joltage[i] - state[i]);
-                    let r = dfs(&jolts, &rem);
-                    if r != u32::MAX { count = count.min(jolt + r)}
+                    let res = dfs(&jolts, btns, rem);
+                    if res != u32::MAX { count = count.min(jolt + res)}
                 }
 
                 state.fill(0);
@@ -157,15 +168,18 @@ fn dfs(joltage: &[u32], btns: &[Vec<usize>]) -> u32
     }
 }
 
-fn next_state(cv: &mut [u32], coefs: &[u32], btns: &[Vec<usize>])
+fn next_state(cv: &mut [u32], coefs: &[u32], btns: &[Vec<usize>], used: u32)
 {
     coefs.iter()
-        .enumerate()
-        .filter(|(_, c)| **c > 0)
-        .for_each(|(i, c)| btns[i].iter().for_each(|j| cv[*j] += *c));
+        .zip(1..)
+        .filter(|(c, _)| **c > 0)
+        .for_each(|(c, i)| {
+            let ix = nth_set(used, i).unwrap();
+            btns[ix].iter().for_each(|j| cv[*j] += *c)
+        });
 }
 
-fn next_coefs<T>(coefs: &mut [u32], it: &mut T, x: u32, n: usize) -> bool
+fn next_coefs<T>(coefs: &mut [u32], it: &mut T, x: u32, n: u32) -> bool
     where T: Iterator<Item = Vec<i32>>
 {
     let x1 = x as i32;
@@ -185,6 +199,21 @@ fn next_coefs<T>(coefs: &mut [u32], it: &mut T, x: u32, n: usize) -> bool
     }
 }
 
+fn nth_set(x: u32, n: usize) -> Option<usize> {
+    let mut count = 0;
+
+    for i in 0..32 {
+        if (x & (1 << i)) != 0 {
+            count += 1;
+            if count == n {
+                return Some(i);
+            }
+        }
+    }
+
+    None
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -201,7 +230,7 @@ mod tests {
     fn input_part_two()
     {
         let input = include_str!("../input.txt");
-        assert_eq!(part_two(input), 0);
+        assert_eq!(part_two(input), 19810);
     }
 
     #[test]

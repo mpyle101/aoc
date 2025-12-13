@@ -19,7 +19,7 @@ fn part_one(input: &str) -> usize
         .map(|m| m.items().filter(|(_, c)| **c == b'#').count())
         .collect::<Vec<_>>();
 
-    // Filter out any where the total space required by the
+    // Filter out any trees where the total space required by the
     // tiles is larger than the reqion area.
     let maybe = trees.iter()
         .filter(|tree| might_fit(&counts, tree))

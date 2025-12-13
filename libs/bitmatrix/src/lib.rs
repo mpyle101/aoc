@@ -1,7 +1,6 @@
 //! Matrix of bits and utilities to rotate, transpose, etc.
 #![allow(dead_code)]
 
-use std::error::Error;
 use std::ops::{
     BitAnd,
     BitAndAssign,
@@ -91,6 +90,14 @@ impl BitMatrix {
     {
         let (w, m) = bit_pos(row, col, self.cols);
         self.data[w] &= !m
+    }
+
+    /// Returns an iterator over rows, each row is itself an iterator over bools
+    pub fn iter(&self) -> impl Iterator<Item = impl Iterator<Item = bool> + '_> + '_
+    {
+        (0..self.rows).map(move |r| {
+            (0..self.cols).map(move |c| self.get(r, c))
+        })
     }
 
     /// Returns an iterator over ((row, col), bool) for each cell

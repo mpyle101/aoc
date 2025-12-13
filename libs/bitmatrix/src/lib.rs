@@ -64,7 +64,18 @@ impl BitMatrix {
         BitMatrix { rows, cols, data }
     }
 
-    /// Create a new matrix where each cell value is determined
+    /// Creates a new matrix with on bits set from a vector of
+    /// row, column positions.
+    pub fn from_iter<I>(rows: usize, cols: usize, iter: I) -> Self
+        where I: IntoIterator<Item = (usize, usize)>,
+    {
+        let mut m = BitMatrix::new(rows, cols);
+        iter.into_iter().for_each(|(r, c)| m.set(r, c));
+
+        m
+    }
+
+    /// Creates a new matrix where each cell value is determined
     /// by a function of its (row, column).
     pub fn from_fn<F>(rows: usize, cols: usize, mut f: F) -> Self
         where F: FnMut(usize, usize) -> bool,
@@ -148,11 +159,11 @@ impl BitMatrix {
     /// Get the bit mask corresponding to a set of position in the matrix
     /// specified by (row, column) tuples. This mask can then be |'d with
     /// another matrix to set the entries or &'d to see if the entries are set.
-    pub fn get_mask(&self, tile: &[(u32, u32)], row: usize, col: usize) -> BitMatrix
+    pub fn get_mask(&self, tile: &[(usize, usize)], row: usize, col: usize) -> BitMatrix
     {
         let data = tile.iter()
             .fold(vec![0u64; self.data.len()], |mut mask, (r, c)| {
-                let (wr, wc) = (row + *r as usize, col + *c as usize);
+                let (wr, wc) = (row + *r, col + *c);
                 let (w, m) = bit_pos(wr, wc, self.cols);
                 mask[w] |= m;
                 mask

@@ -1,7 +1,7 @@
 //! Matrix of bits and utilities to rotate, transpose, etc.
-
 #![allow(dead_code)]
 
+use std::error::Error;
 use std::ops::{
     BitAnd,
     BitAndAssign,
@@ -9,8 +9,11 @@ use std::ops::{
     BitOrAssign,
     BitXor,
     BitXorAssign,
+    Range,
 };
 
+#[derive(Debug)]
+pub struct BadIndex;
 
 #[derive(Clone, Debug)]
 pub struct BitMatrix {
@@ -158,6 +161,23 @@ impl BitMatrix {
             .filter(move |&(rr, cc)| (rr != r || cc != c) && (diag || rr == r || cc == c))
     }
 
+    /// Returns a copy of the sub matrix.
+    pub fn slice(&self, rows: Range<usize>, cols: Range<usize>) -> Result<Self, BadIndex>
+    {
+        if rows.end > self.rows || cols.end > self.cols {
+            return Err(BadIndex);
+        }
+
+        let mut m = BitMatrix::new(rows.len(), cols.len());
+        rows
+            .enumerate()
+            .flat_map(move |r| cols.clone().enumerate().map(move |c| (r, c)))
+            .filter(|((_, r), (_, c))| self.get(*r, *c))
+            .for_each(|((a, _), (b, _))| m.set(a, b));
+
+        Ok(m)
+    }
+
     /// Returns a copy of the matrix after transposition.
     pub fn transposed(&self) -> Self
     {
@@ -221,7 +241,7 @@ impl BitMatrix {
             self.rows == self.cols,
             "attempt to rotate a non-square matrix"
         );
-        
+
         let mut m = self.transposed();
 
         match times % 4 {

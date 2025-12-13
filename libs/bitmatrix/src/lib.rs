@@ -62,35 +62,35 @@ impl BitMatrix {
         BitMatrix { rows, cols, data }
     }
     
-    /// Get the bit at (row, col)
+    /// Gets the bit at (row, col)
     pub fn get(&self, row: usize, col: usize) -> bool
     {
         let (w, m) = bit_pos(row, col, self.cols);
         self.data[w] & m != 0
     }
 
-    /// Set the bit at (row, col) to 1
+    /// Sets the bit at (row, col) to 1
     pub fn set(&mut self, row: usize, col: usize)
     {
         let (w, m) = bit_pos(row, col, self.cols);
         self.data[w] |= m
     }
 
-    /// Set or clear the entry based on if the value is zero or not.
+    /// Sets or clears the entry based on if the value is zero or not.
     pub fn update(&mut self, row: usize, col: usize, val: bool)
     {
         let (w, m) = bit_pos(row, col, self.cols);
         if val { self.data[w] &= !m } else { self.data[w] |= m }
     }
 
-    /// Clear the value at (row, col) - set bit to 0
+    /// Clears the value at (row, col) - set bit to 0
     pub fn clear(&mut self, row: usize, col: usize)
     {
         let (w, m) = bit_pos(row, col, self.cols);
         self.data[w] &= !m
     }
 
-    /// Return an iterator over ((row, col), bool) for each cell
+    /// Returns an iterator over ((row, col), bool) for each cell
     pub fn items(&self) -> impl Iterator<Item = ((usize, usize), bool)> + '_
     {
         (0..self.rows).flat_map(move |r| {
@@ -101,7 +101,7 @@ impl BitMatrix {
         })
     }
 
-    /// Return an iterator over ((row, col), BitRef) for each cell which
+    /// Returns an iterator over ((row, col), BitRef) for each cell which
     /// can be used to modify the cell value.
     /// 
     /// bm.items_mut(|(r, c), cell| {
@@ -135,7 +135,30 @@ impl BitMatrix {
         Self { data, ..*self }
     }
 
-    /// Return a copy of the matrix after transposition.
+    /// Returns an iterator on neighbours of a given matrix cell, with or
+    /// without considering diagonals. The neighbours list is determined
+    /// at the time of calling this method and will not change even if new
+    /// rows are added between the method call and the iterator consumption.
+    ///
+    /// This function returns an empty iterator if the reference position does
+    /// not correspond to an existing matrix element.
+    ///
+    /// (swiped from pathfinding::matrix::Matrix)
+    pub fn neighbours(&self, (r, c): (usize, usize), diag: bool) -> impl Iterator<Item = (usize, usize)> {
+        let (rr, cr) = if r < self.rows && c < self.cols {
+            (
+                r.saturating_sub(1)..(self.rows).min(r + 2),
+                c.saturating_sub(1)..(self.cols).min(c + 2),
+            )
+        } else {
+            (0..0, 0..0)
+        };
+        rr
+            .flat_map(move |r| cr.clone().map(move |c| (r, c)))
+            .filter(move |&(rr, cc)| (rr != r || cc != c) && (diag || rr == r || cc == c))
+    }
+
+    /// Returns a copy of the matrix after transposition.
     pub fn transposed(&self) -> Self
     {
         assert!(
@@ -157,8 +180,9 @@ impl BitMatrix {
         m
     }
 
-    /// Flip the matrix around the vertical axis.
-    pub fn flip_lr(&mut self) {
+    /// Flips the matrix around the vertical axis (left/right).
+    pub fn flip_vert(&mut self)
+    {
         for r in 0..self.rows {
             for c in 0..self.cols / 2 {
                 let opposite = self.cols - 1 - c;
@@ -173,20 +197,83 @@ impl BitMatrix {
         }
     }
 
-    /// Flip the matrix around the horizontal axis.
-    pub fn flip_ud(&mut self) {
+    /// Flips the matrix around the horizontal axis (up/down).
+    pub fn flip_horz(&mut self)
+    {
         for r in 0..self.rows / 2 {
             let opposite = self.rows - 1 - r;
 
             for c in 0..self.cols {
-                // swap the bits (top, bottom)
-                let tp = self.get(r, c);
-                let bt = self.get(opposite, c);
+                // swap the bits (up, down)
+                let up = self.get(r, c);
+                let dn = self.get(opposite, c);
 
-                self.update(r, c, bt);
-                self.update(opposite, c, tp);
+                self.update(r, c, dn);
+                self.update(opposite, c, up);
             }
         }
+    }
+
+    /// Rotates a square matrix in place 90 degrees clockwise
+    /// x number of `times` modulo 4.
+    pub fn rotate_cw(&mut self, times: usize) {
+        assert!(
+            self.rows == self.cols,
+            "attempt to rotate a non-square matrix"
+        );
+        
+        let mut m = self.transposed();
+
+        match times % 4 {
+            0 => (),
+            1 => m.flip_vert(), // 90° clockwise
+            2 => {              // 180° clockwise
+                m.flip_horz();
+                m.flip_vert();
+            }
+            3 => m.flip_horz(), // 270° clockwise
+            _ => unreachable!(),
+        }
+
+        // Replace self with the rotated grid
+        *self = m;
+    }
+
+    /// Rotates a square matrix counter-clock-wise x number of times.
+    pub fn rotate_ccw(&mut self, times: usize) {
+        self.rotate_cw(4 - (times % 4));
+    }
+
+    /// Returns a vertically flipped clone.
+    pub fn flipped_vert(&self) -> Self
+    {
+        let mut m = self.clone();
+        m.flip_vert();
+        m
+    }
+
+    /// Returns a horizontally flipped clone.
+    pub fn flipped_horz(&self) -> Self
+    {
+        let mut m = self.clone();
+        m.flip_horz();
+        m
+    }
+
+    /// Returns a clockwise rotated clone.
+    pub fn rotated_cw(&self, times: usize) -> Self
+    {
+        let mut m = self.clone();
+        m.rotate_cw(times);
+        m
+    }
+
+    /// Returns a counter-clockwise rotated clone.
+    pub fn rotated_ccw(&self, times: usize) -> Self
+    {
+        let mut m = self.clone();
+        m.rotate_ccw(times);
+        m
     }
 }
 

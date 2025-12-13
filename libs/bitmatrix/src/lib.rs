@@ -1,3 +1,5 @@
+//! Matrix of bits and utilities to rotate, transpose, etc.
+
 #![allow(dead_code)]
 
 use std::ops::{
@@ -8,6 +10,7 @@ use std::ops::{
     BitXor,
     BitXorAssign,
 };
+
 
 #[derive(Clone, Debug)]
 pub struct BitMatrix {
@@ -74,11 +77,10 @@ impl BitMatrix {
     }
 
     /// Set or clear the entry based on if the value is zero or not.
-    pub fn update<T>(&mut self, row: usize, col: usize, val: T)
-        where T: std::cmp::PartialEq + From<u8>
+    pub fn update(&mut self, row: usize, col: usize, val: bool)
     {
         let (w, m) = bit_pos(row, col, self.cols);
-        if val == T::from(0u8) { self.data[w] &= !m } else { self.data[w] |= m }
+        if val { self.data[w] &= !m } else { self.data[w] |= m }
     }
 
     /// Clear the value at (row, col) - set bit to 0
@@ -99,10 +101,28 @@ impl BitMatrix {
         })
     }
 
+    /// Return an iterator over ((row, col), BitRef) for each cell which
+    /// can be used to modify the cell value.
+    /// 
+    /// bm.items_mut(|(r, c), cell| {
+    ///     if (r + c) % 2 == 0 { cell.set(); } else { cell.clear(); }
+    /// });
+    pub fn items_mut<F>(&mut self, mut f: F)
+        where F: FnMut((usize, usize), &mut BitRef),
+    {
+        for r in 0..self.rows {
+            for c in 0..self.cols {
+                let (w, mask) = bit_pos(r, c, self.cols);
+                let mut bit_ref = BitRef { word: &mut self.data[w], mask };
+                f((r, c), &mut bit_ref);
+            }
+        }
+    }
+
     /// Get the bit mask corresponding to a set of position in the matrix
     /// specified by (row, column) tuples. This mask can then be |'d with
     /// another matrix to set the entries or &'d to see if the entries are set.
-    fn get_mask(&self, tile: &[(u32, u32)], row: usize, col: usize) -> BitMatrix
+    pub fn get_mask(&self, tile: &[(u32, u32)], row: usize, col: usize) -> BitMatrix
     {
         let data = tile.iter()
             .fold(vec![0u64; self.data.len()], |mut mask, (r, c)| {
@@ -113,6 +133,91 @@ impl BitMatrix {
             });
 
         Self { data, ..*self }
+    }
+
+    /// Return a copy of the matrix after transposition.
+    pub fn transposed(&self) -> Self
+    {
+        assert!(
+            self.rows != 0 || self.cols == 0,
+            "this operation would create a matrix with empty rows"
+        );
+        let mut m = BitMatrix {
+            rows: self.cols,
+            cols: self.rows,
+            data: vec![0u64; self.data.len()],
+        };
+
+        for r in 0..self.rows {
+            for c in 0..self.cols {
+                m.update(c, r, self.get(r, c));
+            }
+        }
+
+        m
+    }
+
+    /// Flip the matrix around the vertical axis.
+    pub fn flip_lr(&mut self) {
+        for r in 0..self.rows {
+            for c in 0..self.cols / 2 {
+                let opposite = self.cols - 1 - c;
+
+                // swap the bits (left, right)
+                let lt = self.get(r, c);
+                let rt = self.get(r, opposite);
+
+                self.update(r, c, rt);
+                self.update(r, opposite, lt);
+            }
+        }
+    }
+
+    /// Flip the matrix around the horizontal axis.
+    pub fn flip_ud(&mut self) {
+        for r in 0..self.rows / 2 {
+            let opposite = self.rows - 1 - r;
+
+            for c in 0..self.cols {
+                // swap the bits (top, bottom)
+                let tp = self.get(r, c);
+                let bt = self.get(opposite, c);
+
+                self.update(r, c, bt);
+                self.update(opposite, c, tp);
+            }
+        }
+    }
+}
+
+pub struct BitRef<'a> {
+    word: &'a mut u64,
+    mask: u64,
+}
+
+impl<'a> BitRef<'a> {
+    /// Get the current value of the cell
+    pub fn get(&self) -> bool
+    {
+        (*self.word & self.mask) != 0
+    }
+
+    /// Set the cell to true
+    pub fn set(&mut self)
+    {
+        *self.word |= self.mask;
+    }
+
+    /// Clear the cell to false
+    pub fn clear(&mut self)
+    {
+        *self.word &= !self.mask;
+    }
+
+    /// Set the cell to a specific value
+    pub fn set_to(&mut self, val: bool)
+    {
+        if val { self.set() } else { self.clear() }
     }
 }
 

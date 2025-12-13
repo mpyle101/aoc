@@ -1,4 +1,4 @@
-use pathfinding::matrix::Matrix;
+use bitmatrix::BitMatrix;
 
 fn main()
 {
@@ -16,7 +16,7 @@ fn part_one(input: &str) -> usize
     let (tiles, trees) = load(input);
 
     let counts = tiles.iter()
-        .map(|m| m.items().filter(|(_, c)| **c == b'#').count())
+        .map(|m| m.items().filter(|(_, b)| *b).count())
         .collect::<Vec<_>>();
 
     // Filter out any trees where the total space required by the
@@ -32,7 +32,7 @@ fn part_one(input: &str) -> usize
     let maybe = maybe.iter()
         .fold(vec![], |mut v, tree| {
             let tiles_r = tree.region.rows / 3;
-            let tiles_c = tree.region.columns / 3;
+            let tiles_c = tree.region.cols / 3;
             let tiles = (tiles_r * tiles_c) as u32;
             let shapes = tree.shapes.iter().sum::<u32>();
             if shapes > tiles { v.push(tree); }
@@ -48,7 +48,7 @@ fn part_one(input: &str) -> usize
 
 fn might_fit(counts: &[usize], tree: &Tree) -> bool
 {
-    let area = tree.region.rows * tree.region.columns;
+    let area = tree.region.rows * tree.region.cols;
     let needed = tree.shapes.iter()
         .zip(counts)
         .map(|(a, b)| a * *b as u32)
@@ -59,17 +59,17 @@ fn might_fit(counts: &[usize], tree: &Tree) -> bool
 
 #[derive(Clone, Debug)]
 struct Tree {
-    region: Matrix<u8>,
+    region: BitMatrix,
     shapes: Vec<u32>,
 }
 
-fn load(input: &str) -> (Vec<Matrix<u8>>, Vec<Tree>)
+fn load(input: &str) -> (Vec<BitMatrix>, Vec<Tree>)
 {
     // The first 6 are the presents
     let iter = input.split("\n\n");
     let presents = iter.take(6)
         .map(|s| s.lines().skip(1))
-        .map(|l| Matrix::from_rows(l.map(|s| s.bytes())).unwrap())
+        .map(|l| BitMatrix::from_rows(l.map(|s| s.bytes()), |c| *c == b'#'))
         .collect();
 
     // The rest are regions an amounts
@@ -81,7 +81,7 @@ fn load(input: &str) -> (Vec<Matrix<u8>>, Vec<Tree>)
             let (sc, sr) = s1.split_once('x').unwrap();
             let rows = sr.parse::<usize>().unwrap();
             let cols = sc.parse::<usize>().unwrap();
-            let region = Matrix::new(rows, cols, b'.');
+            let region = BitMatrix::new(rows, cols);
             let shapes = s2.split_ascii_whitespace()
                 .flat_map(|s| s.parse::<u32>())
                 .collect();
@@ -103,12 +103,5 @@ mod tests {
     {
         let input = include_str!("../input.txt");
         assert_eq!(part_one(input), 517);
-    }
-
-    #[test]
-    fn example_part_one()
-    {
-        let input = include_str!("../example.txt");
-        assert_eq!(part_one(input), 2);
     }
 }

@@ -1,4 +1,4 @@
-use pathfinding::prelude::Matrix;
+use bitmatrix::BitMatrix;
 
 #[derive(Clone, Copy, Debug)]
 struct Edges {
@@ -10,7 +10,7 @@ struct Edges {
 
 struct TileData {
     id: u32,
-    mat: Matrix<u8>,
+    mat: BitMatrix,
     edges: Edges,
 }
 
@@ -69,17 +69,17 @@ fn part_two(input: &str) -> usize
         image.rotated_cw(1),
         image.rotated_cw(2),
         image.rotated_cw(3),
-        image.flipped_lr(),
-        image.flipped_lr().rotated_cw(1),
-        image.flipped_lr().rotated_cw(2),
-        image.flipped_lr().rotated_cw(3),
+        image.flipped_vert(),
+        image.flipped_vert().rotated_cw(1),
+        image.flipped_vert().rotated_cw(2),
+        image.flipped_vert().rotated_cw(3),
     ];
 
     for img in images {
         let n = sea_monsters(&img);
         if n > 0 { 
             let rough: usize = img.iter()
-                .map(|row| row.iter().filter(|c| **c == b'#').count())
+                .map(|row| row.filter(|c| *c).count())
                 .sum();
             return rough - (n * SEA_MONSTER.len())
          }
@@ -88,23 +88,13 @@ fn part_two(input: &str) -> usize
     0
 }
 
-#[allow(dead_code)]
-fn draw(m: &Matrix<u8>)
-{
-    m.iter()
-        .for_each(|row| {
-            row.iter().for_each(|b| print!("{}", *b as char));
-            println!();
-        });
-}
-
 fn load(input: &str) -> Tiles
 {
     let scans = input.split("\n\n")
         .map(|s| {
             let (s1, s2) = s.split_once('\n').unwrap();
             let id = s1[5..9].parse::<u32>().unwrap();
-            let data = Matrix::from_rows(s2.lines().map(|l| l.bytes())).unwrap();
+            let data = BitMatrix::from_rows(s2.lines().map(|l| l.bytes()), |c| *c == b'#');
 
             (id, data)
         })
@@ -117,29 +107,29 @@ fn load(input: &str) -> Tiles
                 make_tile(*id, tile.rotated_cw(1)),
                 make_tile(*id, tile.rotated_cw(2)),
                 make_tile(*id, tile.rotated_cw(3)),
-                make_tile(*id, tile.flipped_lr()),
-                make_tile(*id, tile.flipped_lr().rotated_cw(1)),
-                make_tile(*id, tile.flipped_lr().rotated_cw(2)),
-                make_tile(*id, tile.flipped_lr().rotated_cw(3)),
+                make_tile(*id, tile.flipped_vert()),
+                make_tile(*id, tile.flipped_vert().rotated_cw(1)),
+                make_tile(*id, tile.flipped_vert().rotated_cw(2)),
+                make_tile(*id, tile.flipped_vert().rotated_cw(3)),
             ]
         })
         .collect()
 }
 
-fn make_tile(id: u32, m: Matrix<u8>) -> TileData
+fn make_tile(id: u32, m: BitMatrix) -> TileData
 {
     let sl = m.slice(0..m.rows, 0..1).unwrap();
     let lt = make_edge(&sl);
-    let sl = m.slice(0..m.rows, m.columns-1..m.columns).unwrap();
+    let sl = m.slice(0..m.rows, m.cols-1..m.cols).unwrap();
     let rt = make_edge(&sl);
-    let sl = m.slice(0..1, 0..m.columns).unwrap();
+    let sl = m.slice(0..1, 0..m.cols).unwrap();
     let top = make_edge(&sl);
-    let sl = m.slice(m.rows-1..m.rows, 0..m.columns).unwrap();
+    let sl = m.slice(m.rows-1..m.rows, 0..m.cols).unwrap();
     let bot = make_edge(&sl);
 
     // We don't need the tile content for part one and don't need
     // the edges for part two.
-    let mat = m.slice(1..m.rows-1, 1..m.columns-1).unwrap();
+    let mat = m.slice(1..m.rows-1, 1..m.cols-1).unwrap();
 
     TileData { id, mat, edges: Edges { lt, rt, top, bot } }
 }
@@ -197,22 +187,22 @@ fn place_tile(
     true
 }
 
-fn make_edge(m: &Matrix<u8>) -> u16
+fn make_edge(m: &BitMatrix) -> u16
 {
     m.iter()
-        .flat_map(|r| r.iter())
+        .flatten()
         .enumerate()
-        .filter(|(_, c)| **c == b'#')
+        .filter(|(_, c)| *c)
         .fold(0, |n, (i, _)| n | 1 << i)
 }
 
-fn build_image(layout: &Layout, size: usize, tiles: &Tiles) -> Matrix<u8>
+fn build_image(layout: &Layout, size: usize, tiles: &Tiles) -> BitMatrix
 {
     // Ugly but we need to know how big the tiles are now.
     let rows = tiles[0][0].mat.rows;
     let dims = rows * size;
 
-    Matrix::from_fn(dims, dims, |(r, c)| {
+    BitMatrix::from_fn(dims, dims, |r, c| {
         let i  = r / rows;  // row of tile in layout
         let ii = r % rows;  // row in tile
         let j  = c / rows;  // col of tile in layout
@@ -220,7 +210,7 @@ fn build_image(layout: &Layout, size: usize, tiles: &Tiles) -> Matrix<u8>
 
         let tile = &layout[i * size + j];
         let data = &tiles[tile.pos][tile.idx];
-        data.mat[(ii, jj)]
+        data.mat.get(ii, jj)
     })
 }
 
@@ -234,12 +224,12 @@ const SEA_MONSTER: [(usize, usize);15] = [
     (2, 1), (2, 4), (2, 7), (2, 10), (2, 13), (2, 16)
 ];
 
-fn sea_monsters(m: &Matrix<u8>) -> usize
+fn sea_monsters(m: &BitMatrix) -> usize
 {
     (0..m.rows - 2)
-        .flat_map(|r| (0..m.columns - 19).map(move |c| (r, c)))
+        .flat_map(|r| (0..m.cols - 19).map(move |c| (r, c)))
         .filter(|(r, c)| {
-            SEA_MONSTER.iter().all(|(dr, dc)| m[(r + dr, c + dc)] == b'#')
+            SEA_MONSTER.iter().all(|(dr, dc)| m.get(r + dr, c + dc))
         })
         .count()
 }

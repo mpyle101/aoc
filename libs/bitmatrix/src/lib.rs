@@ -63,6 +63,22 @@ impl BitMatrix {
 
         BitMatrix { rows, cols, data }
     }
+
+    /// Create a new matrix where each cell value is determined
+    /// by a function of its (row, column).
+    pub fn from_fn<F>(rows: usize, cols: usize, mut f: F) -> Self
+        where F: FnMut(usize, usize) -> bool,
+    {
+        let mut m = BitMatrix::new(rows, cols);
+
+        for r in 0..rows {
+            for c in 0..cols {
+                if f(r, c) { m.set(r, c); }
+            }
+        }
+
+        m
+    }
     
     /// Gets the bit at (row, col)
     pub fn get(&self, row: usize, col: usize) -> bool
@@ -82,7 +98,7 @@ impl BitMatrix {
     pub fn update(&mut self, row: usize, col: usize, val: bool)
     {
         let (w, m) = bit_pos(row, col, self.cols);
-        if val { self.data[w] &= !m } else { self.data[w] |= m }
+        if val { self.data[w] |= m } else { self.data[w] &= !m }
     }
 
     /// Clears the value at (row, col) - set bit to 0
@@ -249,21 +265,24 @@ impl BitMatrix {
             "attempt to rotate a non-square matrix"
         );
 
-        let mut m = self.transposed();
-
         match times % 4 {
             0 => (),
-            1 => m.flip_vert(), // 90° clockwise
-            2 => {              // 180° clockwise
-                m.flip_horz();
+            1 => {  // 90° clockwise
+                let mut m = self.transposed();
                 m.flip_vert();
+                *self = m;
+            },
+            2 => { // 180° clockwise
+                self.flip_horz();
+                self.flip_vert();
             }
-            3 => m.flip_horz(), // 270° clockwise
+            3 => { // 270° clockwise
+                let mut m = self.transposed();
+                m.flip_horz();
+                *self = m;
+            },
             _ => unreachable!(),
         }
-
-        // Replace self with the rotated grid
-        *self = m;
     }
 
     /// Rotates a square matrix counter-clock-wise x number of times.
@@ -301,6 +320,16 @@ impl BitMatrix {
         let mut m = self.clone();
         m.rotate_ccw(times);
         m
+    }
+
+    /// Draw the matrix to stdout using # for on and . for off.
+    pub fn draw(&self) {
+        for r in 0..self.rows {
+            for c in 0..self.cols {
+                print!("{}", if self.get(r, c) { '#' } else { '.' });
+            }
+            println!();
+        }
     }
 }
 

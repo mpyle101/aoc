@@ -11,6 +11,10 @@ fn main()
     let t = Instant::now();
     let result = part_two(input);
     println!("Part 2: {} ({:?})", result, t.elapsed());
+
+    // let t = Instant::now();
+    // let result = part_two_dfs(input);
+    // println!("Part 2: {} ({:?})", result, t.elapsed());
 }
 
 fn part_one(input: &str) -> usize
@@ -43,6 +47,71 @@ fn part_one(input: &str) -> usize
 }
 
 fn part_two(input: &str) -> u32
+{    
+    let mut buttons = vec![];
+    let mut joltage = vec![];
+    input.lines()
+        .for_each(|l| {
+            let v = l.split_whitespace().collect::<Vec<_>>();
+            let j = v.last().unwrap();
+            let jlts = j[1..j.len() - 1].split(',')
+                .flat_map(|s| s.parse::<u32>())
+                .collect::<Vec<_>>();
+
+            let mut btns = v[1..v.len() - 1].iter()
+                .map(|b| {
+                    b[1..b.len() - 1].split(',')
+                        .flat_map(|s| s.parse::<usize>())
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
+            btns.sort_by_key(|v| std::cmp::Reverse(v.len()));
+
+            joltage.push(jlts);
+            buttons.push(btns);
+        });
+
+    (0..joltage.len())
+        .map(|i| solve(&joltage[i], &buttons[i]))
+        .sum()
+}
+
+fn solve(joltage: &[u32], buttons: &[Vec<usize>]) -> u32
+{
+    use good_lp::{default_solver, variable, variables, SolverModel, Solution, constraint, Expression};
+
+    let btns = (0..joltage.len())
+        .map(|i| buttons.iter()
+            .enumerate()
+            .filter(|(_, v)| v.contains(&i))
+            .map(|(i, _)| i)
+            .collect::<Vec<_>>()
+        )
+        .collect::<Vec<_>>();
+
+    let mut vars = variables!();
+    let xs = (0..buttons.len())
+        .map(|_| vars.add(variable().integer().min(0)))
+        .collect::<Vec<_>>();
+
+    let mut model = vars
+        .minimise(xs.iter().copied().sum::<Expression>())
+        .using(default_solver);
+    model.set_parameter("log", "0");
+
+    for (i, n) in joltage.iter().enumerate() {
+        let expr: Expression = btns[i].iter().map(|&p| xs[p]).sum();
+        model = model.with(constraint!(expr == *n));
+    }
+
+    let solution = model.solve().unwrap();
+    xs.iter()
+        .map(|xi| solution.value(*xi) as u32)
+        .sum()
+}
+
+#[allow(dead_code)]
+fn part_two_dfs(input: &str) -> u32
 {
     let mut buttons = vec![];
     let mut joltage = vec![];
